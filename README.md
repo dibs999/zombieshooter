@@ -1,6 +1,6 @@
 # BUNKER 115: Undead Protocol
 
-A **Call of Duty Zombies**-inspired 3D survival first-person shooter built in **Godot 4** (`Forward+`), with **39 custom 3D models sculpted, rigged, and animated in Blender 4.2.9 LTS** (`bpy`), procedural PBR materials/textures, and synthesized 3D spatial audio.
+A **Call of Duty Zombies**-inspired 3D survival first-person shooter built in **Godot 4** (`Forward+`), with **46 custom 3D models sculpted, rigged, and animated in Blender 4.2.9 LTS** (`bpy`), procedural PBR materials/textures, and synthesized 3D spatial audio.
 
 > Further mechanics & design research notes: [DESIGN.md](DESIGN.md)
 
@@ -76,7 +76,7 @@ All Pack-a-Punched weapons feature animated cyan-magenta glowing runic camouflag
 
 ## Blender 3D Asset & Procedural Media Pipeline
 
-Visual styling was guided by 4 generated concept-art sheets in [`assets_src/concept_art/`](assets_src/concept_art/), and **all 39 3D models** (weapons, rigged/animated zombies & hellhound, perk machines, Mystery Box, Pack-a-Punch, power-up drops, traps, props, and tank) are built reproducibly via **Blender `bpy`** scripts in [`tools/blender/`](tools/blender/):
+Visual styling was guided by 4 generated concept-art sheets in [`assets_src/concept_art/`](assets_src/concept_art/), and **all 46 3D models** (weapons, first-person arms/hands, rigged/animated zombies & hellhound, perk machines, Mystery Box, Pack-a-Punch, power-up drops, blast doors, overhead gantry, pipe manifolds, traps, props, and tank) are built reproducibly via **Blender `bpy`** scripts in [`tools/blender/`](tools/blender/):
 - Source `.blend` files: [`assets_src/blend/`](assets_src/blend/)
 - Exported glTF `.glb` assets: [`assets/models/`](assets/models/)
 - Procedural PBR textures, chalk drawings, marquees, Perk UI icons: [`tools/textures/generate_textures.py`](tools/textures/generate_textures.py)

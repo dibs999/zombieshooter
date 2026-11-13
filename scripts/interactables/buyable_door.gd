@@ -8,7 +8,7 @@ class_name BuyableDoor
 @export var requires_power: bool = false
 @export var nav_bridge_path: NodePath
 
-@onready var door_mesh: MeshInstance3D = $DoorMesh
+@onready var door_mesh: Node3D = $DoorMesh
 @onready var blocker_col: CollisionShape3D = $StaticBody3D/CollisionShape3D
 @onready var interact_col: CollisionShape3D = $InteractArea/CollisionShape3D
 @onready var label_3d: Label3D = $Label3D

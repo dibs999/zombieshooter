@@ -27,7 +27,7 @@ func _load_mesh() -> void:
 	if ResourceLoader.exists(mpath):
 		var inst := (load(mpath) as PackedScene).instantiate()
 		model_holder.add_child(inst)
-		inst.scale = Vector3.ONE * 1.35
+		inst.scale = Vector3.ONE * 1.05
 
 
 func _process(delta: float) -> void:

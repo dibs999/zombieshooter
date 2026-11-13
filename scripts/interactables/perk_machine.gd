@@ -27,7 +27,7 @@ func _is_powered() -> bool:
 
 
 func _refresh_power_visuals() -> void:
-	light.light_energy = 2.8 if _is_powered() else 0.12
+	light.light_energy = 1.8 if _is_powered() else 0.12
 
 
 func _on_perks_changed(_p: Array[String]) -> void:

@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _refresh_lights() -> void:
-	forge_light.light_energy = 4.2 if GameManager.power_on else 0.3
+	forge_light.light_energy = 2.8 if GameManager.power_on else 0.3
 
 
 func get_interact_prompt(player: Node) -> String:
@@ -42,5 +42,5 @@ func interact(player: Node) -> void:
 			var upgraded: Dictionary = player.get_current_weapon_state()
 			GameManager.powerup_banner.emit("UPGRADED: %s!" % WeaponDB.get_display_name(upgraded).to_upper(), Color(0.2, 0.95, 1.0))
 			var tw := create_tween()
-			forge_light.light_energy = 12.0
-			tw.tween_property(forge_light, "light_energy", 4.2, 0.8)
+			forge_light.light_energy = 6.5
+			tw.tween_property(forge_light, "light_energy", 2.8, 0.8)

@@ -13,6 +13,7 @@ var _pulse_t: float = 0.0
 
 var _mat_cobble: StandardMaterial3D
 var _mat_concrete: StandardMaterial3D
+var _mat_brick: StandardMaterial3D
 var _mat_tile: StandardMaterial3D
 var _mat_steel: StandardMaterial3D
 var _mat_wood: StandardMaterial3D
@@ -53,6 +54,12 @@ func _init_materials() -> void:
 		"res://assets/textures/env/bunker_concrete_normal.png",
 		"res://assets/textures/env/bunker_concrete_roughness.png",
 		Vector3(0.28, 0.28, 0.28), Color(0.78, 0.80, 0.82), 0.86
+	)
+	_mat_brick = _make_pbr(
+		"res://assets/textures/env/ruin_brick_albedo.png",
+		"res://assets/textures/env/ruin_brick_normal.png",
+		"res://assets/textures/env/ruin_brick_roughness.png",
+		Vector3(0.32, 0.32, 0.32), Color(0.76, 0.68, 0.64), 0.90
 	)
 	_mat_tile = _make_pbr(
 		"res://assets/textures/env/lab_tile_albedo.png",
@@ -192,22 +199,70 @@ func _build_facility_architecture() -> void:
 	_add_header(Vector2(-10.65, -22.0), Vector2(-8.35, -22.0), 2.82, 5.2, 0.5, _mat_concrete)
 	_add_header(Vector2(8.35, -22.0), Vector2(10.65, -22.0), 2.82, 5.2, 0.5, _mat_concrete)
 
-	# Roofs & Ruined Skylight Beams
-	# West Lab closed roof (Y=4.6)
+	# Roofs & Structural Ceiling Beams
 	_add_static_box("Roof_Lab", Vector3(14.5, 0.3, 16.5), Vector3(-17.0, 4.75, 0.0), _mat_concrete)
-	# Reactor high roof (Y=5.2) with glowing skylight strips
 	_add_static_box("Roof_Reactor", Vector3(48.5, 0.3, 14.5), Vector3(0.0, 5.35, -15.0), _mat_concrete)
 	# Spawn partial bombed roof overhangs leaving central courtyard open to moonlight & Mystery Box beam
 	_add_static_box("Roof_Spawn_S", Vector3(20.5, 0.3, 4.4), Vector3(0.0, 4.75, 8.0), _mat_concrete)
 	_add_static_box("Roof_Spawn_N", Vector3(20.5, 0.3, 3.0), Vector3(0.0, 4.75, -6.5), _mat_concrete)
-	# Ruined overhead wooden/steel rafters across open courtyard
-	_add_visual_box("Rafter_1", Vector3(20.0, 0.25, 0.35), Vector3(0.0, 4.65, -1.2), _mat_steel)
-	_add_visual_box("Rafter_2", Vector3(20.0, 0.25, 0.35), Vector3(0.0, 4.65, 3.2), _mat_wood)
+	# Broken timber/steel roof joists framing the bombed sky opening in Spawn Courtyard
+	_add_visual_box("Rafter_StubL", Vector3(6.2, 0.24, 0.32), Vector3(-6.9, 4.62, 3.2), _mat_wood)
+	_add_visual_box("Rafter_StubR", Vector3(5.6, 0.24, 0.32), Vector3(7.2, 4.62, 3.2), _mat_wood)
 	# East Courtyard roof with big open skylight over Box East
 	_add_static_box("Roof_East_S", Vector3(14.5, 0.3, 9.0), Vector3(17.0, 4.75, 3.5), _mat_concrete)
 
+	# 2nd-Story Bombed Brick Courtyard Skyline around Spawn (Y = 4.6 .. 9.0m, moon gap along X=-4.4..+0.8)
+	_build_ruined_story(Vector2(-10.0, -8.0), Vector2(10.0, -8.0), 4.6, 0.52, [0.16, 0.62, 0.84], 0.28, 0.54)
+	_build_ruined_story(Vector2(-10.0, -8.0), Vector2(-10.0, 10.0), 4.6, 0.52, [0.22, 0.52, 0.80], -1.0, -1.0)
+	_build_ruined_story(Vector2(10.0, -8.0), Vector2(10.0, 10.0), 4.6, 0.52, [0.22, 0.52, 0.80], -1.0, -1.0)
+	_build_ruined_story(Vector2(-10.0, 10.0), Vector2(10.0, 10.0), 4.6, 0.52, [0.25, 0.75], -1.0, -1.0)
+
+	# Interior Structural Wall Pilasters, Baseboards & Ceiling I-Beams to break up large flat concrete walls
+	for rx in [-17.5, -13.0, -6.4, -0.1, 6.4, 12.6, 18.8]:
+		_add_visual_box("Pilaster_Reactor_%d" % int(rx * 10), Vector3(0.54, 5.2, 0.32), Vector3(rx, 2.6, -21.74), _mat_concrete)
+	for rx_b in [-16.0, -8.0, 0.0, 8.0, 16.0]:
+		_add_visual_box("CeilingBeam_Reactor_%d" % int(rx_b), Vector3(0.36, 0.42, 13.8), Vector3(rx_b, 5.02, -15.0), _mat_steel)
+	for lx_b in [-5.0, 0.0, 5.0]:
+		_add_visual_box("CeilingBeam_Lab_%d" % int(lx_b), Vector3(13.6, 0.36, 0.34), Vector3(-17.0, 4.44, lx_b), _mat_steel)
+	for lz_p in [-5.2, 5.2]:
+		_add_visual_box("Pilaster_LabW_%d" % int(lz_p * 10), Vector3(0.30, 4.6, 0.50), Vector3(-23.74, 2.3, lz_p), _mat_concrete)
+		_add_visual_box("Pilaster_EastE_%d" % int(lz_p * 10), Vector3(0.30, 4.6, 0.50), Vector3(23.74, 2.3, lz_p), _mat_concrete)
+	# Continuous Concrete Baseboard Plinths (visual skirt along base of interior walls)
+	_add_visual_box("Skirt_ReactorN1", Vector3(13.0, 0.22, 0.14), Vector3(-17.3, 0.11, -21.72), _mat_steel)
+	_add_visual_box("Skirt_ReactorN2", Vector3(16.4, 0.22, 0.14), Vector3(0.0, 0.11, -21.72), _mat_steel)
+	_add_visual_box("Skirt_ReactorN3", Vector3(13.0, 0.22, 0.14), Vector3(17.3, 0.11, -21.72), _mat_steel)
+	_add_visual_box("Skirt_SpawnN1", Vector3(11.2, 0.22, 0.14), Vector3(-4.2, 0.11, -7.72), _mat_concrete)
+	_add_visual_box("Skirt_SpawnN2", Vector3(4.8, 0.22, 0.14), Vector3(7.4, 0.11, -7.72), _mat_concrete)
+
 
 func _build_props_and_atmosphere() -> void:
+	# Glowing Full Moon & Atmospheric Halo in Night Sky above Spawn North-West bombed skyline
+	_add_full_moon(Vector3(-15.0, 34.0, -56.0), 2.35)
+
+	# Overhead Perforated Steel Gantry Bridge spanning Spawn Courtyard across sky
+	_place_visual_model("res://assets/models/env/steel_gantry.glb", Vector3(-5.0, 4.56, -0.8), 0.0)
+	_place_visual_model("res://assets/models/env/steel_gantry.glb", Vector3(5.0, 4.56, -0.8), 0.0)
+
+	# Mounted Industrial Pipe Manifolds, Valves & Pressure Gauges along concrete walls
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-6.0, 2.45, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(0.0, 3.65, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(6.5, 3.25, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-23.74, 2.45, -1.8), 90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-19.5, 2.45, -7.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(23.74, 2.45, -1.5), -90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(19.5, 2.45, -7.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-3.8, 2.60, -7.74), 0.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-9.74, 2.60, -4.4), 90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(9.74, 2.60, -4.4), -90.0)
+
+	# Perimeter Bombed Rubble Piles & Barbed Wire Entanglements (kept clear of NavMesh center & doorways!)
+	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(7.4, 0.0, -6.7), -28.0, Vector3(1.8, 0.7, 1.1), Vector3(0, 0.35, 0))
+	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(-3.5, 0.0, -7.0), 14.0, Vector3(1.8, 0.7, 1.1), Vector3(0, 0.35, 0))
+	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(-22.2, 0.0, -6.6), 36.0, Vector3(1.6, 0.65, 1.0), Vector3(0, 0.32, 0))
+	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(-8.85, 0.0, -4.4), 90.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
+	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(8.85, 0.0, -2.9), 90.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
+	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(8.4, 0.0, 8.4), -42.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
+
 	# Ruined Panzer Tank Centerpiece in Spawn Courtyard
 	_place_prop("res://assets/models/env/ruined_tank.glb", Vector3(-1.4, 0.0, -2.0), 24.0, Vector3(3.0, 2.2, 5.2), Vector3(0, 1.1, 0))
 	# Courtyard Sandbags, Crates, Barrels & Element 115 Crystals
@@ -238,9 +293,11 @@ func _build_props_and_atmosphere() -> void:
 	_place_prop("res://assets/models/env/sandbag_wall.glb", Vector3(7.0, 0.0, -13.0), 15.0, Vector3(2.4, 0.85, 0.7), Vector3(0, 0.42, 0))
 	_place_prop("res://assets/models/env/crate_military.glb", Vector3(-7.0, 0.0, -13.5), -14.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
 
-	# Moonlight Volumetric Cones streaming over Spawn Courtyard
+	# Moonlight Volumetric Cones streaming over Spawn Courtyard through broken upper windows
 	_add_light_shaft(Vector3(-1.5, 3.6, -1.0), Vector3(18, 0, -12), 2.4, 9.0)
 	_add_light_shaft(Vector3(3.2, 3.6, 1.8), Vector3(18, 0, -12), 2.0, 9.0)
+	_add_light_shaft(Vector3(-4.8, 5.0, -5.2), Vector3(-22, 0, 10), 1.5, 8.0)
+	_add_light_shaft(Vector3(4.2, 5.0, -5.2), Vector3(-22, 0, 10), 1.5, 8.0)
 
 	# Practical Cage Lights & Facility Lighting
 	_add_cage_light(Vector3(0.0, 3.3, 9.68), 180.0, Color(1.0, 0.62, 0.24), 2.5, false)
@@ -374,6 +431,125 @@ func _place_prop(model_path: String, pos: Vector3, rot_y_deg: float, col_size: V
 		l.light_energy = glow_energy
 		l.omni_range = 9.0
 		holder.add_child(l)
+
+
+func _place_visual_model(model_path: String, pos: Vector3, rot_y_deg: float, s: float = 1.0) -> void:
+	if not ResourceLoader.exists(model_path):
+		return
+	var holder := Node3D.new()
+	holder.position = pos
+	holder.rotation_degrees.y = rot_y_deg
+	holder.scale = Vector3.ONE * s
+	holder.add_child((load(model_path) as PackedScene).instantiate())
+	geo_root.add_child(holder)
+
+
+func _add_full_moon(pos: Vector3, radius: float) -> void:
+	var disc := MeshInstance3D.new()
+	disc.name = "FullMoonDisc"
+	disc.position = pos
+	disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var sm := SphereMesh.new()
+	sm.radius = radius
+	sm.height = radius * 2.0
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://assets/shaders/moon_disc.gdshader")
+	sm.material = mat
+	disc.mesh = sm
+	geo_root.add_child(disc)
+
+	var halo := MeshInstance3D.new()
+	halo.name = "MoonHalo"
+	halo.position = pos
+	halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var hm := SphereMesh.new()
+	hm.radius = radius * 3.0
+	hm.height = radius * 6.0
+	var hmat := ShaderMaterial.new()
+	hmat.shader = preload("res://assets/shaders/moon_halo.gdshader")
+	hm.material = hmat
+	halo.mesh = hm
+	geo_root.add_child(halo)
+
+
+func _build_ruined_story(p1: Vector2, p2: Vector2, base_y: float, thick: float, win_fracs: Array, gap_t0: float, gap_t1: float) -> void:
+	var delta := p2 - p1
+	var total_len := delta.length()
+	if total_len < 1.0:
+		return
+	var root := Node3D.new()
+	var mid := (p1 + p2) * 0.5
+	root.position = Vector3(mid.x, base_y, mid.y)
+	root.rotation.y = -delta.angle()
+	geo_root.add_child(root)
+
+	var add_local := func(sz: Vector3, lpos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> void:
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = sz
+		bm.material = mat
+		mi.mesh = bm
+		mi.position = lpos
+		mi.rotation_degrees = rot_deg
+		root.add_child(mi)
+
+	# Continuous weathered concrete cornice belt dividing 1st floor concrete from 2nd floor brick
+	add_local.call(Vector3(total_len + 0.35, 0.24, thick + 0.24), Vector3(0, 0.12, 0), _mat_concrete)
+
+	# Build segmented spans along local X in [-total_len/2 .. +total_len/2]
+	var win_half_w := 0.88
+	var x_start := -total_len * 0.5
+	var x_end := total_len * 0.5
+	var win_xs: Array[float] = []
+	for wf in win_fracs:
+		var wx := x_start + float(wf) * total_len
+		if gap_t0 >= 0.0 and float(wf) >= gap_t0 and float(wf) <= gap_t1:
+			continue
+		win_xs.append(wx)
+
+	var cur_x := x_start
+	var seg_idx := 0
+	for wx in win_xs:
+		var pier_end := wx - win_half_w
+		if pier_end > cur_x + 0.15:
+			_add_ruined_pier_span(add_local, cur_x, pier_end, total_len, thick, gap_t0, gap_t1, seg_idx)
+			seg_idx += 1
+		# Window sill, boarded planks, header & rugged top masonry
+		var ww := win_half_w * 2.0
+		add_local.call(Vector3(ww + 0.08, 0.86, thick), Vector3(wx, 0.67, 0), _mat_brick)
+		add_local.call(Vector3(ww + 0.24, 0.12, thick + 0.12), Vector3(wx, 1.12, 0), _mat_concrete)
+		add_local.call(Vector3(ww + 0.22, 0.22, thick + 0.10), Vector3(wx, 3.24, 0), _mat_concrete)
+		var par_h := 0.45 + 0.30 * fmod(absf(wx * 0.37), 1.0)
+		add_local.call(Vector3(ww + 0.08, par_h, thick), Vector3(wx, 3.35 + par_h * 0.5, 0), _mat_brick)
+		# Crooked nailed planks across upper window opening
+		add_local.call(Vector3(ww + 0.16, 0.15, 0.05), Vector3(wx, 1.56, 0.02), _mat_wood, Vector3(0, 0, -9.0 + (seg_idx % 3) * 6.0))
+		add_local.call(Vector3(ww + 0.16, 0.15, 0.05), Vector3(wx, 2.38, -0.02), _mat_wood, Vector3(0, 0, 11.0 - (seg_idx % 2) * 8.0))
+		cur_x = wx + win_half_w
+
+	if x_end > cur_x + 0.15:
+		_add_ruined_pier_span(add_local, cur_x, x_end, total_len, thick, gap_t0, gap_t1, seg_idx)
+
+
+func _add_ruined_pier_span(add_local: Callable, x0: float, x1: float, total_len: float, thick: float, gap_t0: float, gap_t1: float, seed_idx: int) -> void:
+	# Split pier span into 1.4m jagged brick battlements, dipping sharply inside any moon skylight gap
+	var pos_x := x0
+	var chunk_i := 0
+	while pos_x < x1 - 0.1:
+		var nxt := minf(x1, pos_x + 1.5)
+		var cx := (pos_x + nxt) * 0.5
+		var cw := nxt - pos_x
+		var frac := (cx + total_len * 0.5) / total_len
+		var in_gap := (gap_t0 >= 0.0 and frac >= gap_t0 and frac <= gap_t1)
+		var top_y := 1.45 + 0.45 * sin(cx * 1.1) if in_gap else 3.65 + 0.55 * sin(cx * 0.75 + seed_idx)
+		var bh := top_y - 0.24
+		if bh > 0.15:
+			add_local.call(Vector3(cw + 0.02, bh, thick), Vector3(cx, 0.24 + bh * 0.5, 0), _mat_brick)
+		# Protruding twisted dark rebar spikes along ragged roofline
+		if (chunk_i + seed_idx) % 2 == 0:
+			add_local.call(Vector3(0.035, 0.72, 0.035), Vector3(cx - 0.15, top_y + 0.28, 0.04), _mat_steel, Vector3(12, 0, -18))
+			add_local.call(Vector3(0.035, 0.58, 0.035), Vector3(cx + 0.18, top_y + 0.22, -0.05), _mat_steel, Vector3(-14, 0, 22))
+		pos_x = nxt
+		chunk_i += 1
 
 
 func _add_light_shaft(pos: Vector3, rot_deg: Vector3, radius: float, height: float) -> void:

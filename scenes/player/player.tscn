@@ -45,9 +45,9 @@ collide_with_areas = true
 
 [node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D"]
 light_color = Color(0.95, 0.92, 0.84, 1)
-light_energy = 1.6
+light_energy = 1.35
 spot_range = 24.0
-spot_angle = 36.0
+spot_angle = 38.0
 spot_attenuation = 1.4
 
 [node name="WeaponController" type="Node3D" parent="Head/Camera3D"]
@@ -63,10 +63,10 @@ transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
 transform = Transform3D(1.2, 0, 0, 0, 0.410424, -1.12763, 0, 1.12763, 0.410424, 0, 0, -0.1)
 
 [node name="WeaponFillLight" type="OmniLight3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 0.25, -0.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10, 0.30, -0.04)
 light_color = Color(0.86, 0.92, 1, 1)
-light_energy = 0.72
-omni_range = 1.25
+light_energy = 0.48
+omni_range = 1.15
 
 [node name="MuzzleLight" type="OmniLight3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
 light_color = Color(1, 0.72, 0.28, 1)

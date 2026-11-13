@@ -179,6 +179,28 @@ func _animate_viewmodel(delta: float) -> void:
 	camera.fov = lerpf(camera.fov, target_fov, delta * 14.0)
 
 
+func _get_support_hand_transform(weapon_id: String) -> Dictionary:
+	match weapon_id:
+		"m1911":
+			return {"pos": Vector3(-0.012, -0.044, 0.006), "rot": Vector3(deg_to_rad(10.0), deg_to_rad(-24.0), deg_to_rad(-10.0))}
+		"raygun":
+			return {"pos": Vector3(-0.015, -0.056, -0.018), "rot": Vector3(deg_to_rad(10.0), deg_to_rad(-20.0), deg_to_rad(-8.0))}
+		"mp40":
+			return {"pos": Vector3(-0.012, -0.024, -0.175), "rot": Vector3(0.0, deg_to_rad(6.0), 0.0)}
+		"stg44":
+			return {"pos": Vector3(-0.010, -0.008, -0.275), "rot": Vector3(0.0, deg_to_rad(4.0), 0.0)}
+		"trench_shotgun":
+			return {"pos": Vector3(-0.010, -0.010, -0.265), "rot": Vector3(0.0, deg_to_rad(4.0), 0.0)}
+		"m14":
+			return {"pos": Vector3(-0.010, -0.010, -0.255), "rot": Vector3(0.0, deg_to_rad(4.0), 0.0)}
+		"kar98k":
+			return {"pos": Vector3(-0.010, -0.008, -0.240), "rot": Vector3(0.0, deg_to_rad(4.0), 0.0)}
+		"mg42":
+			return {"pos": Vector3(-0.018, -0.032, -0.205), "rot": Vector3(0.0, deg_to_rad(8.0), 0.0)}
+		_:
+			return {"pos": Vector3(-0.012, -0.018, -0.20), "rot": Vector3.ZERO}
+
+
 func _equip_weapon(idx: int) -> void:
 	active_idx = clampi(idx, 0, weapons.size() - 1)
 	is_reloading = false
@@ -187,12 +209,27 @@ func _equip_weapon(idx: int) -> void:
 		ch.queue_free()
 
 	var cur := weapons[active_idx]
+	var wid := str(cur.get("id", "m1911"))
 	var model_path := str(WeaponDB.get_stat(cur, "model"))
 	if ResourceLoader.exists(model_path):
 		var inst := (load(model_path) as PackedScene).instantiate()
 		model_holder.add_child(inst)
 		if bool(cur.get("packed", false)):
 			_apply_pap_material(inst)
+
+	# Attach sculpted first-person gloved hands (exempt from PaP material override)
+	var hands_root := Node3D.new()
+	hands_root.name = "FirstPersonHands"
+	model_holder.add_child(hands_root)
+	if ResourceLoader.exists("res://assets/models/weapons/fp_right_hand.glb"):
+		var rh := (load("res://assets/models/weapons/fp_right_hand.glb") as PackedScene).instantiate()
+		hands_root.add_child(rh)
+	if ResourceLoader.exists("res://assets/models/weapons/fp_left_hand.glb"):
+		var lh := (load("res://assets/models/weapons/fp_left_hand.glb") as PackedScene).instantiate() as Node3D
+		var xform: Dictionary = _get_support_hand_transform(wid)
+		lh.position = xform["pos"]
+		lh.rotation = xform["rot"]
+		hands_root.add_child(lh)
 
 	if not _initial_equip_done:
 		_initial_equip_done = true
