@@ -102,9 +102,11 @@ def make_cobblestone():
     albedo = albedo * (1.0 - moss[..., None] * 0.7) + moss_col * (moss[..., None] * 0.7)
     albedo *= (1.0 - 0.38 * puddle[..., None])
 
-    roughness = 0.84 * (1.0 - stone_mask) + (0.40 + 0.24 * micro) * stone_mask
-    roughness = roughness * (1.0 - puddle) + 0.07 * puddle
-    save_pbr_set(f"{OUT_ENV}/cobblestone", albedo, height, roughness, strength=4.8)
+    # Weathered dark cobblestones with subtle localized rainwater sheen rather than a mirror floor
+    wet = (puddle ** 2) * 0.72
+    roughness = 0.88 * (1.0 - stone_mask) + (0.58 + 0.20 * micro) * stone_mask
+    roughness = roughness * (1.0 - wet) + 0.14 * wet
+    save_pbr_set(f"{OUT_ENV}/cobblestone", albedo, height, roughness, strength=3.4)
 
 
 def make_bunker_concrete():

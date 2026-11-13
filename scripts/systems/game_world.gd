@@ -7,7 +7,7 @@ class_name GameWorld
 
 var _power_lights: Array[OmniLight3D] = []
 var _alarm_lights: Array[OmniLight3D] = []
-var _fog_base_color := Color(0.05, 0.10, 0.16, 1.0)
+var _fog_base_color := Color(0.07, 0.085, 0.10, 1.0)
 var _fog_dog_color := Color(0.28, 0.09, 0.04, 1.0)
 var _pulse_t: float = 0.0
 
@@ -29,6 +29,7 @@ func _ready() -> void:
 	_init_materials()
 	_build_facility_architecture()
 	_build_props_and_atmosphere()
+	_build_facility_details()
 	_bake_zone_navigation()
 	_apply_graphics_settings()
 	AudioManager.start_ambience()
@@ -47,7 +48,7 @@ func _init_materials() -> void:
 		"res://assets/textures/env/cobblestone_albedo.png",
 		"res://assets/textures/env/cobblestone_normal.png",
 		"res://assets/textures/env/cobblestone_roughness.png",
-		Vector3(0.45, 0.45, 0.45), Color(0.74, 0.78, 0.84), 0.72
+		Vector3(0.45, 0.45, 0.45), Color(0.76, 0.80, 0.84), 0.78
 	)
 	_mat_concrete = _make_pbr(
 		"res://assets/textures/env/bunker_concrete_albedo.png",
@@ -85,7 +86,7 @@ func _init_materials() -> void:
 
 	_light_shaft_mat = ShaderMaterial.new()
 	_light_shaft_mat.shader = preload("res://assets/shaders/light_shaft.gdshader")
-	_light_shaft_mat.set_shader_parameter("shaft_color", Color(0.55, 0.78, 1.0, 0.09))
+	_light_shaft_mat.set_shader_parameter("shaft_color", Color(0.58, 0.76, 0.96, 0.065))
 
 
 func _make_pbr(alb: String, nrm: String, rgh: String, uv_scale: Vector3, tint: Color, rough: float, met: float = 0.0) -> StandardMaterial3D:
@@ -286,7 +287,6 @@ func _build_props_and_atmosphere() -> void:
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(21.0, 0.0, -6.2), 70.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.92, 1.0), 1.5)
 
 	# Reactor Props: Teleporter Pad + Lab Pods + Crystals + Cover
-	_place_prop("res://assets/models/env/teleporter_pad.glb", Vector3(-15.0, 0.0, -15.5), 0.0, Vector3.ZERO, Vector3.ZERO, Color(0.15, 0.92, 1.0), 2.2)
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-1.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(4.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(11.5, 0.0, -13.8), 30.0, Vector3(1.1, 1.2, 1.1), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.8)
@@ -315,6 +315,44 @@ func _build_props_and_atmosphere() -> void:
 	_add_alarm_light(Vector3(-3.5, 3.8, -19.5))
 	_add_alarm_light(Vector3(-17.0, 3.8, -5.0))
 	_add_alarm_light(Vector3(17.0, 3.8, -5.0))
+
+
+func _build_facility_details() -> void:
+	# On-wall art does not change the playable floor or navigation geometry.
+	var details := Node3D.new()
+	details.name = "FacilityDetails"
+	geo_root.add_child(details)
+	var arch := preload("res://assets/models/env/containment_arch.glb")
+	for spec in [
+		[Vector3(-10, 0, 0), 90.0, "01 / BIO-LAB", Color(0.35, 0.85, 0.78)],
+		[Vector3(10, 0, 0), -90.0, "02 / FOUNDRY", Color(1.0, 0.65, 0.27)],
+		[Vector3(-15, 0, -8), 0.0, "03 / REACTOR", Color(1.0, 0.65, 0.27)],
+		[Vector3(17, 0, -8), 0.0, "03 / REACTOR", Color(1.0, 0.65, 0.27)],
+		[Vector3(3.2, 0, -8), 0.0, "EMERGENCY / POWER LOCK", Color(0.75, 0.85, 0.9)],
+	]:
+		var doorway := Node3D.new()
+		doorway.position = spec[0]
+		doorway.rotation_degrees.y = spec[1]
+		details.add_child(doorway)
+		doorway.add_child(arch.instantiate())
+		var sign := Label3D.new()
+		sign.text = spec[2]
+		sign.position = Vector3(0, 3.92, 0.39)
+		sign.font_size = 48
+		sign.pixel_size = 0.0018
+		sign.modulate = spec[3]
+		sign.outline_size = 8
+		doorway.add_child(sign)
+	var pipe := preload("res://assets/models/env/service_pipes.glb")
+	for x in [-20.5, -15.5, 13.0, 18.0]:
+		var inst := pipe.instantiate() as Node3D
+		inst.position = Vector3(x, 3.85, -21.55)
+		details.add_child(inst)
+	for x in [-9.55, 9.55]:
+		var inst := pipe.instantiate() as Node3D
+		inst.position = Vector3(x, 3.35, 3.8)
+		inst.rotation_degrees.y = 90.0 if x < 0.0 else -90.0
+		details.add_child(inst)
 
 
 func _add_visual_box(nname: String, size: Vector3, pos: Vector3, mat: Material) -> void:

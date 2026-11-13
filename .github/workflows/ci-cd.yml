@@ -47,7 +47,7 @@ jobs:
       - name: Import Godot project resources
         run: godot --headless --editor --quit
 
-      - name: Run 73-check headless verification suite
+      - name: Run 85-check headless verification suite
         run: godot --headless res://tools/verify/test_runner.tscn
 
   build:

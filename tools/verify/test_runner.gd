@@ -115,6 +115,18 @@ func _test_game_world_and_mechanics() -> void:
 	_check(not GameManager.has_perk("juggernog"), "Juggernog blocked before Power On")
 
 	var pwr := world.get_node("Interactables/PowerSwitch") as PowerSwitch
+	var teleporter := world.get_node("EmergencyTeleporter") as EmergencyTeleporter
+	var console_ray := PhysicsRayQueryParameters3D.create(Vector3(-13.2, 1.2, -13.6), Vector3(-13.2, 1.2, -15.8))
+	console_ray.collision_mask = 16
+	console_ray.collide_with_areas = true
+	console_ray.collide_with_bodies = false
+	var console_hit: Dictionary = world.get_world_3d().direct_space_state.intersect_ray(console_ray)
+	_check(not console_hit.is_empty() and console_hit["collider"].get_parent() == teleporter, "Transfer console is reachable by the player's interaction ray")
+	var transfer_start := player.global_position
+	var transfer_points := GameManager.points
+	teleporter.interact(player)
+	_check(player.global_position == transfer_start and GameManager.points == transfer_points, "Emergency transfer cannot bypass power requirement or spend points before power")
+	_check(teleporter.get_interact_prompt(player).contains("Power"), "Emergency transfer explains missing power")
 	pwr.interact(player)
 	_check(GameManager.power_on, "PowerSwitch activates facility power")
 	await get_tree().physics_frame
@@ -124,6 +136,31 @@ func _test_game_world_and_mechanics() -> void:
 	var reactor_path := NavigationServer3D.map_get_path(map_rid, Vector3(0, 0, 4), Vector3(0, 0, -16), true)
 	var reached_reactor := reactor_path.size() >= 2 and reactor_path[reactor_path.size() - 1].z < -12.0
 	_check(reached_reactor, "Power Shortcut enables NavMesh path from Spawn to Reactor (pts=%d)" % reactor_path.size())
+
+	# Emergency transfer: successful escape, cooldown, insufficient points and downed state.
+	player.global_position = Vector3(-15, 0.1, -15.5)
+	player.velocity = Vector3(3, -2, 1)
+	teleporter.interact(player)
+	_check(player.global_position == EmergencyTeleporter.EXIT_POSITION and player.velocity == Vector3.ZERO, "Emergency transfer moves player safely to Courtyard and clears momentum")
+	_check(GameManager.points == transfer_points - EmergencyTeleporter.COST, "Emergency transfer debits exactly 500 points")
+	_check(teleporter.cooldown_remaining > 0.0 and teleporter.get_interact_prompt(player).contains("Recharging"), "Transfer console reports cooldown")
+	transfer_points = GameManager.points
+	teleporter.interact(player)
+	_check(GameManager.points == transfer_points, "Repeated interaction during cooldown cannot spend points")
+	teleporter._process(EmergencyTeleporter.COOLDOWN)
+	_check(is_zero_approx(teleporter.cooldown_remaining), "Emergency transfer recharges after 45 seconds")
+	GameManager.points = 0
+	player.global_position = Vector3(-15, 0.1, -15.5)
+	teleporter.interact(player)
+	_check(player.global_position != EmergencyTeleporter.EXIT_POSITION and is_zero_approx(teleporter.cooldown_remaining), "Unaffordable transfer does not teleport or start cooldown")
+	GameManager.points = transfer_points
+	player.is_downed = true
+	teleporter.interact(player)
+	_check(GameManager.points == transfer_points and teleporter.get_interact_prompt(player).is_empty(), "Downed player cannot use emergency transfer")
+	player.is_downed = false
+	teleporter.interact(player)
+	_check(player.global_position == EmergencyTeleporter.EXIT_POSITION, "Recharged transfer is usable again")
+	player.global_position = transfer_start
 
 	jugg.interact(player)
 	_check(GameManager.has_perk("juggernog") and is_equal_approx(player.max_hp, 250.0), "Juggernog grants 250 Max HP after Power On")
@@ -267,6 +304,11 @@ func _test_game_world_and_mechanics() -> void:
 	await get_tree().process_frame
 	var go_screen := world.get_node("GameOverScreen")
 	_check(GameManager.is_game_over and go_screen != null and go_screen.visible, "Lethal hit without Quick Revive triggers GameManager.is_game_over & displays GameOverScreen")
+	transfer_points = GameManager.points
+	teleporter.cooldown_remaining = 0.0
+	transfer_start = player.global_position
+	teleporter.interact(player)
+	_check(player.global_position == transfer_start and GameManager.points == transfer_points and teleporter.get_interact_prompt(player).is_empty(), "Game Over blocks transfer without changing position or spending points")
 
 	for ch in get_children():
 		ch.queue_free()

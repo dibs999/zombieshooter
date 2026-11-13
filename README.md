@@ -1,6 +1,20 @@
 # BUNKER 115: Undead Protocol
 
-A **Call of Duty Zombies**-inspired 3D survival first-person shooter built in **Godot 4** (`Forward+`), with **46 custom 3D models sculpted, rigged, and animated in Blender 4.2.9 LTS** (`bpy`), procedural PBR materials/textures, and synthesized 3D spatial audio.
+Development direction and iteration status: [ZOMBIES_ROADMAP.md](ZOMBIES_ROADMAP.md).
+The facility also includes an Emergency Teleporter console in the Reactor: turn on power, use its console for 500 points to return to the courtyard, then wait 45 seconds before another transfer.
+
+### Cloud graphical verification without Desktop
+
+On the Debian amd64 cloud image, prepare a user-owned Xvfb/Mesa installation:
+
+```bash
+bash tools/verify/bootstrap_renderer.sh
+bash tools/verify/render_smoke.sh
+```
+
+Import resources first using the environment setup instructions. The renderer uses Vulkan/Forward+ with Mesa software rendering and saves seven 1280×720 PNGs in `build/verification-shots/`. Neither command needs the shared Desktop panel (`BUNKER_RUNTIME_DIR`, `BUNKER_GRAPHICS_ROOT`, and `BUNKER_SHOT_DIR` allow overrides).
+
+A **Call of Duty Zombies**-inspired 3D survival first-person shooter built in **Godot 4** (`Forward+`), with **49 custom 3D models sculpted, rigged, and animated in Blender 4.2.9 LTS** (`bpy`), procedural PBR materials/textures, and synthesized 3D spatial audio.
 
 > Further mechanics & design research notes: [DESIGN.md](DESIGN.md)
 
@@ -76,7 +90,7 @@ All Pack-a-Punched weapons feature animated cyan-magenta glowing runic camouflag
 
 ## Blender 3D Asset & Procedural Media Pipeline
 
-Visual styling was guided by 4 generated concept-art sheets in [`assets_src/concept_art/`](assets_src/concept_art/), and **all 46 3D models** (weapons, first-person arms/hands, rigged/animated zombies & hellhound, perk machines, Mystery Box, Pack-a-Punch, power-up drops, blast doors, overhead gantry, pipe manifolds, traps, props, and tank) are built reproducibly via **Blender `bpy`** scripts in [`tools/blender/`](tools/blender/):
+Visual styling was guided by 4 generated concept-art sheets in [`assets_src/concept_art/`](assets_src/concept_art/), and **all 49 3D models** (weapons, first-person arms/hands, rigged/animated zombies & hellhound, perk machines, Mystery Box, Pack-a-Punch, power-up drops, blast doors, containment bulkheads, overhead gantry, pipe manifolds, teleporter console, traps, props, and tank) are built reproducibly via **Blender `bpy`** scripts in [`tools/blender/`](tools/blender/):
 - Source `.blend` files: [`assets_src/blend/`](assets_src/blend/)
 - Exported glTF `.glb` assets: [`assets/models/`](assets/models/)
 - Procedural PBR textures, chalk drawings, marquees, Perk UI icons: [`tools/textures/generate_textures.py`](tools/textures/generate_textures.py)
