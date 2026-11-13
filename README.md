@@ -1,5 +1,27 @@
 # BUNKER 115: Undead Protocol
 
+Development direction and iteration status: [ZOMBIES_ROADMAP.md](ZOMBIES_ROADMAP.md).
+The first iteration adds original Blender facility details and an emergency
+teleporter in the reactor: turn on power, use its console for 500 points to return
+to the courtyard, then wait 45 seconds before another transfer.
+
+### Cloud graphical verification without Desktop
+
+On the Debian amd64 cloud image, prepare a user-owned Xvfb/Mesa installation:
+
+```bash
+bash tools/verify/bootstrap_renderer.sh
+bash tools/verify/render_smoke.sh
+```
+
+Import resources first using the environment setup instructions. The renderer
+uses Vulkan/Forward+ with Mesa software rendering and saves seven 1280×720 PNGs
+in `build/verification-shots/`. Shader compilation can take several minutes.
+This checks rendered output, not interactive frame rate or target GPU performance.
+Neither command needs the shared Desktop panel. `BUNKER_RUNTIME_DIR` overrides
+the default `/workspace/.zombieshooter-runtime`; `BUNKER_GRAPHICS_ROOT` can select
+an existing extracted package root, and `BUNKER_SHOT_DIR` selects the output folder.
+
 A **Call of Duty Zombies**-inspired 3D survival first-person shooter built in **Godot 4** (`Forward+`), with **39 custom 3D models sculpted, rigged, and animated in Blender 4.2.9 LTS** (`bpy`), procedural PBR materials/textures, and synthesized 3D spatial audio.
 
 > Further mechanics & design research notes: [DESIGN.md](DESIGN.md)

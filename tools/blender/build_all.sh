@@ -10,4 +10,5 @@ python3 tools/audio/generate_sfx.py
 "$BLENDER" --background --python-exit-code 1 --python tools/blender/gen_characters.py
 "$BLENDER" --background --python-exit-code 1 --python tools/blender/gen_machines.py
 "$BLENDER" --background --python-exit-code 1 --python tools/blender/gen_props.py
+"$BLENDER" --background --python-exit-code 1 --python tools/blender/gen_facility_details.py
 echo "All textures, audio, .blend sources, and .glb models built!"

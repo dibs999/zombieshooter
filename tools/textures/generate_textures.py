@@ -96,11 +96,12 @@ def make_cobblestone():
     # Darken slightly in puddles
     albedo *= (1.0 - 0.32 * puddle[..., None])
 
-    # Wet cobblestones: shiny puddles (low roughness ~0.08), stones ~0.48, mortar ~0.75
-    roughness = 0.78 * (1.0 - stone_mask) + (0.42 + 0.22 * micro) * stone_mask
-    roughness = roughness * (1.0 - puddle) + 0.08 * puddle
+    # Mostly worn stone; localized damp patches, not a mirror over the floor.
+    wet = puddle ** 2 * 0.65
+    roughness = 0.90 * (1.0 - stone_mask) + (0.70 + 0.16 * micro) * stone_mask
+    roughness = roughness * (1.0 - wet) + 0.24 * wet
 
-    save_pbr_set(f"{OUT_ENV}/cobblestone", albedo, height, roughness, strength=4.5)
+    save_pbr_set(f"{OUT_ENV}/cobblestone", albedo, height, roughness, strength=2.5)
 
 
 def make_bunker_concrete():

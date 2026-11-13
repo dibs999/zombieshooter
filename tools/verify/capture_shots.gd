@@ -1,12 +1,12 @@
 extends Node
 
-const OUT_DIR := "/tmp/zombieshooter_shots"
+var out_dir: String = OS.get_environment("BUNKER_SHOT_DIR") if OS.has_environment("BUNKER_SHOT_DIR") else "/tmp/zombieshooter_shots"
 
 
 func _ready() -> void:
 	await get_tree().process_frame
 	get_window().size = Vector2i(1280, 720)
-	DirAccess.make_dir_recursive_absolute(OUT_DIR)
+	DirAccess.make_dir_recursive_absolute(out_dir)
 	await _wait_frames(2)
 
 	# 1. Capture Main Menu 3D scene
@@ -22,11 +22,13 @@ func _ready() -> void:
 	GameManager.reset_match()
 	var world := (load("res://scenes/game_world.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(world)
-	await _wait_frames(3)
 
 	var player := world.get_node("Player") as PlayerController
 	var rd := world.get_node("RoundDirector") as RoundDirector
 	rd.set_process(false)
+	# Software rendering must not move the player between camera setups.
+	player.set_physics_process(false)
+	await _wait_frames(3)
 
 	# Shot 2: Spawn Courtyard default first-person view (looking at Tank + Crystals + Quick Revive + M1911)
 	player.global_position = Vector3(1.2, 0.05, 6.2)
@@ -134,7 +136,13 @@ func _ready() -> void:
 	await _wait_frames(3)
 	await _save_shot("shot_6_reactor_pap.png")
 
-	print("CAPTURED 6 VERIFICATION SCREENSHOTS IN ", OUT_DIR)
+	player.global_position = Vector3(-11.8, 0.05, -11.5)
+	player.rotation_degrees = Vector3(0, 38, 0)
+	player.head.rotation_degrees = Vector3(-9, 0, 0)
+	await _wait_frames(3)
+	await _save_shot("shot_7_emergency_transfer.png")
+
+	print("CAPTURED 7 VERIFICATION SCREENSHOTS IN ", out_dir)
 	world.queue_free()
 	await _wait_frames(2)
 	get_tree().quit(0)
@@ -155,5 +163,9 @@ func _wait_frames(n: int) -> void:
 func _save_shot(filename: String) -> void:
 	await RenderingServer.frame_post_draw
 	var img: Image = get_viewport().get_texture().get_image()
-	img.save_png(OUT_DIR.path_join(filename))
-	print("Saved: ", OUT_DIR.path_join(filename))
+	var output := out_dir.path_join(filename)
+	var result := img.save_png(output)
+	if result != OK:
+		push_error("Screenshot save failed: %s (%d)" % [output, result])
+		get_tree().quit(1)
+	print("Saved: ", output)
