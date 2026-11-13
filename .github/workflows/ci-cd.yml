@@ -77,9 +77,10 @@ jobs:
             artifact_file: "dist/Bunker115-Linux-x86_64.tar.gz"
           - label: "macOS Universal"
             preset: "macOS"
-            export_path: "build/macos/Bunker115-macOS-Universal.zip"
+            export_path: "build/macos/Bunker115.zip"
             package_cmd: |
-              cp build/macos/Bunker115-macOS-Universal.zip dist/Bunker115-macOS-Universal.zip
+              cp build/macos/Bunker115.zip dist/Bunker115-macOS-Universal.zip
+              unzip -l dist/Bunker115-macOS-Universal.zip | head -n 20
             artifact_name: "Bunker115-macOS-Universal"
             artifact_file: "dist/Bunker115-macOS-Universal.zip"
 

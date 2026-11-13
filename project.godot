@@ -132,6 +132,7 @@ pause={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_3d=2
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=3
