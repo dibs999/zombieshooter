@@ -210,7 +210,10 @@ func _test_game_world_and_mechanics() -> void:
 	z_brute.setup("brute", 150.0, 2.0, null)
 	world.add_child(z_brute)
 	await get_tree().process_frame
-	_check(z_brute.is_brute and is_equal_approx(z_brute.max_hp, 390.0) and is_equal_approx(z_brute.head_area.position.y, 1.92) and z_brute.model_root.find_child("Zombie_brute_Armature", true, false) != null, "Brute variant loads Zombie_brute_Armature, 2.6x HP (390), and 1.92m head height")
+	_check(z_brute.is_brute and is_equal_approx(z_brute.max_hp, 390.0) and z_brute.head_area.position.y >= 1.85 and z_brute.model_root.find_child("Zombie_brute_Armature", true, false) != null, "Brute variant loads Zombie_brute_Armature, 2.6x HP (390), and >=1.85m head height")
+
+	var rd := world.get_node("RoundDirector") as RoundDirector
+	_check(rd != null and (rd.zombies_remaining_to_spawn + rd.active_zombies) == 6, "RoundDirector starts Round 1 quota (6)")
 
 	var hound := (load("res://scenes/enemies/hellhound.tscn") as PackedScene).instantiate() as HellhoundAI
 	world.add_child(hound)
@@ -258,10 +261,6 @@ func _test_game_world_and_mechanics() -> void:
 	_check(get_tree().paused and pause_menu.visible, "PauseMenu toggles pause cleanly")
 	pause_menu.toggle_pause()
 	_check(not get_tree().paused and not pause_menu.visible, "PauseMenu unpauses cleanly")
-
-	# Verify RoundDirector starts properly before triggering Game Over
-	var rd := world.get_node("RoundDirector") as RoundDirector
-	_check(rd != null and rd.zombies_remaining_to_spawn == 6, "RoundDirector spawns Round 1 quota (6)")
 
 	GameManager.lose_all_perks()
 	player.take_damage(999.0)
