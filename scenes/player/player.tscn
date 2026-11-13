@@ -1,0 +1,78 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player/weapon_controller.gd" id="2"]
+
+[sub_resource type="CapsuleShape3D" id="1"]
+radius = 0.36
+height = 1.76
+
+[sub_resource type="StandardMaterial3D" id="2"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.8, 0.35, 0.85)
+
+[sub_resource type="SphereMesh" id="3"]
+material = SubResource("2")
+radius = 0.08
+height = 0.16
+
+[sub_resource type="BoxMesh" id="4"]
+size = Vector3(0.06, 0.06, 0.06)
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.88, 0)
+shape = SubResource("1")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+current = true
+fov = 82.0
+near = 0.03
+far = 180.0
+
+[node name="InteractRay" type="RayCast3D" parent="Head/Camera3D"]
+target_position = Vector3(0, 0, -3.2)
+collision_mask = 16
+collide_with_areas = true
+
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D"]
+light_color = Color(0.95, 0.92, 0.84, 1)
+light_energy = 1.6
+spot_range = 24.0
+spot_angle = 36.0
+spot_attenuation = 1.4
+
+[node name="WeaponController" type="Node3D" parent="Head/Camera3D"]
+script = ExtResource("2")
+
+[node name="ViewmodelPivot" type="Node3D" parent="Head/Camera3D/WeaponController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, -0.13, -0.34)
+
+[node name="ModelHolder" type="Node3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
+transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
+
+[node name="KnifeHolder" type="Node3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
+transform = Transform3D(1.2, 0, 0, 0, 0.410424, -1.12763, 0, 1.12763, 0.410424, 0, 0, -0.1)
+
+[node name="WeaponFillLight" type="OmniLight3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 0.25, -0.08)
+light_color = Color(0.86, 0.92, 1, 1)
+light_energy = 0.72
+omni_range = 1.25
+
+[node name="MuzzleLight" type="OmniLight3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
+light_color = Color(1, 0.72, 0.28, 1)
+light_energy = 0.0
+omni_range = 8.0
+
+[node name="MuzzleFlash" type="MeshInstance3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
+visible = false
+mesh = SubResource("3")

@@ -1,0 +1,187 @@
+name: CI/CD — Test & Export (Windows / Linux / macOS)
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_TAG: "4.7.2-stable"
+  GODOT_TEMPLATE_DIR: "4.7.2.stable"
+
+jobs:
+  test:
+    name: Headless Import & Verification Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Godot Linux headless binary
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: /tmp/godot-bin
+          key: godot-bin-${{ runner.os }}-${{ env.GODOT_TAG }}
+
+      - name: Install Godot ${{ env.GODOT_TAG }}
+        run: |
+          mkdir -p /tmp/godot-bin "$HOME/.local/bin"
+          if [ ! -x /tmp/godot-bin/godot ]; then
+            curl -fsSL -o /tmp/godot.zip \
+              "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_TAG}_linux.x86_64.zip"
+            unzip -q -o /tmp/godot.zip -d /tmp/godot-bin
+            mv "/tmp/godot-bin/Godot_v${GODOT_TAG}_linux.x86_64" /tmp/godot-bin/godot
+            chmod +x /tmp/godot-bin/godot
+            rm -f /tmp/godot.zip
+          fi
+          ln -sf /tmp/godot-bin/godot "$HOME/.local/bin/godot"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Import Godot project resources
+        run: godot --headless --editor --quit
+
+      - name: Run 73-check headless verification suite
+        run: godot --headless res://tools/verify/test_runner.tscn
+
+  build:
+    name: Export (${{ matrix.label }})
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "Windows x86_64"
+            preset: "Windows Desktop"
+            export_path: "build/windows/Bunker115.exe"
+            package_cmd: |
+              cp README.md build/windows/README.md
+              (cd build/windows && zip -q -r ../../dist/Bunker115-Windows-x86_64.zip Bunker115.exe README.md)
+            artifact_name: "Bunker115-Windows-x86_64"
+            artifact_file: "dist/Bunker115-Windows-x86_64.zip"
+          - label: "Linux x86_64"
+            preset: "Linux"
+            export_path: "build/linux/Bunker115.x86_64"
+            package_cmd: |
+              chmod +x build/linux/Bunker115.x86_64
+              cp README.md build/linux/README.md
+              tar -czf dist/Bunker115-Linux-x86_64.tar.gz -C build/linux Bunker115.x86_64 README.md
+            artifact_name: "Bunker115-Linux-x86_64"
+            artifact_file: "dist/Bunker115-Linux-x86_64.tar.gz"
+          - label: "macOS Universal"
+            preset: "macOS"
+            export_path: "build/macos/Bunker115-macOS-Universal.zip"
+            package_cmd: |
+              cp build/macos/Bunker115-macOS-Universal.zip dist/Bunker115-macOS-Universal.zip
+            artifact_name: "Bunker115-macOS-Universal"
+            artifact_file: "dist/Bunker115-macOS-Universal.zip"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Godot binary & export templates
+        id: cache-templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-export-${{ env.GODOT_TAG }}-v1
+
+      - name: Install Godot ${{ env.GODOT_TAG }} & Export Templates
+        run: |
+          mkdir -p /tmp/godot-bin "$HOME/.local/bin" "$HOME/.local/share/godot/export_templates"
+          if [ ! -x /tmp/godot-bin/godot ]; then
+            curl -fsSL -o /tmp/godot.zip \
+              "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_TAG}_linux.x86_64.zip"
+            unzip -q -o /tmp/godot.zip -d /tmp/godot-bin
+            mv "/tmp/godot-bin/Godot_v${GODOT_TAG}_linux.x86_64" /tmp/godot-bin/godot
+            chmod +x /tmp/godot-bin/godot
+            rm -f /tmp/godot.zip
+          fi
+          ln -sf /tmp/godot-bin/godot "$HOME/.local/bin/godot"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+          TEMPLATE_DEST="$HOME/.local/share/godot/export_templates/${GODOT_TEMPLATE_DIR}"
+          if [ ! -d "$TEMPLATE_DEST" ]; then
+            curl -fsSL -o /tmp/templates.tpz \
+              "https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}/Godot_v${GODOT_TAG}_export_templates.tpz"
+            mkdir -p /tmp/tpz_extract
+            unzip -q -o /tmp/templates.tpz -d /tmp/tpz_extract
+            mv /tmp/tpz_extract/templates "$TEMPLATE_DEST"
+            rm -rf /tmp/templates.tpz /tmp/tpz_extract
+          fi
+
+      - name: Import Godot project resources
+        run: godot --headless --editor --quit
+
+      - name: Export ${{ matrix.label }} release build
+        run: |
+          mkdir -p "$(dirname "${{ matrix.export_path }}")" dist
+          godot --headless --export-release "${{ matrix.preset }}" "${{ matrix.export_path }}"
+
+      - name: Package ${{ matrix.label }} distributable
+        run: ${{ matrix.package_cmd }}
+
+      - name: Upload ${{ matrix.label }} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_file }}
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release (Windows / Linux / macOS)
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all platform builds
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
+        run: ls -lh release-assets/
+
+      - name: Publish or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            TITLE="BUNKER 115 ${TAG} (Windows / Linux / macOS)"
+          else
+            TAG="latest"
+            TITLE="BUNKER 115 — Latest Build (Windows / Linux / macOS)"
+            gh release delete "$TAG" -y --cleanup-tag >/dev/null 2>&1 || true
+          fi
+
+          cat > /tmp/release_notes.md <<EOF
+          Automated Godot ${GODOT_TAG} release builds for **Windows (x86_64)**, **Linux (x86_64)**, and **macOS (Universal)** (Commit \`${GITHUB_SHA::7}\`).
+
+          ### Installation & Launch
+          - **Windows**: Extract \`Bunker115-Windows-x86_64.zip\` and run \`Bunker115.exe\`.
+          - **Linux**: Extract \`Bunker115-Linux-x86_64.tar.gz\` and run \`./Bunker115.x86_64\`.
+          - **macOS**: Extract \`Bunker115-macOS-Universal.zip\` and open \`Bunker115.app\` (unsigned build: Right-click -> Open, or run \`xattr -cr Bunker115.app\` if blocked by Gatekeeper).
+          EOF
+          sed -i 's/^          //' /tmp/release_notes.md
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release-assets/* --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes-file /tmp/release_notes.md
+          else
+            gh release create "$TAG" release-assets/* --target "$GITHUB_SHA" --title "$TITLE" --notes-file /tmp/release_notes.md
+          fi

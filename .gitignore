@@ -1,0 +1,15 @@
+# Godot 4 generated local cache (keep *.import files!)
+.godot/
+
+# Blender automatic backups & Python bytecode
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
+
+# Local export & temporary artifacts
+build/
+dist/
+*.log
+.DS_Store
+Thumbs.db
