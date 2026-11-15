@@ -108,6 +108,7 @@ static func run_checks(runner: Node) -> void:
 	# Verify Motorpool door unlocks north_yard + NavMesh path
 	var door_ny := world.get_node("Interactables/DoorReactorNorth") as BuyableDoor
 	door_ny.interact(player)
+	await runner.get_tree().process_frame
 	await runner.get_tree().physics_frame
 	var map_rid: RID = (world as Node3D).get_world_3d().navigation_map
 	NavigationServer3D.map_force_update(map_rid)

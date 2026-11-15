@@ -82,12 +82,14 @@ func _execute() -> void:
 	var door_ny := world.get_node_or_null("Interactables/DoorReactorNorth") as BuyableDoor
 	_check(door_ny != null and door_ny.cost == 1500 and door_ny.unlock_zone_id == "north_yard", "DoorReactorNorth configured ($1500 -> north_yard)")
 	door_ny.interact(player)
+	await get_tree().process_frame
 	await get_tree().physics_frame
 	NavigationServer3D.map_force_update(map_rid)
 	_check(door_ny.is_opened and GameManager.unlocked_zones.get("north_yard", false), "DoorReactorNorth opens and unlocks north_yard")
 
 	# Unlock path from Spawn -> Reactor -> North Yard
 	(world.get_node("Interactables/PowerSwitch") as PowerSwitch).interact(player)
+	await get_tree().process_frame
 	await get_tree().physics_frame
 	NavigationServer3D.map_force_update(map_rid)
 	var full_path := NavigationServer3D.map_get_path(map_rid, Vector3(0.0, 0, 4.0), Vector3(6.0, 0, -35.0), true)

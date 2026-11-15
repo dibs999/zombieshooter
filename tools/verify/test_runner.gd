@@ -155,6 +155,7 @@ func _test_game_world_and_mechanics() -> void:
 	var player := world.get_node("Player") as PlayerController
 	_check(door_west != null and player != null, "DoorSpawnWest & Player loaded")
 	door_west.interact(player)
+	await get_tree().process_frame
 	await get_tree().physics_frame
 	NavigationServer3D.map_force_update(map_rid)
 	var unlocked_path := NavigationServer3D.map_get_path(map_rid, Vector3(0, 0, 4), Vector3(-16, 0, 0), true)
@@ -185,6 +186,7 @@ func _test_game_world_and_mechanics() -> void:
 	_check(teleporter.get_interact_prompt(player).contains("Power"), "Emergency transfer explains missing power")
 	pwr.interact(player)
 	_check(GameManager.power_on, "PowerSwitch activates facility power")
+	await get_tree().process_frame
 	await get_tree().physics_frame
 	NavigationServer3D.map_force_update(map_rid)
 	var shortcut := world.get_node("Interactables/DoorPowerShortcut") as BuyableDoor
