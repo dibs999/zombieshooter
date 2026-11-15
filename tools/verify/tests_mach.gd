@@ -6,6 +6,16 @@ static func _check(runner: Node, cond: bool, msg: String) -> void:
 	runner.call("_check", cond, msg)
 
 
+static func _await_body_in_area(runner: Node, area: Area3D, body: Node3D, max_frames: int = 10) -> bool:
+	for _i in range(max_frames):
+		await runner.get_tree().physics_frame
+		if not is_instance_valid(body):
+			return false
+		if area.get_overlapping_bodies().has(body):
+			return true
+	return false
+
+
 static func _aim_player_at(player: PlayerController, target_pos: Vector3) -> void:
 	var eye := player.global_position + Vector3(0.0, player.head.position.y, 0.0)
 	var diff := target_pos - eye
@@ -106,12 +116,26 @@ static func run_checks(runner: Node) -> void:
 	GameManager.add_points(50000, "")
 
 	# Verify Motorpool door unlocks north_yard + NavMesh path
+	var map_rid: RID = (world as Node3D).get_world_3d().navigation_map
+	for _i in range(30):
+		await runner.get_tree().process_frame
+		await runner.get_tree().physics_frame
+		NavigationServer3D.map_force_update(map_rid)
+		var it1 := NavigationServer3D.map_get_iteration_id(map_rid)
+		if it1 >= 1:
+			await runner.get_tree().process_frame
+			await runner.get_tree().physics_frame
+			if NavigationServer3D.map_get_iteration_id(map_rid) == it1:
+				break
+	var pre_nav_iter := NavigationServer3D.map_get_iteration_id(map_rid)
 	var door_ny := world.get_node("Interactables/DoorReactorNorth") as BuyableDoor
 	door_ny.interact(player)
-	await runner.get_tree().process_frame
-	await runner.get_tree().physics_frame
-	var map_rid: RID = (world as Node3D).get_world_3d().navigation_map
-	NavigationServer3D.map_force_update(map_rid)
+	for _i in range(40):
+		await runner.get_tree().physics_frame
+		await runner.get_tree().process_frame
+		NavigationServer3D.map_force_update(map_rid)
+		if NavigationServer3D.map_get_iteration_id(map_rid) > pre_nav_iter:
+			break
 	var ny_path := NavigationServer3D.map_get_path(map_rid, Vector3(16.5, 0.0, -16.0), Vector3(16.5, 0.0, -34.0), true)
 	var reached_ny := ny_path.size() >= 2 and ny_path[ny_path.size() - 1].z < -28.0
 	_check(runner, GameManager.unlocked_zones["north_yard"] and reached_ny, "DoorReactorNorth unlocks north_yard & NavMesh bridge")
@@ -156,22 +180,21 @@ static func run_checks(runner: Node) -> void:
 	var pts_before_trap := GameManager.points
 	fire_trap.interact(player)
 	_check(runner, fire_trap.is_running and fire_trap.flame_wall.visible and fire_trap.flame_particles.emitting and GameManager.points == pts_before_trap - FireTrap.COST, "FireTrap activates flames, particles, and debits 1000 points")
+	fire_trap.set_process(false)
 
 	var z_burn := (load("res://scenes/enemies/zombie.tscn") as PackedScene).instantiate() as ZombieAI
 	z_burn.setup("soldier", 200.0, 2.0, null)
 	world.add_child(z_burn)
 	z_burn.set_physics_process(false)
 	z_burn.global_position = Vector3(18.0, 0.0, -26.2)
-	await runner.get_tree().physics_frame
-	await runner.get_tree().physics_frame
+	await _await_body_in_area(runner, fire_trap.kill_area, z_burn)
 	fire_trap._apply_fire_damage(0.05)
 	_check(runner, z_burn.state == ZombieAI.State.DEAD, "FireTrap instakills regular zombie inside flame trench")
 	z_burn.queue_free()
 
 	var p_burn_boss := rd.spawn_panzer_boss(8, Vector3(18.0, 0.0, -26.2))
 	p_burn_boss.set_physics_process(false)
-	await runner.get_tree().physics_frame
-	await runner.get_tree().physics_frame
+	await _await_body_in_area(runner, fire_trap.kill_area, p_burn_boss)
 	var boss_hp_before := p_burn_boss.hp
 	fire_trap._apply_fire_damage(0.05)
 	_check(runner, not p_burn_boss.is_dead and p_burn_boss.hp < boss_hp_before, "FireTrap deals DoT to Panzersoldat without 1-shotting boss (%.1f -> %.1f)" % [boss_hp_before, p_burn_boss.hp])
@@ -184,9 +207,8 @@ static func run_checks(runner: Node) -> void:
 		p_burn_boss.queue_free()
 
 	player.global_position = Vector3(18.0, 0.05, -26.2)
+	await _await_body_in_area(runner, fire_trap.kill_area, player)
 	player.hp = player.max_hp
-	await runner.get_tree().physics_frame
-	await runner.get_tree().physics_frame
 	fire_trap._player_tick_cd = 0.0
 	fire_trap._apply_fire_damage(0.05)
 	_check(runner, player.hp < player.max_hp, "FireTrap burns unprotected player walking into flames")
@@ -198,6 +220,7 @@ static func run_checks(runner: Node) -> void:
 	_check(runner, is_equal_approx(player.hp, player.max_hp), "PhD Flopper grants full FireTrap burn immunity")
 	player.global_position = Vector3(0.0, 0.05, -2.5)
 	fire_trap.set_trap_active(false, true)
+	fire_trap.set_process(true)
 
 	# 6. Operation Element 115 Multi-Step Quest End-to-End (Steps 2 -> 3 -> 4 -> 5)
 	GameManager.lose_all_perks()

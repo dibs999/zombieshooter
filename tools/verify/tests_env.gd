@@ -69,7 +69,17 @@ func _execute() -> void:
 	_check(ny_polys > 0, "NavRegionNorthYard baked (%d polys)" % ny_polys)
 
 	var map_rid: RID = world.get_world_3d().navigation_map
-	NavigationServer3D.map_force_update(map_rid)
+	for _i in range(30):
+		await get_tree().process_frame
+		await get_tree().physics_frame
+		NavigationServer3D.map_force_update(map_rid)
+		var it1 := NavigationServer3D.map_get_iteration_id(map_rid)
+		if it1 >= 1:
+			await get_tree().process_frame
+			await get_tree().physics_frame
+			if NavigationServer3D.map_get_iteration_id(map_rid) == it1:
+				break
+	var nav_iter := NavigationServer3D.map_get_iteration_id(map_rid)
 	var locked_ny := NavigationServer3D.map_get_path(map_rid, Vector3(16.5, 0, -16.0), Vector3(6.0, 0, -35.0), true)
 	var crossed_ny := false
 	for pt in locked_ny:
@@ -82,16 +92,23 @@ func _execute() -> void:
 	var door_ny := world.get_node_or_null("Interactables/DoorReactorNorth") as BuyableDoor
 	_check(door_ny != null and door_ny.cost == 1500 and door_ny.unlock_zone_id == "north_yard", "DoorReactorNorth configured ($1500 -> north_yard)")
 	door_ny.interact(player)
-	await get_tree().process_frame
-	await get_tree().physics_frame
-	NavigationServer3D.map_force_update(map_rid)
+	for _i in range(40):
+		await get_tree().physics_frame
+		await get_tree().process_frame
+		NavigationServer3D.map_force_update(map_rid)
+		if NavigationServer3D.map_get_iteration_id(map_rid) > nav_iter:
+			nav_iter = NavigationServer3D.map_get_iteration_id(map_rid)
+			break
 	_check(door_ny.is_opened and GameManager.unlocked_zones.get("north_yard", false), "DoorReactorNorth opens and unlocks north_yard")
 
 	# Unlock path from Spawn -> Reactor -> North Yard
 	(world.get_node("Interactables/PowerSwitch") as PowerSwitch).interact(player)
-	await get_tree().process_frame
-	await get_tree().physics_frame
-	NavigationServer3D.map_force_update(map_rid)
+	for _i in range(40):
+		await get_tree().physics_frame
+		await get_tree().process_frame
+		NavigationServer3D.map_force_update(map_rid)
+		if NavigationServer3D.map_get_iteration_id(map_rid) > nav_iter:
+			break
 	var full_path := NavigationServer3D.map_get_path(map_rid, Vector3(0.0, 0, 4.0), Vector3(6.0, 0, -35.0), true)
 	var reached_ny := full_path.size() >= 2 and full_path[full_path.size() - 1].z < -30.0
 	_check(reached_ny, "Full NavMesh path reaches north_yard from Spawn (pts=%d, end_z=%.1f)" % [full_path.size(), full_path[full_path.size() - 1].z if full_path.size() > 0 else 0.0])

@@ -125,6 +125,32 @@ func _test_main_menu() -> void:
 	await get_tree().process_frame
 
 
+func _await_nav_settled(map_rid: RID) -> int:
+	for _i in range(30):
+		await get_tree().process_frame
+		await get_tree().physics_frame
+		NavigationServer3D.map_force_update(map_rid)
+		var it1 := NavigationServer3D.map_get_iteration_id(map_rid)
+		if it1 >= 1:
+			await get_tree().process_frame
+			await get_tree().physics_frame
+			var it2 := NavigationServer3D.map_get_iteration_id(map_rid)
+			if it2 == it1:
+				return it2
+	return NavigationServer3D.map_get_iteration_id(map_rid)
+
+
+func _await_nav_increment(map_rid: RID, prev_iter: int) -> int:
+	for _i in range(40):
+		await get_tree().physics_frame
+		await get_tree().process_frame
+		NavigationServer3D.map_force_update(map_rid)
+		var cur := NavigationServer3D.map_get_iteration_id(map_rid)
+		if cur > prev_iter:
+			return cur
+	return NavigationServer3D.map_get_iteration_id(map_rid)
+
+
 func _test_game_world_and_mechanics() -> void:
 	print("[3/8] Testing GameWorld navigation, doors, barricades, perks, mystery box, PaP & AI...")
 	GameManager.reset_match()
@@ -142,7 +168,7 @@ func _test_game_world_and_mechanics() -> void:
 
 	# 2. Check Navigation path respects locked door, then opens cleanly
 	var map_rid: RID = world.get_world_3d().navigation_map
-	NavigationServer3D.map_force_update(map_rid)
+	var nav_iter := await _await_nav_settled(map_rid)
 	var locked_path := NavigationServer3D.map_get_path(map_rid, Vector3(0, 0, 4), Vector3(-16, 0, 0), true)
 	var crossed_before := false
 	for pt in locked_path:
@@ -155,9 +181,7 @@ func _test_game_world_and_mechanics() -> void:
 	var player := world.get_node("Player") as PlayerController
 	_check(door_west != null and player != null, "DoorSpawnWest & Player loaded")
 	door_west.interact(player)
-	await get_tree().process_frame
-	await get_tree().physics_frame
-	NavigationServer3D.map_force_update(map_rid)
+	nav_iter = await _await_nav_increment(map_rid, nav_iter)
 	var unlocked_path := NavigationServer3D.map_get_path(map_rid, Vector3(0, 0, 4), Vector3(-16, 0, 0), true)
 	var reached_lab := unlocked_path.size() >= 2 and unlocked_path[unlocked_path.size() - 1].x < -14.0
 	_check(reached_lab, "Opened DoorSpawnWest enables NavMesh path into Lab (pts=%d)" % unlocked_path.size())
@@ -184,11 +208,10 @@ func _test_game_world_and_mechanics() -> void:
 	teleporter.interact(player)
 	_check(player.global_position == transfer_start and GameManager.points == transfer_points, "Emergency transfer cannot bypass power requirement or spend points before power")
 	_check(teleporter.get_interact_prompt(player).contains("Power"), "Emergency transfer explains missing power")
+	nav_iter = NavigationServer3D.map_get_iteration_id(map_rid)
 	pwr.interact(player)
 	_check(GameManager.power_on, "PowerSwitch activates facility power")
-	await get_tree().process_frame
-	await get_tree().physics_frame
-	NavigationServer3D.map_force_update(map_rid)
+	nav_iter = await _await_nav_increment(map_rid, nav_iter)
 	var shortcut := world.get_node("Interactables/DoorPowerShortcut") as BuyableDoor
 	_check(shortcut.is_opened, "Emergency Vault Shortcut opens automatically on Power On")
 	var reactor_path := NavigationServer3D.map_get_path(map_rid, Vector3(0, 0, 4), Vector3(0, 0, -16), true)
