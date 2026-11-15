@@ -7,18 +7,36 @@ class_name GameWorld
 
 var _power_lights: Array[OmniLight3D] = []
 var _alarm_lights: Array[OmniLight3D] = []
-var _fog_base_color := Color(0.07, 0.085, 0.10, 1.0)
+var _flicker_lights: Array[Dictionary] = []
+var _vent_fans: Array[Node3D] = []
+var _probes: Array[ReflectionProbe] = []
+var _decals: Array[Decal] = []
+
+var _fog_base_color := Color(0.08, 0.10, 0.14, 1.0)
 var _fog_dog_color := Color(0.28, 0.09, 0.04, 1.0)
 var _pulse_t: float = 0.0
 
-var _mat_cobble: StandardMaterial3D
-var _mat_concrete: StandardMaterial3D
-var _mat_brick: StandardMaterial3D
-var _mat_tile: StandardMaterial3D
-var _mat_steel: StandardMaterial3D
-var _mat_wood: StandardMaterial3D
-var _mat_earth: StandardMaterial3D
+var _env_pbr_shader: Shader = preload("res://assets/shaders/env_world_pbr.gdshader")
+var _mat_cobble: ShaderMaterial
+var _mat_concrete: ShaderMaterial
+var _mat_roof_concrete: ShaderMaterial
+var _mat_concrete_floor: ShaderMaterial
+var _mat_brick: ShaderMaterial
+var _mat_tile: ShaderMaterial
+var _mat_steel: ShaderMaterial
+var _mat_metal_floor: ShaderMaterial
+var _mat_corrugated: ShaderMaterial
+var _mat_roof_corrugated: ShaderMaterial
+var _mat_wood: ShaderMaterial
+var _mat_asphalt: ShaderMaterial
+var _mat_earth: ShaderMaterial
 var _light_shaft_mat: ShaderMaterial
+
+
+func _enter_tree() -> void:
+	# Ensure Zone 5 starts locked even before GameManager pre-populates its map
+	if not GameManager.unlocked_zones.has("north_yard"):
+		GameManager.unlocked_zones["north_yard"] = false
 
 
 func _ready() -> void:
@@ -30,6 +48,8 @@ func _ready() -> void:
 	_build_facility_architecture()
 	_build_props_and_atmosphere()
 	_build_facility_details()
+	_build_reflection_probes_and_decals()
+	_build_env_fx()
 	_bake_zone_navigation()
 	_apply_graphics_settings()
 	AudioManager.start_ambience()
@@ -42,73 +62,190 @@ func _process(delta: float) -> void:
 		for l in _alarm_lights:
 			l.light_energy = pulse
 
+	for entry in _flicker_lights:
+		var light := entry["light"] as Light3D
+		if not is_instance_valid(light):
+			continue
+		var base_e := float(entry["base"])
+		var spd := float(entry["speed"])
+		var ph := float(entry["phase"])
+		var n := 0.5 + 0.35 * sin(_pulse_t * spd + ph) + 0.15 * sin(_pulse_t * (spd * 2.7) + ph * 1.9)
+		var dip := 0.58 if sin(_pulse_t * 1.9 + ph) > 0.86 else 1.0
+		light.light_energy = base_e * lerpf(0.76, 1.08, n) * dip
+
+	for fan in _vent_fans:
+		if is_instance_valid(fan):
+			fan.rotate_z(delta * 5.4)
+
 
 func _init_materials() -> void:
-	_mat_cobble = _make_pbr(
-		"res://assets/textures/env/cobblestone_albedo.png",
-		"res://assets/textures/env/cobblestone_normal.png",
-		"res://assets/textures/env/cobblestone_roughness.png",
-		Vector3(0.45, 0.45, 0.45), Color(0.76, 0.80, 0.84), 0.78
+	_mat_cobble = _make_world_mat(
+		"res://assets/textures/env/cc0_cobble_albedo.jpg",
+		"res://assets/textures/env/cc0_cobble_normal.jpg",
+		"res://assets/textures/env/cc0_cobble_roughness.jpg",
+		0.40, Color(0.50, 0.54, 0.62), true, 0.46, 0.0, 0.0, 0.28,
+		"res://assets/textures/env/cc0_mud_albedo.jpg",
+		"res://assets/textures/env/cc0_mud_normal.jpg",
+		"res://assets/textures/env/cc0_mud_roughness.jpg",
+		0.18, Color(0.42, 0.39, 0.36)
 	)
-	_mat_concrete = _make_pbr(
-		"res://assets/textures/env/bunker_concrete_albedo.png",
-		"res://assets/textures/env/bunker_concrete_normal.png",
-		"res://assets/textures/env/bunker_concrete_roughness.png",
-		Vector3(0.28, 0.28, 0.28), Color(0.78, 0.80, 0.82), 0.86
+	_mat_cobble.set_shader_parameter("normal_strength", 1.35)
+
+	_mat_tile = _make_world_mat(
+		"res://assets/textures/env/cc0_lab_tile_albedo.jpg",
+		"res://assets/textures/env/cc0_lab_tile_normal.jpg",
+		"res://assets/textures/env/cc0_lab_tile_roughness.jpg",
+		0.34, Color(0.76, 0.80, 0.84), true, 0.22, 0.0, 0.0, 0.50
 	)
-	_mat_brick = _make_pbr(
-		"res://assets/textures/env/ruin_brick_albedo.png",
-		"res://assets/textures/env/ruin_brick_normal.png",
-		"res://assets/textures/env/ruin_brick_roughness.png",
-		Vector3(0.32, 0.32, 0.32), Color(0.76, 0.68, 0.64), 0.90
+	_mat_tile.set_shader_parameter("roughness_scale", 0.80)
+
+	_mat_metal_floor = _make_world_mat(
+		"res://assets/textures/env/cc0_metal_plate_albedo.jpg",
+		"res://assets/textures/env/cc0_metal_plate_normal.jpg",
+		"res://assets/textures/env/cc0_metal_plate_roughness.jpg",
+		0.48, Color(0.78, 0.80, 0.82), true, 0.24, 0.0, 0.38, 0.58
 	)
-	_mat_tile = _make_pbr(
-		"res://assets/textures/env/lab_tile_albedo.png",
-		"res://assets/textures/env/lab_tile_normal.png",
-		"res://assets/textures/env/lab_tile_roughness.png",
-		Vector3(0.42, 0.42, 0.42), Color(0.84, 0.90, 0.92), 0.46
+	_mat_metal_floor.set_shader_parameter("roughness_scale", 0.86)
+
+	_mat_concrete_floor = _make_world_mat(
+		"res://assets/textures/env/cc0_concrete_floor_albedo.jpg",
+		"res://assets/textures/env/cc0_concrete_floor_normal.jpg",
+		"res://assets/textures/env/cc0_concrete_floor_roughness.jpg",
+		0.32, Color(0.64, 0.67, 0.71), true, 0.30, 0.0, 0.0, 0.40
 	)
-	_mat_steel = _make_pbr(
-		"res://assets/textures/env/rusted_steel_albedo.png",
-		"res://assets/textures/env/rusted_steel_normal.png",
-		"res://assets/textures/env/rusted_steel_roughness.png",
-		Vector3(0.38, 0.38, 0.38), Color(0.76, 0.78, 0.82), 0.70, 0.26
+
+	_mat_asphalt = _make_world_mat(
+		"res://assets/textures/env/cc0_asphalt_albedo.jpg",
+		"res://assets/textures/env/cc0_asphalt_normal.jpg",
+		"res://assets/textures/env/cc0_asphalt_roughness.jpg",
+		0.34, Color(0.54, 0.58, 0.64), true, 0.54, 0.0, 0.0, 0.34,
+		"res://assets/textures/env/cc0_mud_albedo.jpg",
+		"res://assets/textures/env/cc0_mud_normal.jpg",
+		"res://assets/textures/env/cc0_mud_roughness.jpg",
+		0.36, Color(0.46, 0.42, 0.38)
 	)
-	_mat_wood = _make_pbr(
-		"res://assets/textures/env/charred_wood_albedo.png",
-		"res://assets/textures/env/charred_wood_normal.png",
-		"res://assets/textures/env/charred_wood_roughness.png",
-		Vector3(0.55, 0.55, 0.55), Color(0.78, 0.70, 0.62), 0.84
+	_mat_asphalt.set_shader_parameter("normal_strength", 1.25)
+
+	_mat_concrete = _make_world_mat(
+		"res://assets/textures/env/cc0_concrete_wall_albedo.jpg",
+		"res://assets/textures/env/cc0_concrete_wall_normal.jpg",
+		"res://assets/textures/env/cc0_concrete_wall_roughness.jpg",
+		0.28, Color(0.62, 0.65, 0.69), false, 0.0, 0.52, 0.0, 0.38
 	)
-	_mat_earth = StandardMaterial3D.new()
-	_mat_earth.albedo_color = Color(0.05, 0.06, 0.055, 1.0)
-	_mat_earth.roughness = 0.95
+	_mat_concrete.set_shader_parameter("wall_damp_height", 1.25)
+	_mat_concrete.set_shader_parameter("wall_top_grime_y", 4.8)
+
+	_mat_roof_concrete = _make_world_mat(
+		"res://assets/textures/env/cc0_concrete_wall_albedo.jpg",
+		"res://assets/textures/env/cc0_concrete_wall_normal.jpg",
+		"res://assets/textures/env/cc0_concrete_wall_roughness.jpg",
+		0.18, Color(0.56, 0.59, 0.63), false, 0.0, 0.0, 0.0, 0.32
+	)
+	_mat_roof_concrete.set_shader_parameter("normal_strength", 0.35)
+	_mat_roof_concrete.set_shader_parameter("macro_variation", 0.24)
+
+	_mat_brick = _make_world_mat(
+		"res://assets/textures/env/cc0_brick_albedo.jpg",
+		"res://assets/textures/env/cc0_brick_normal.jpg",
+		"res://assets/textures/env/cc0_brick_roughness.jpg",
+		0.36, Color(0.80, 0.74, 0.70), false, 0.0, 0.34, 0.0, 0.38
+	)
+	_mat_brick.set_shader_parameter("wall_damp_height", 0.45)
+	_mat_brick.set_shader_parameter("wall_top_grime_y", 8.6)
+
+	_mat_steel = _make_world_mat(
+		"res://assets/textures/env/cc0_rust_steel_albedo.jpg",
+		"res://assets/textures/env/cc0_rust_steel_normal.jpg",
+		"res://assets/textures/env/cc0_rust_steel_roughness.jpg",
+		0.40, Color(0.78, 0.76, 0.74), false, 0.0, 0.32, 0.55, 0.52
+	)
+	_mat_steel.set_shader_parameter("roughness_scale", 0.86)
+
+	_mat_corrugated = _make_world_mat(
+		"res://assets/textures/env/cc0_corrugated_albedo.jpg",
+		"res://assets/textures/env/cc0_corrugated_normal.jpg",
+		"res://assets/textures/env/cc0_corrugated_roughness.jpg",
+		0.22, Color(0.74, 0.71, 0.68), false, 0.0, 0.24, 0.45, 0.48
+	)
+	_mat_corrugated.set_shader_parameter("normal_strength", 0.55)
+	_mat_corrugated.set_shader_parameter("roughness_scale", 0.85)
+
+	_mat_roof_corrugated = _make_world_mat(
+		"res://assets/textures/env/cc0_corrugated_albedo.jpg",
+		"res://assets/textures/env/cc0_corrugated_normal.jpg",
+		"res://assets/textures/env/cc0_corrugated_roughness.jpg",
+		0.14, Color(0.58, 0.58, 0.60), false, 0.0, 0.0, 0.38, 0.34
+	)
+	_mat_roof_corrugated.set_shader_parameter("normal_strength", 0.30)
+	_mat_roof_corrugated.set_shader_parameter("roughness_scale", 0.90)
+
+	_mat_wood = _make_world_mat(
+		"res://assets/textures/env/cc0_planks_albedo.jpg",
+		"res://assets/textures/env/cc0_planks_normal.jpg",
+		"res://assets/textures/env/cc0_planks_roughness.jpg",
+		0.48, Color(0.58, 0.50, 0.44), false, 0.0, 0.22, 0.0, 0.32
+	)
+
+	_mat_earth = _make_world_mat(
+		"res://assets/textures/env/cc0_mud_albedo.jpg",
+		"res://assets/textures/env/cc0_mud_normal.jpg",
+		"res://assets/textures/env/cc0_mud_roughness.jpg",
+		0.26, Color(0.40, 0.38, 0.35), true, 0.26, 0.0, 0.0, 0.35
+	)
 
 	_light_shaft_mat = ShaderMaterial.new()
 	_light_shaft_mat.shader = preload("res://assets/shaders/light_shaft.gdshader")
-	_light_shaft_mat.set_shader_parameter("shaft_color", Color(0.58, 0.76, 0.96, 0.065))
+	_light_shaft_mat.set_shader_parameter("shaft_color", Color(0.58, 0.76, 0.96, 0.058))
 
 
-func _make_pbr(alb: String, nrm: String, rgh: String, uv_scale: Vector3, tint: Color, rough: float, met: float = 0.0) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = tint
+func _make_world_mat(
+	alb: String,
+	nrm: String,
+	rgh: String,
+	uv_scale: float,
+	tint: Color,
+	is_floor: bool,
+	puddle: float,
+	damp: float,
+	met: float = 0.0,
+	spec: float = 0.45,
+	alt_alb: String = "",
+	alt_nrm: String = "",
+	alt_rgh: String = "",
+	alt_blend: float = 0.0,
+	alt_tint: Color = Color.WHITE
+) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = _env_pbr_shader
+	mat.set_shader_parameter("albedo_tint", tint)
 	if ResourceLoader.exists(alb):
-		mat.albedo_texture = load(alb)
+		mat.set_shader_parameter("albedo_tex", load(alb))
 	if ResourceLoader.exists(nrm):
-		mat.normal_enabled = true
-		mat.normal_texture = load(nrm)
+		mat.set_shader_parameter("normal_tex", load(nrm))
 	if ResourceLoader.exists(rgh):
-		mat.roughness_texture = load(rgh)
-	mat.roughness = rough
-	mat.metallic = met
-	mat.uv1_scale = uv_scale
-	mat.uv1_triplanar = true
-	mat.uv1_world_triplanar = true
+		mat.set_shader_parameter("roughness_tex", load(rgh))
+	mat.set_shader_parameter("uv_scale", uv_scale)
+	mat.set_shader_parameter("normal_strength", 0.95)
+	mat.set_shader_parameter("metallic_val", met)
+	mat.set_shader_parameter("specular_val", spec)
+	mat.set_shader_parameter("is_floor", is_floor)
+	mat.set_shader_parameter("puddle_amount", puddle)
+	mat.set_shader_parameter("wall_damp_strength", damp)
+	mat.set_shader_parameter("macro_variation", 0.22)
+	if alt_blend > 0.001 and ResourceLoader.exists(alt_alb):
+		mat.set_shader_parameter("use_alt_layer", true)
+		mat.set_shader_parameter("alt_albedo_tex", load(alt_alb))
+		if ResourceLoader.exists(alt_nrm):
+			mat.set_shader_parameter("alt_normal_tex", load(alt_nrm))
+		if ResourceLoader.exists(alt_rgh):
+			mat.set_shader_parameter("alt_roughness_tex", load(alt_rgh))
+		mat.set_shader_parameter("alt_blend_amount", alt_blend)
+		mat.set_shader_parameter("alt_tint", alt_tint)
 	return mat
 
 
 func _build_facility_architecture() -> void:
-	# Global smooth ground collider covering playable map + outside zombie window approach
+	# Global smooth ground collider covering Zones 1-5 + outside zombie window approach (X:-42..42, Z:-56..27)
 	var foundation := StaticBody3D.new()
 	foundation.name = "Foundation"
 	foundation.collision_layer = 1
@@ -116,20 +253,22 @@ func _build_facility_architecture() -> void:
 	foundation.add_to_group("nav_bake")
 	var fcol := CollisionShape3D.new()
 	var fbox := BoxShape3D.new()
-	fbox.size = Vector3(84.0, 0.4, 64.0)
+	fbox.size = Vector3(84.0, 0.4, 83.0)
 	fcol.shape = fbox
-	fcol.position = Vector3(0.0, -0.2, -5.0)
+	fcol.position = Vector3(0.0, -0.2, -14.5)
 	foundation.add_child(fcol)
 	geo_root.add_child(foundation)
 
-	# Outer dark terrain visual mesh slightly below floor level to avoid Z-fighting
-	_add_visual_box("OuterEarth", Vector3(84, 0.1, 64), Vector3(0, -0.07, -5), _mat_earth)
+	# Outer dark mud terrain slightly below floor level to avoid Z-fighting
+	_add_visual_box("OuterEarth", Vector3(84.0, 0.1, 83.0), Vector3(0.0, -0.07, -14.5), _mat_earth)
 
 	# Zone Visual Floors at Y = 0.0 (top face 0.002)
 	_add_visual_box("Floor_Spawn", Vector3(20.0, 0.04, 18.0), Vector3(0.0, -0.018, 1.0), _mat_cobble)
 	_add_visual_box("Floor_Lab", Vector3(14.0, 0.04, 16.0), Vector3(-17.0, -0.018, 0.0), _mat_tile)
-	_add_visual_box("Floor_East", Vector3(14.0, 0.04, 16.0), Vector3(17.0, -0.018, 0.0), _mat_steel)
-	_add_visual_box("Floor_Reactor", Vector3(48.0, 0.04, 14.0), Vector3(0.0, -0.018, -15.0), _mat_concrete)
+	_add_visual_box("Floor_East", Vector3(14.0, 0.04, 16.0), Vector3(17.0, -0.018, 0.0), _mat_metal_floor)
+	_add_visual_box("Floor_Reactor", Vector3(48.0, 0.04, 14.0), Vector3(0.0, -0.018, -15.0), _mat_concrete_floor)
+	_add_visual_box("Floor_NorthYard_Bay", Vector3(12.0, 0.04, 6.0), Vector3(18.0, -0.018, -25.0), _mat_concrete_floor)
+	_add_visual_box("Floor_NorthYard", Vector3(36.0, 0.04, 14.0), Vector3(6.0, -0.018, -35.0), _mat_asphalt)
 
 	# Exterior West Lab Walls (X=-24, Z=-8..+8 with Window W at Z=0)
 	_add_wall(Vector2(-24.0, -8.0), Vector2(-24.0, -1.15), 4.6, 0.5, _mat_concrete)
@@ -173,15 +312,12 @@ func _build_facility_architecture() -> void:
 	_add_header(Vector2(10.0, -1.7), Vector2(10.0, 1.7), 3.2, 4.6, 0.5, _mat_concrete)
 
 	# North Partition separating Zones 1/2/3 from Zone 4 Reactor (Z=-8)
-	# Lab North Door: X in [-16.7..-13.3]
 	_add_wall(Vector2(-24.0, -8.0), Vector2(-16.7, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_wall(Vector2(-13.3, -8.0), Vector2(-10.0, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_header(Vector2(-16.7, -8.0), Vector2(-13.3, -8.0), 3.2, 4.6, 0.5, _mat_concrete)
-	# Spawn North Power Shortcut Door: X in [+1.5..+4.9]
 	_add_wall(Vector2(-10.0, -8.0), Vector2(1.5, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_wall(Vector2(4.9, -8.0), Vector2(10.0, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_header(Vector2(1.5, -8.0), Vector2(4.9, -8.0), 3.2, 4.6, 0.5, _mat_concrete)
-	# East North Door: X in [+15.3..+18.7]
 	_add_wall(Vector2(10.0, -8.0), Vector2(15.3, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_wall(Vector2(18.7, -8.0), Vector2(24.0, -8.0), 4.6, 0.5, _mat_concrete)
 	_add_header(Vector2(15.3, -8.0), Vector2(18.7, -8.0), 3.2, 4.6, 0.5, _mat_concrete)
@@ -191,35 +327,59 @@ func _build_facility_architecture() -> void:
 	_add_wall(Vector2(18.8, -2.8), Vector2(23.75, -2.8), 4.6, 0.5, _mat_steel)
 	_add_header(Vector2(15.2, -2.8), Vector2(18.8, -2.8), 2.8, 4.6, 0.5, _mat_steel)
 
-	# Reactor Outer Walls (X=-24, X=+24, Z=-22 with 2 North Windows at X=-9.5 and X=+9.5)
+	# Reactor Outer Walls (X=-24, X=+24, Z=-22 with 2 North Windows at X=-9.5, X=+9.5 and DoorReactorNorth at X=16.5)
 	_add_wall(Vector2(-24.0, -22.0), Vector2(-24.0, -8.0), 5.2, 0.5, _mat_concrete)
 	_add_wall(Vector2(24.0, -22.0), Vector2(24.0, -8.0), 5.2, 0.5, _mat_concrete)
 	_add_wall(Vector2(-24.0, -22.0), Vector2(-10.65, -22.0), 5.2, 0.5, _mat_concrete)
 	_add_wall(Vector2(-8.35, -22.0), Vector2(8.35, -22.0), 5.2, 0.5, _mat_concrete)
-	_add_wall(Vector2(10.65, -22.0), Vector2(24.0, -22.0), 5.2, 0.5, _mat_concrete)
+	_add_wall(Vector2(10.65, -22.0), Vector2(14.8, -22.0), 5.2, 0.5, _mat_concrete)
+	_add_wall(Vector2(18.2, -22.0), Vector2(24.0, -22.0), 5.2, 0.5, _mat_concrete)
 	_add_header(Vector2(-10.65, -22.0), Vector2(-8.35, -22.0), 2.82, 5.2, 0.5, _mat_concrete)
 	_add_header(Vector2(8.35, -22.0), Vector2(10.65, -22.0), 2.82, 5.2, 0.5, _mat_concrete)
+	_add_header(Vector2(14.8, -22.0), Vector2(18.2, -22.0), 3.2, 5.2, 0.5, _mat_concrete)
 
-	# Roofs & Structural Ceiling Beams
-	_add_static_box("Roof_Lab", Vector3(14.5, 0.3, 16.5), Vector3(-17.0, 4.75, 0.0), _mat_concrete)
-	_add_static_box("Roof_Reactor", Vector3(48.5, 0.3, 14.5), Vector3(0.0, 5.35, -15.0), _mat_concrete)
-	# Spawn partial bombed roof overhangs leaving central courtyard open to moonlight & Mystery Box beam
-	_add_static_box("Roof_Spawn_S", Vector3(20.5, 0.3, 4.4), Vector3(0.0, 4.75, 8.0), _mat_concrete)
-	_add_static_box("Roof_Spawn_N", Vector3(20.5, 0.3, 3.0), Vector3(0.0, 4.75, -6.5), _mat_concrete)
-	# Broken timber/steel roof joists framing the bombed sky opening in Spawn Courtyard
+	# Zone 5: Ruined Motorpool / Research Courtyard (north_yard)
+	# Entry Bay X:12..24, Z:-22..-28 (leaves X:-12..+12, Z:-22..-28 outside alley unobstructed for WinReactorW/E!)
+	_add_wall(Vector2(24.0, -22.0), Vector2(24.0, -42.0), 4.6, 0.5, _mat_concrete)
+	_add_wall(Vector2(12.0, -22.0), Vector2(12.0, -28.0), 4.6, 0.5, _mat_concrete)
+	_add_wall(Vector2(-12.0, -28.0), Vector2(12.0, -28.0), 4.6, 0.5, _mat_concrete)
+	# North Yard West Wall (X=-12, Z=-28..-42 with WinNorthYardW at Z=-35)
+	_add_wall(Vector2(-12.0, -28.0), Vector2(-12.0, -33.85), 4.6, 0.5, _mat_concrete)
+	_add_wall(Vector2(-12.0, -36.15), Vector2(-12.0, -42.0), 4.6, 0.5, _mat_concrete)
+	_add_header(Vector2(-12.0, -33.85), Vector2(-12.0, -36.15), 2.82, 4.6, 0.5, _mat_concrete)
+	# North Yard North Wall (Z=-42, X=-12..24 with WinNorthYardN at X=4)
+	_add_wall(Vector2(-12.0, -42.0), Vector2(2.85, -42.0), 4.6, 0.5, _mat_concrete)
+	_add_wall(Vector2(5.15, -42.0), Vector2(24.0, -42.0), 4.6, 0.5, _mat_concrete)
+	_add_header(Vector2(2.85, -42.0), Vector2(5.15, -42.0), 2.82, 4.6, 0.5, _mat_concrete)
+
+	# Roofs & Structural Ceiling Beams (dedicated low-grain roof shaders)
+	_add_static_box("Roof_Lab", Vector3(14.5, 0.3, 16.5), Vector3(-17.0, 4.75, 0.0), _mat_roof_concrete)
+	_add_static_box("Roof_Reactor", Vector3(48.5, 0.3, 14.5), Vector3(0.0, 5.35, -15.0), _mat_roof_concrete)
+	_add_static_box("Roof_Spawn_S", Vector3(20.5, 0.3, 4.4), Vector3(0.0, 4.75, 8.0), _mat_roof_concrete)
+	_add_static_box("Roof_Spawn_N", Vector3(20.5, 0.3, 3.0), Vector3(0.0, 4.75, -6.5), _mat_roof_concrete)
 	_add_visual_box("Rafter_StubL", Vector3(6.2, 0.24, 0.32), Vector3(-6.9, 4.62, 3.2), _mat_wood)
 	_add_visual_box("Rafter_StubR", Vector3(5.6, 0.24, 0.32), Vector3(7.2, 4.62, 3.2), _mat_wood)
-	# East Courtyard roof with big open skylight over Box East
-	_add_static_box("Roof_East_S", Vector3(14.5, 0.3, 9.0), Vector3(17.0, 4.75, 3.5), _mat_concrete)
+	_add_static_box("Roof_East_S", Vector3(14.5, 0.3, 9.0), Vector3(17.0, 4.75, 3.5), _mat_roof_corrugated)
+	# Zone 5 Covered Garage Bay + Corrugated Overhang Roof (west yard remains open to HDRI sky)
+	_add_static_box("Roof_NorthYard_Bay", Vector3(12.5, 0.3, 6.5), Vector3(18.0, 4.75, -25.0), _mat_roof_corrugated)
+	_add_static_box("Roof_NorthYard_Garage", Vector3(12.3, 0.3, 14.5), Vector3(18.15, 4.75, -35.0), _mat_roof_corrugated)
+	for ny_z in [-31.0, -35.0, -39.0]:
+		_add_visual_box("Rafter_NorthYard_%d" % int(absf(ny_z)), Vector3(5.4, 0.24, 0.26), Vector3(10.6, 4.62, ny_z), _mat_wood)
+	_add_visual_box("GarageEdgeBeam", Vector3(0.38, 0.48, 14.2), Vector3(12.15, 4.55, -35.0), _mat_steel)
+	_add_visual_box("Threshold_NorthGarage", Vector3(11.8, 0.02, 0.24), Vector3(18.0, 0.008, -28.0), _mat_steel)
 
-	# 2nd-Story Bombed Brick Courtyard Skyline around Spawn (Y = 4.6 .. 9.0m, moon gap along X=-4.4..+0.8)
+	# 2nd-Story Bombed Brick Courtyard Skyline around Spawn & North Yard
 	_build_ruined_story(Vector2(-10.0, -8.0), Vector2(10.0, -8.0), 4.6, 0.52, [0.16, 0.62, 0.84], 0.28, 0.54)
 	_build_ruined_story(Vector2(-10.0, -8.0), Vector2(-10.0, 10.0), 4.6, 0.52, [0.22, 0.52, 0.80], -1.0, -1.0)
 	_build_ruined_story(Vector2(10.0, -8.0), Vector2(10.0, 10.0), 4.6, 0.52, [0.22, 0.52, 0.80], -1.0, -1.0)
 	_build_ruined_story(Vector2(-10.0, 10.0), Vector2(10.0, 10.0), 4.6, 0.52, [0.25, 0.75], -1.0, -1.0)
 
-	# Interior Structural Wall Pilasters, Baseboards & Ceiling I-Beams to break up large flat concrete walls
-	for rx in [-17.5, -13.0, -6.4, -0.1, 6.4, 12.6, 18.8]:
+	_build_ruined_story(Vector2(-12.0, -42.0), Vector2(24.0, -42.0), 4.6, 0.52, [0.18, 0.48, 0.78], -1.0, -1.0)
+	_build_ruined_story(Vector2(-12.0, -28.0), Vector2(-12.0, -42.0), 4.6, 0.52, [0.25, 0.72], -1.0, -1.0)
+	_build_ruined_story(Vector2(-12.0, -28.0), Vector2(12.0, -28.0), 4.6, 0.52, [0.22, 0.68], -1.0, -1.0)
+
+	# Interior Structural Wall Pilasters, Baseboards & Ceiling I-Beams
+	for rx in [-17.5, -13.0, -6.4, -0.1, 6.4, 12.6, 20.5]:
 		_add_visual_box("Pilaster_Reactor_%d" % int(rx * 10), Vector3(0.54, 5.2, 0.32), Vector3(rx, 2.6, -21.74), _mat_concrete)
 	for rx_b in [-16.0, -8.0, 0.0, 8.0, 16.0]:
 		_add_visual_box("CeilingBeam_Reactor_%d" % int(rx_b), Vector3(0.36, 0.42, 13.8), Vector3(rx_b, 5.02, -15.0), _mat_steel)
@@ -228,97 +388,233 @@ func _build_facility_architecture() -> void:
 	for lz_p in [-5.2, 5.2]:
 		_add_visual_box("Pilaster_LabW_%d" % int(lz_p * 10), Vector3(0.30, 4.6, 0.50), Vector3(-23.74, 2.3, lz_p), _mat_concrete)
 		_add_visual_box("Pilaster_EastE_%d" % int(lz_p * 10), Vector3(0.30, 4.6, 0.50), Vector3(23.74, 2.3, lz_p), _mat_concrete)
-	# Continuous Concrete Baseboard Plinths (visual skirt along base of interior walls)
+	for ny_p in [-2.0, 8.8, 17.5]:
+		_add_visual_box("Pilaster_NorthYardN_%d" % int(ny_p * 10), Vector3(0.52, 4.6, 0.30), Vector3(ny_p, 2.3, -41.74), _mat_concrete)
+	_add_visual_box("Pilaster_NorthYard_Corner", Vector3(0.42, 4.6, 0.42), Vector3(12.0, 2.3, -28.0), _mat_steel)
+
+	# Continuous Concrete / Steel Baseboard Plinths
 	_add_visual_box("Skirt_ReactorN1", Vector3(13.0, 0.22, 0.14), Vector3(-17.3, 0.11, -21.72), _mat_steel)
 	_add_visual_box("Skirt_ReactorN2", Vector3(16.4, 0.22, 0.14), Vector3(0.0, 0.11, -21.72), _mat_steel)
-	_add_visual_box("Skirt_ReactorN3", Vector3(13.0, 0.22, 0.14), Vector3(17.3, 0.11, -21.72), _mat_steel)
+	_add_visual_box("Skirt_ReactorN3a", Vector3(4.0, 0.22, 0.14), Vector3(12.75, 0.11, -21.72), _mat_steel)
+	_add_visual_box("Skirt_ReactorN3b", Vector3(5.4, 0.22, 0.14), Vector3(21.0, 0.11, -21.72), _mat_steel)
 	_add_visual_box("Skirt_SpawnN1", Vector3(11.2, 0.22, 0.14), Vector3(-4.2, 0.11, -7.72), _mat_concrete)
 	_add_visual_box("Skirt_SpawnN2", Vector3(4.8, 0.22, 0.14), Vector3(7.4, 0.11, -7.72), _mat_concrete)
+	_add_visual_box("Skirt_NorthYardS", Vector3(23.6, 0.22, 0.14), Vector3(0.0, 0.11, -28.28), _mat_concrete)
+	_add_visual_box("Skirt_NorthYardE", Vector3(0.14, 0.22, 19.6), Vector3(23.72, 0.11, -32.0), _mat_steel)
 
 
 func _build_props_and_atmosphere() -> void:
-	# Glowing Full Moon & Atmospheric Halo in Night Sky above Spawn North-West bombed skyline
+	# Glowing Full Moon & Atmospheric Halo visible through bombed roof skylights
 	_add_full_moon(Vector3(-15.0, 34.0, -56.0), 2.35)
 
-	# Overhead Perforated Steel Gantry Bridge spanning Spawn Courtyard across sky
+	# Overhead Perforated Steel Gantry Bridge spanning Spawn Courtyard
 	_place_visual_model("res://assets/models/env/steel_gantry.glb", Vector3(-5.0, 4.56, -0.8), 0.0)
 	_place_visual_model("res://assets/models/env/steel_gantry.glb", Vector3(5.0, 4.56, -0.8), 0.0)
 
-	# Mounted Industrial Pipe Manifolds, Valves & Pressure Gauges along concrete walls
+	# Mounted Industrial Pipe Manifolds, Valves & Pressure Gauges along concrete walls (clear of all windows)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-6.0, 2.45, -21.74), 0.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(0.0, 3.65, -21.74), 0.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(6.5, 3.25, -21.74), 0.0)
-	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-23.74, 2.45, -1.8), 90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-23.74, 2.45, -4.8), 90.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-19.5, 2.45, -7.74), 0.0)
-	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(23.74, 2.45, -1.5), -90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(23.74, 2.45, -5.2), -90.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(19.5, 2.45, -7.74), 0.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-3.8, 2.60, -7.74), 0.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-9.74, 2.60, -4.4), 90.0)
 	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(9.74, 2.60, -4.4), -90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(23.74, 2.55, -25.0), -90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(12.26, 2.55, -25.0), 90.0)
 
-	# Perimeter Bombed Rubble Piles & Barbed Wire Entanglements (kept clear of NavMesh center & doorways!)
+	# Perimeter Rubble & Barbed Wire
 	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(7.4, 0.0, -6.7), -28.0, Vector3(1.8, 0.7, 1.1), Vector3(0, 0.35, 0))
 	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(-3.5, 0.0, -7.0), 14.0, Vector3(1.8, 0.7, 1.1), Vector3(0, 0.35, 0))
 	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(-22.2, 0.0, -6.6), 36.0, Vector3(1.6, 0.65, 1.0), Vector3(0, 0.32, 0))
+	_place_prop("res://assets/models/env/rubble_pile.glb", Vector3(-8.4, 0.0, -29.2), 22.0, Vector3(1.8, 0.7, 1.1), Vector3(0, 0.35, 0))
 	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(-8.85, 0.0, -4.4), 90.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
 	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(8.85, 0.0, -2.9), 90.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
 	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(8.4, 0.0, 8.4), -42.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
+	_place_prop("res://assets/models/env/barbed_wire.glb", Vector3(-5.8, 0.0, -40.8), 12.0, Vector3(2.0, 0.8, 0.7), Vector3(0, 0.4, 0))
 
-	# Ruined Panzer Tank Centerpiece in Spawn Courtyard
+	# === ZONE 1: SPAWN COURTYARD ===
 	_place_prop("res://assets/models/env/ruined_tank.glb", Vector3(-1.4, 0.0, -2.0), 24.0, Vector3(3.0, 2.2, 5.2), Vector3(0, 1.1, 0))
-	# Courtyard Sandbags, Crates, Barrels & Element 115 Crystals
 	_place_prop("res://assets/models/env/sandbag_wall.glb", Vector3(2.8, 0.0, 0.6), -25.0, Vector3(2.4, 0.85, 0.7), Vector3(0, 0.42, 0))
 	_place_prop("res://assets/models/env/sandbag_wall.glb", Vector3(-6.2, 0.0, 1.8), 42.0, Vector3(2.4, 0.85, 0.7), Vector3(0, 0.42, 0))
-	_place_prop("res://assets/models/env/crate_military.glb", Vector3(6.8, 0.0, -5.2), 18.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
-	_place_prop("res://assets/models/env/barrel_rusted.glb", Vector3(7.9, 0.0, -4.6), 0.0, Vector3(0.7, 0.95, 0.7), Vector3(0, 0.47, 0))
-	_place_prop("res://assets/models/env/barrel_rusted.glb", Vector3(-8.4, 0.0, -6.2), 0.0, Vector3(0.7, 0.95, 0.7), Vector3(0, 0.47, 0))
+	_place_prop("res://assets/models/env_cc0/concrete_road_barrier.glb", Vector3(-7.6, 0.0, 6.8), 28.0, Vector3(1.55, 0.85, 0.65), Vector3(0, 0.42, 0))
+	_place_prop("res://assets/models/env_cc0/concrete_road_barrier.glb", Vector3(7.4, 0.0, 7.2), -34.0, Vector3(1.55, 0.85, 0.65), Vector3(0, 0.42, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_stove.glb", Vector3(-7.6, 0.0, -5.8), 15.0, Vector3(0.6, 0.88, 0.6), Vector3(0, 0.44, 0), Color(1.0, 0.48, 0.14), 1.45)
+	_place_prop("res://assets/models/env_cc0/barrel_stove.glb", Vector3(8.0, 0.0, -4.6), -40.0, Vector3(0.6, 0.88, 0.6), Vector3(0, 0.44, 0), Color(1.0, 0.48, 0.14), 1.45)
+	_place_prop("res://assets/models/env_cc0/ammo_box.glb", Vector3(3.2, 0.0, -0.2), -20.0, Vector3.ZERO, Vector3.ZERO)
+	_place_prop("res://assets/models/env_cc0/ammo_box.glb", Vector3(-5.8, 0.0, 2.5), 38.0, Vector3.ZERO, Vector3.ZERO)
+	_place_prop("res://assets/models/env_cc0/old_military_crate.glb", Vector3(6.6, 0.0, -5.2), 18.0, Vector3(1.8, 0.35, 0.96), Vector3(0, 0.17, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_01.glb", Vector3(-8.6, 0.0, -6.2), 0.0, Vector3(0.6, 0.9, 0.6), Vector3(0, 0.45, 0))
+	_place_visual_model("res://assets/models/env_cc0/cement_bag.glb", Vector3(5.6, 0.0, -6.2), 26.0)
+	_place_visual_model("res://assets/models/env_cc0/crowbar_01.glb", Vector3(3.75, 0.0, 0.92), 45.0)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(4.2, 0.0, -4.2), 15.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.92, 1.0), 1.6)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(-6.8, 0.0, -5.8), -40.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.92, 1.0), 1.5)
 
-	# West Lab Bio-Pods + Crystal Island + Lab Crates
+	# === ZONE 2: WEST RESEARCH LAB ===
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, -1.6), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, 2.2), 180.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(-16.8, 0.0, 0.3), 25.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.7)
+	_place_prop("res://assets/models/env_cc0/metal_office_desk.glb", Vector3(-22.2, 0.0, 2.4), 90.0, Vector3(2.0, 0.80, 0.95), Vector3(0, 0.40, 0))
+	_place_visual_model("res://assets/models/env_cc0/chemistry_set.glb", Vector3(-22.15, 0.788, 2.1), 90.0)
+	_place_visual_model("res://assets/models/env_cc0/bunsen_burner.glb", Vector3(-22.05, 0.788, 3.0), 25.0)
+	_place_prop("res://assets/models/env_cc0/metal_office_desk.glb", Vector3(-11.8, 0.0, -5.4), -90.0, Vector3(2.0, 0.80, 0.95), Vector3(0, 0.40, 0))
+	_place_visual_model("res://assets/models/env_cc0/vintage_radio_transceiver.glb", Vector3(-11.85, 0.788, -4.95), -90.0)
+	_place_visual_model("res://assets/models/env_cc0/medical_box.glb", Vector3(-11.9, 0.788, -5.85), -70.0)
+	_place_prop("res://assets/models/env_cc0/steel_frame_shelves_01.glb", Vector3(-10.8, 0.0, 5.8), -90.0, Vector3(1.1, 2.14, 0.52), Vector3(0, 1.07, 0))
 	_place_prop("res://assets/models/env/crate_military.glb", Vector3(-22.2, 0.0, 5.8), 10.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-10.26, 1.55, 3.8), -90.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-19.5, 4.6, -2.5), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-14.5, 4.6, 3.5), 0.0)
 
-	# East Courtyard Industrial Crates & Barrels
-	_place_prop("res://assets/models/env/crate_military.glb", Vector3(21.4, 0.0, 6.2), -22.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
-	_place_prop("res://assets/models/env/barrel_rusted.glb", Vector3(22.4, 0.0, 5.4), 0.0, Vector3(0.7, 0.95, 0.7), Vector3(0, 0.47, 0))
+	# === ZONE 3: EAST FOUNDRY COURTYARD ===
+	_place_prop("res://assets/models/env_cc0/portable_welding_cart.glb", Vector3(22.4, 0.0, -1.2), -125.0, Vector3(0.84, 1.56, 0.66), Vector3(0, 0.78, 0))
+	_place_prop("res://assets/models/env_cc0/drawer_cabinet.glb", Vector3(10.6, 0.0, 4.9), 90.0, Vector3(1.13, 1.88, 0.50), Vector3(0, 0.94, 0))
+	_place_visual_model("res://assets/models/env_cc0/metal_toolbox.glb", Vector3(10.6, 1.88, 4.9), 75.0)
+	_place_prop("res://assets/models/env_cc0/old_military_crate.glb", Vector3(21.4, 0.0, 6.4), -18.0, Vector3(1.8, 0.35, 0.96), Vector3(0, 0.17, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_02.glb", Vector3(22.6, 0.0, 5.2), 0.0, Vector3(0.54, 0.88, 0.54), Vector3(0, 0.44, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_01.glb", Vector3(11.3, 0.0, -1.3), 25.0, Vector3(0.58, 0.88, 0.58), Vector3(0, 0.44, 0))
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(21.0, 0.0, -6.2), 70.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.92, 1.0), 1.5)
+	_place_visual_model("res://assets/models/env_cc0/caged_hanging_light.glb", Vector3(17.0, 4.6, 3.8), 90.0)
 
-	# Reactor Props: Teleporter Pad + Lab Pods + Crystals + Cover
+	# === ZONE 4: REACTOR HALL ===
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-1.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(4.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(11.5, 0.0, -13.8), 30.0, Vector3(1.1, 1.2, 1.1), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.8)
 	_place_prop("res://assets/models/env/sandbag_wall.glb", Vector3(7.0, 0.0, -13.0), 15.0, Vector3(2.4, 0.85, 0.7), Vector3(0, 0.42, 0))
 	_place_prop("res://assets/models/env/crate_military.glb", Vector3(-7.0, 0.0, -13.5), -14.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
+	_place_prop("res://assets/models/env_cc0/metal_office_desk.glb", Vector3(-20.4, 0.0, -20.0), 18.0, Vector3(2.0, 0.80, 0.95), Vector3(0, 0.40, 0))
+	_place_visual_model("res://assets/models/env_cc0/vintage_radio_transceiver.glb", Vector3(-20.4, 0.788, -20.0), 22.0)
+	_place_visual_model("res://assets/models/env_cc0/ammo_box.glb", Vector3(-19.6, 0.788, -19.8), -15.0)
+	_place_prop("res://assets/models/env_cc0/drawer_cabinet.glb", Vector3(-23.2, 0.0, -18.5), 90.0, Vector3(1.13, 1.88, 0.50), Vector3(0, 0.94, 0))
+	_place_prop("res://assets/models/env_cc0/steel_frame_shelves_01.glb", Vector3(-23.2, 0.0, -9.8), 90.0, Vector3(1.1, 2.14, 0.52), Vector3(0, 1.07, 0))
+	_place_prop("res://assets/models/env_cc0/steel_frame_shelves_01.glb", Vector3(23.2, 0.0, -19.8), -90.0, Vector3(1.1, 2.14, 0.52), Vector3(0, 1.07, 0))
+	_place_prop("res://assets/models/env_cc0/portable_welding_cart.glb", Vector3(20.6, 0.0, -9.8), -145.0, Vector3(0.84, 1.56, 0.66), Vector3(0, 0.78, 0))
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-5.3, 1.65, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(6.2, 1.65, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-15.0, 5.2, -15.5), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(1.5, 5.2, -15.5), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(15.0, 5.2, -15.5), 0.0)
 
-	# Moonlight Volumetric Cones streaming over Spawn Courtyard through broken upper windows
+	# === ZONE 5: RUINED MOTORPOOL COURTYARD (north_yard) ===
+	_place_prop("res://assets/models/env_cc0/covered_car.glb", Vector3(2.2, 0.0, -34.4), 24.0, Vector3(1.82, 1.42, 4.35), Vector3(0, 0.71, 0))
+	_place_prop("res://assets/models/env_cc0/concrete_road_barrier_02.glb", Vector3(-4.6, 0.0, -31.8), 16.0, Vector3(1.56, 1.12, 0.45), Vector3(0, 0.56, 0))
+	_place_prop("res://assets/models/env_cc0/concrete_road_barrier.glb", Vector3(9.4, 0.0, -35.8), -32.0, Vector3(1.55, 0.85, 0.65), Vector3(0, 0.42, 0))
+	_place_prop("res://assets/models/env_cc0/concrete_road_barrier_02.glb", Vector3(20.6, 0.0, -29.0), -16.0, Vector3(1.56, 1.12, 0.45), Vector3(0, 0.56, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_stove.glb", Vector3(-9.8, 0.0, -40.2), 20.0, Vector3(0.6, 0.88, 0.6), Vector3(0, 0.44, 0), Color(1.0, 0.50, 0.16), 1.55)
+	_place_prop("res://assets/models/env_cc0/barrel_stove.glb", Vector3(22.2, 0.0, -39.2), -28.0, Vector3(0.6, 0.88, 0.6), Vector3(0, 0.44, 0), Color(1.0, 0.48, 0.14), 1.45)
+	_place_prop("res://assets/models/env_cc0/industrial_storage_cart.glb", Vector3(22.3, 0.0, -35.0), -90.0, Vector3(1.48, 1.28, 1.02), Vector3(0, 0.64, 0))
+	_place_visual_model("res://assets/models/env_cc0/metal_toolbox.glb", Vector3(22.2, 1.27, -34.6), -70.0)
+	_place_prop("res://assets/models/env_cc0/steel_frame_shelves_01.glb", Vector3(22.6, 0.0, -25.4), -90.0, Vector3(1.1, 2.14, 0.52), Vector3(0, 1.07, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_01.glb", Vector3(13.0, 0.0, -25.6), 12.0, Vector3(0.58, 0.88, 0.58), Vector3(0, 0.44, 0))
+	_place_prop("res://assets/models/env_cc0/barrel_02.glb", Vector3(13.2, 0.0, -24.7), -30.0, Vector3(0.54, 0.88, 0.54), Vector3(0, 0.44, 0))
+	_place_prop("res://assets/models/env_cc0/old_military_crate.glb", Vector3(-6.2, 0.0, -39.6), -8.0, Vector3(1.8, 0.35, 0.96), Vector3(0, 0.17, 0))
+	_place_visual_model("res://assets/models/env_cc0/cement_bag.glb", Vector3(-6.4, 0.30, -39.6), 14.0)
+	_place_prop("res://assets/models/env_cc0/flood_lights.glb", Vector3(9.4, 0.0, -40.2), -48.0, Vector3(1.9, 0.85, 0.9), Vector3(0, 0.42, 0))
+	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(-2.5, 0.0, -40.4), 35.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.65)
+	_place_visual_model("res://assets/models/env_cc0/caged_hanging_light.glb", Vector3(18.0, 4.6, -25.0), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/caged_hanging_light.glb", Vector3(18.5, 4.6, -34.5), 90.0)
+
+	# Street Lamps in North Yard (positioned cleanly along perimeter edges away from doorway sightline)
+	for sl_pos in [Vector3(-10.8, 0.0, -39.2), Vector3(8.2, 0.0, -28.7)]:
+		_add_street_lamp(sl_pos, 40.0 if sl_pos.x < 0.0 else 180.0)
+
+	# Outside Silhouette Props visible through WindowBarricades & bombed walls (clear of window approach lanes)
+	for out_tree in [
+		[Vector3(-10.5, 0.0, 16.5), 25.0],
+		[Vector3(10.5, 0.0, 16.8), -40.0],
+		[Vector3(-29.2, 0.0, -5.8), 65.0],
+		[Vector3(29.2, 0.0, -4.8), -75.0],
+		[Vector3(-17.8, 0.0, -30.2), 18.0],
+		[Vector3(-6.2, 0.0, -47.8), 12.0],
+		[Vector3(17.5, 0.0, -47.2), -32.0],
+	]:
+		_place_visual_model("res://assets/models/env_cc0/dead_tree_trunk.glb", out_tree[0], out_tree[1], 1.15)
+	for out_rock in [
+		[Vector3(0.0, 0.0, 17.5), 14.0, 1.2],
+		[Vector3(-29.5, 0.0, 5.5), 48.0, 1.1],
+		[Vector3(29.0, 0.0, 6.8), -30.0, 1.05],
+		[Vector3(-17.5, 0.0, -40.2), 20.0, 1.15],
+		[Vector3(10.8, 0.0, -48.2), -55.0, 1.25],
+	]:
+		_place_visual_model("res://assets/models/env_cc0/boulder_01.glb", out_rock[0], out_rock[1], out_rock[2])
+
+	# Moonlight Volumetric Cones streaming over Spawn Courtyard & North Yard
 	_add_light_shaft(Vector3(-1.5, 3.6, -1.0), Vector3(18, 0, -12), 2.4, 9.0)
 	_add_light_shaft(Vector3(3.2, 3.6, 1.8), Vector3(18, 0, -12), 2.0, 9.0)
 	_add_light_shaft(Vector3(-4.8, 5.0, -5.2), Vector3(-22, 0, 10), 1.5, 8.0)
 	_add_light_shaft(Vector3(4.2, 5.0, -5.2), Vector3(-22, 0, 10), 1.5, 8.0)
+	_add_light_shaft(Vector3(1.5, 3.8, -34.5), Vector3(16, 0, -10), 2.5, 9.5)
+	_add_light_shaft(Vector3(-6.2, 4.0, -34.8), Vector3(18, 0, 8), 1.9, 8.5)
 
-	# Practical Cage Lights & Facility Lighting
-	_add_cage_light(Vector3(0.0, 3.3, 9.68), 180.0, Color(1.0, 0.62, 0.24), 2.5, false)
-	_add_cage_light(Vector3(-9.68, 3.3, 4.5), 90.0, Color(1.0, 0.62, 0.24), 2.4, false)
-	_add_cage_light(Vector3(-23.68, 3.3, -4.5), 90.0, Color(0.35, 0.88, 1.0), 1.6, false)
-	_add_cage_light(Vector3(-16.8, 4.56, 0.3), 0.0, Color(0.35, 0.95, 1.0), 2.4, true, true)
-	_add_cage_light(Vector3(17.0, 4.56, 3.5), 0.0, Color(1.0, 0.65, 0.28), 1.8, false, true)
-	_add_cage_light(Vector3(17.0, 4.56, -5.5), 0.0, Color(1.0, 0.68, 0.32), 2.6, true, true)
-	_add_cage_light(Vector3(23.68, 3.3, -5.2), -90.0, Color(1.0, 0.62, 0.25), 1.6, false)
-	_add_cage_light(Vector3(-15.0, 5.16, -15.5), 0.0, Color(0.45, 0.9, 1.0), 2.8, true, true)
-	_add_cage_light(Vector3(1.5, 5.16, -15.5), 0.0, Color(1.0, 0.85, 0.65), 3.2, true, true)
-	_add_cage_light(Vector3(15.0, 5.16, -15.5), 0.0, Color(1.0, 0.65, 0.28), 2.8, true, true)
+	# Practical Cage/Industrial Wall & Ceiling Lights (omit light_cage mesh where CC0 hanging lamp sits)
+	_add_cage_light(Vector3(0.0, 3.3, 9.68), 180.0, Color(1.0, 0.62, 0.24), 2.3, false, false, false, true)
+	_add_cage_light(Vector3(-9.68, 3.3, 4.5), 90.0, Color(1.0, 0.62, 0.24), 2.2, false, false, true, true)
+	_add_cage_light(Vector3(-23.68, 3.3, -4.5), 90.0, Color(0.35, 0.88, 1.0), 1.6, false, false, false, true)
+	_add_cage_light(Vector3(-19.5, 4.6, -2.5), 0.0, Color(0.95, 0.90, 0.78), 1.6, true, true, false, false, -1.25)
+	_add_cage_light(Vector3(-14.5, 4.6, 3.5), 0.0, Color(0.45, 0.92, 0.88), 1.8, true, true, false, false, -1.25)
+	_add_cage_light(Vector3(-16.8, 4.56, 0.3), 0.0, Color(0.35, 0.92, 0.96), 1.9, true, true, false, false, -0.45)
+	_add_cage_light(Vector3(17.0, 4.6, 3.8), 0.0, Color(1.0, 0.68, 0.32), 2.0, false, true, false, false, -0.78)
+	_place_visual_model("res://assets/models/env_cc0/caged_hanging_light.glb", Vector3(17.0, 4.6, -5.5), 0.0)
+	_add_cage_light(Vector3(17.0, 4.6, -5.5), 0.0, Color(1.0, 0.68, 0.32), 2.5, true, true, false, false, -0.78)
+	_add_cage_light(Vector3(23.68, 3.3, -5.2), -90.0, Color(1.0, 0.62, 0.25), 1.7, false, false, true, true)
+	_add_cage_light(Vector3(-15.0, 5.2, -15.5), 0.0, Color(0.45, 0.9, 1.0), 2.7, true, true, false, false, -1.32)
+	_add_cage_light(Vector3(1.5, 5.2, -15.5), 0.0, Color(1.0, 0.85, 0.65), 3.0, true, true, false, false, -1.32)
+	_add_cage_light(Vector3(15.0, 5.2, -15.5), 0.0, Color(1.0, 0.65, 0.28), 2.7, true, true, false, false, -1.32)
+	_add_cage_light(Vector3(18.0, 4.6, -25.0), 0.0, Color(1.0, 0.68, 0.30), 2.2, false, true, true, false, -0.78)
+	_add_cage_light(Vector3(18.5, 4.6, -34.5), 0.0, Color(1.0, 0.72, 0.35), 2.5, true, true, false, false, -0.78)
+
+	# Warm Lab Task Light & Cool Moonlit Sky Bounce Fill in Open Spawn Courtyard
+	var lab_task := OmniLight3D.new()
+	lab_task.position = Vector3(-21.2, 2.55, 2.4)
+	lab_task.light_color = Color(0.96, 0.90, 0.78)
+	lab_task.light_energy = 1.45
+	lab_task.omni_range = 6.5
+	geo_root.add_child(lab_task)
+
+	var spawn_sky_fill := OmniLight3D.new()
+	spawn_sky_fill.position = Vector3(0.0, 4.4, 2.2)
+	spawn_sky_fill.light_color = Color(0.44, 0.62, 0.90)
+	spawn_sky_fill.light_energy = 0.72
+	spawn_sky_fill.omni_range = 16.0
+	geo_root.add_child(spawn_sky_fill)
+
+	# CC0 Industrial Wall Sconces framing main courtyard, foundry & north yard (each with warm downward bulb glow)
+	for wlamp in [
+		[Vector3(9.74, 3.1, 4.8), -90.0, Vector3(-0.28, -0.08, 0.0)],
+		[Vector3(10.26, 3.1, -5.6), 90.0, Vector3(0.28, -0.08, 0.0)],
+		[Vector3(-11.74, 3.1, -35.0), 90.0, Vector3(0.28, -0.08, 0.0)],
+		[Vector3(4.0, 3.1, -28.26), 180.0, Vector3(0.0, -0.08, -0.28)],
+	]:
+		_place_visual_model("res://assets/models/env_cc0/industrial_wall_lamp.glb", wlamp[0], wlamp[1])
+		var wl := OmniLight3D.new()
+		wl.position = wlamp[0] + wlamp[2]
+		wl.light_color = Color(1.0, 0.66, 0.28)
+		wl.light_energy = 1.35
+		wl.omni_range = 7.5
+		geo_root.add_child(wl)
+
+	# North Yard Floodlight SpotLight illuminating the Covered Car & crater
+	var flood := SpotLight3D.new()
+	flood.name = "MotorpoolFloodSpot"
+	flood.position = Vector3(9.1, 0.65, -39.8)
+	flood.look_at_from_position(flood.position, Vector3(2.2, 0.5, -34.4), Vector3.UP)
+	flood.light_color = Color(0.82, 0.90, 1.0)
+	flood.light_energy = 4.2
+	flood.spot_range = 16.0
+	flood.spot_angle = 36.0
+	flood.spot_attenuation = 1.2
+	geo_root.add_child(flood)
 
 	# Alarm Red Lights active before Power Switch is pulled
 	_add_alarm_light(Vector3(-3.5, 3.8, -19.5))
 	_add_alarm_light(Vector3(-17.0, 3.8, -5.0))
 	_add_alarm_light(Vector3(17.0, 3.8, -5.0))
+	_add_alarm_light(Vector3(18.0, 3.6, -25.0))
 
 
 func _build_facility_details() -> void:
-	# On-wall art does not change the playable floor or navigation geometry.
 	var details := Node3D.new()
 	details.name = "FacilityDetails"
 	geo_root.add_child(details)
@@ -329,6 +625,7 @@ func _build_facility_details() -> void:
 		[Vector3(-15, 0, -8), 0.0, "03 / REACTOR", Color(1.0, 0.65, 0.27)],
 		[Vector3(17, 0, -8), 0.0, "03 / REACTOR", Color(1.0, 0.65, 0.27)],
 		[Vector3(3.2, 0, -8), 0.0, "EMERGENCY / POWER LOCK", Color(0.75, 0.85, 0.9)],
+		[Vector3(16.5, 0, -22), 0.0, "04 / MOTORPOOL", Color(0.98, 0.72, 0.30)],
 	]:
 		var doorway := Node3D.new()
 		doorway.position = spec[0]
@@ -343,8 +640,9 @@ func _build_facility_details() -> void:
 		sign.modulate = spec[3]
 		sign.outline_size = 8
 		doorway.add_child(sign)
+
 	var pipe := preload("res://assets/models/env/service_pipes.glb")
-	for x in [-20.5, -15.5, 13.0, 18.0]:
+	for x in [-20.5, -15.5, 13.0, 21.0]:
 		var inst := pipe.instantiate() as Node3D
 		inst.position = Vector3(x, 3.85, -21.55)
 		details.add_child(inst)
@@ -353,6 +651,204 @@ func _build_facility_details() -> void:
 		inst.position = Vector3(x, 3.35, 3.8)
 		inst.rotation_degrees.y = 90.0 if x < 0.0 else -90.0
 		details.add_child(inst)
+
+	# Rotating Industrial Ventilation Fans (with dusty volumetric air beams)
+	if ResourceLoader.exists("res://scenes/fx/env_vent_fan.tscn"):
+		var fan_scene := load("res://scenes/fx/env_vent_fan.tscn") as PackedScene
+		for fspec in [
+			[Vector3(-23.62, 3.55, -11.4), 90.0],
+			[Vector3(23.62, 3.55, -11.4), -90.0],
+			[Vector3(23.62, 3.45, -5.5), -90.0],
+			[Vector3(23.62, 3.45, -35.5), -90.0],
+		]:
+			var fan := fan_scene.instantiate() as Node3D
+			fan.position = fspec[0]
+			fan.rotation_degrees.y = fspec[1]
+			details.add_child(fan)
+			var blades := fan.get_node_or_null("FanBlades") as Node3D
+			if blades:
+				_vent_fans.append(blades)
+
+
+func _build_reflection_probes_and_decals() -> void:
+	var probe_root := Node3D.new()
+	probe_root.name = "ReflectionProbes"
+	geo_root.add_child(probe_root)
+	for pspec in [
+		["Probe_Spawn", Vector3(0.0, 2.6, 1.0), Vector3(22.0, 7.0, 20.0), false, 0.85],
+		["Probe_Lab", Vector3(-17.0, 2.4, 0.0), Vector3(16.0, 6.0, 18.0), true, 0.90],
+		["Probe_East", Vector3(17.0, 2.4, 0.0), Vector3(16.0, 6.0, 18.0), false, 0.90],
+		["Probe_Reactor", Vector3(0.0, 2.7, -15.0), Vector3(50.0, 6.8, 16.0), true, 0.92],
+		["Probe_NorthYard", Vector3(6.0, 2.8, -33.0), Vector3(38.0, 8.0, 22.0), false, 0.85],
+	]:
+		var rp := ReflectionProbe.new()
+		rp.name = pspec[0]
+		rp.position = pspec[1]
+		rp.size = pspec[2]
+		rp.interior = pspec[3]
+		rp.intensity = pspec[4]
+		rp.box_projection = true
+		rp.update_mode = ReflectionProbe.UPDATE_ONCE
+		probe_root.add_child(rp)
+		_probes.append(rp)
+
+	var decals_root := Node3D.new()
+	decals_root.name = "EnvDecals"
+	geo_root.add_child(decals_root)
+
+	var t_warn := load("res://assets/decals/decal_warning_stripe.png") as Texture2D
+	var t_puddle := load("res://assets/decals/decal_puddle_albedo.png") as Texture2D
+	var t_puddle_orm := load("res://assets/decals/decal_puddle_orm.png") as Texture2D
+	var t_oil := load("res://assets/decals/decal_oil_slick.png") as Texture2D
+	var t_scorch := load("res://assets/decals/decal_scorch_mark.png") as Texture2D
+	var t_blood := load("res://assets/decals/decal_blood_splatter.png") as Texture2D
+	var t_grate := load("res://assets/decals/decal_floor_grate.png") as Texture2D
+	var t_grate_n := load("res://assets/decals/decal_floor_grate_normal.png") as Texture2D
+	var t_crack := load("res://assets/decals/decal_wall_crack.png") as Texture2D
+	var t_crack_n := load("res://assets/decals/decal_wall_crack_normal.png") as Texture2D
+	var t_leak := load("res://assets/decals/decal_grime_leak.png") as Texture2D
+
+	# Threshold warning stripes at doorways, ElectroTrap & Pack-a-Punch
+	for wspec in [
+		[Vector3(-9.1, 0.0, 0.0), 90.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(9.1, 0.0, 0.0), 90.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(-15.0, 0.0, -7.1), 0.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(17.0, 0.0, -7.1), 0.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(3.2, 0.0, -7.1), 0.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(16.5, 0.0, -21.1), 0.0, Vector3(3.4, 0.16, 0.9)],
+		[Vector3(17.0, 0.0, -2.8), 0.0, Vector3(3.6, 0.16, 1.1)],
+		[Vector3(1.5, 0.0, -18.9), 0.0, Vector3(2.8, 0.16, 0.9)],
+	]:
+		_add_decal(decals_root, "Decal_Warn", wspec[0], Vector3(0, wspec[1], 0), wspec[2], t_warn, null, null, 0.85)
+
+	# Rainwater puddles across courtyards
+	for ppos in [Vector3(2.5, 0.0, 4.2), Vector3(-4.2, 0.0, -1.2), Vector3(16.2, 0.0, 1.5), Vector3(-2.8, 0.0, -34.2), Vector3(8.5, 0.0, -33.6)]:
+		_add_decal(decals_root, "Decal_Puddle", ppos, Vector3(0, randf_range(0, 180), 0), Vector3(3.4, 0.16, 2.8), t_puddle, null, t_puddle_orm, 0.78)
+
+	# Oil slicks under Panzer tank, Covered Car & Welding Cart
+	_add_decal(decals_root, "Decal_Oil_Tank", Vector3(-1.4, 0.0, -2.0), Vector3(0, 24, 0), Vector3(3.4, 0.16, 4.2), t_oil, null, t_puddle_orm, 0.85)
+	_add_decal(decals_root, "Decal_Oil_Car", Vector3(2.2, 0.0, -34.4), Vector3(0, 24, 0), Vector3(2.8, 0.16, 4.4), t_oil, null, t_puddle_orm, 0.88)
+	_add_decal(decals_root, "Decal_Oil_Weld", Vector3(22.0, 0.0, -1.6), Vector3(0, 0, 0), Vector3(1.8, 0.16, 1.8), t_oil, null, null, 0.82)
+
+	# Blast scorch marks
+	for sc in [Vector3(-1.2, 0.0, -4.4), Vector3(6.8, 0.0, -37.2), Vector3(-7.6, 0.0, -5.8), Vector3(-9.8, 0.0, -40.2)]:
+		_add_decal(decals_root, "Decal_Scorch", sc, Vector3(0, 18, 0), Vector3(2.6, 0.16, 2.6), t_scorch, null, null, 0.82)
+
+	# Blood splatters near barricaded windows & bio-pods
+	for bl in [
+		[Vector3(-5.2, 0.0, 8.7), 18.0, Vector3(2.0, 0.16, 2.0)],
+		[Vector3(5.2, 0.0, 8.7), -42.0, Vector3(1.9, 0.16, 1.9)],
+		[Vector3(-16.8, 0.0, 0.4), 55.0, Vector3(2.4, 0.16, 2.2)],
+		[Vector3(-10.8, 0.0, -35.0), 75.0, Vector3(2.1, 0.16, 2.1)],
+		[Vector3(4.0, 0.0, -40.6), -15.0, Vector3(2.2, 0.16, 2.0)],
+	]:
+		_add_decal(decals_root, "Decal_Blood", bl[0], Vector3(0, bl[1], 0), bl[2], t_blood, null, null, 0.82)
+
+	# Industrial floor drain grates
+	for gr in [Vector3(-19.5, 0.0, 0.2), Vector3(-14.2, 0.0, 0.2), Vector3(16.8, 0.0, -0.5), Vector3(-6.0, 0.0, -15.0), Vector3(6.0, 0.0, -15.0), Vector3(16.5, 0.0, -25.2)]:
+		_add_decal(decals_root, "Decal_Grate", gr, Vector3.ZERO, Vector3(1.4, 0.16, 1.4), t_grate, t_grate_n, null, 0.90)
+
+	# Wall cracks & water-stain grime streaks projected vertically onto interior walls
+	for wc in [
+		[Vector3(0.8, 1.9, 9.74), Vector3(-90, 0, 0), Vector3(2.8, 0.22, 2.6), t_crack, t_crack_n],
+		[Vector3(-6.8, 2.4, -7.74), Vector3(90, 0, 0), Vector3(2.6, 0.22, 2.8), t_leak, null],
+		[Vector3(7.4, 2.4, -7.74), Vector3(90, 0, 0), Vector3(2.6, 0.22, 2.8), t_leak, null],
+		[Vector3(-23.74, 2.2, 4.8), Vector3(0, 0, -90), Vector3(2.4, 0.22, 2.8), t_leak, null],
+		[Vector3(23.74, 2.2, -18.2), Vector3(0, 0, 90), Vector3(2.8, 0.22, 2.8), t_crack, t_crack_n],
+		[Vector3(9.8, 2.2, -41.74), Vector3(90, 0, 0), Vector3(2.8, 0.22, 2.8), t_crack, t_crack_n],
+	]:
+		_add_decal(decals_root, "Decal_Wall", wc[0], wc[1], wc[2], wc[3], wc[4], null, 0.85)
+
+
+func _build_env_fx() -> void:
+	var fx_root := Node3D.new()
+	fx_root.name = "EnvFX"
+	geo_root.add_child(fx_root)
+
+	if ResourceLoader.exists("res://scenes/fx/env_embers.tscn"):
+		var s_emb := load("res://scenes/fx/env_embers.tscn") as PackedScene
+		for ep in [Vector3(-7.6, 0.65, -5.8), Vector3(8.0, 0.65, -4.6), Vector3(-9.8, 0.65, -40.2), Vector3(22.2, 0.65, -39.2)]:
+			var inst := s_emb.instantiate() as Node3D
+			inst.position = ep
+			fx_root.add_child(inst)
+
+	if ResourceLoader.exists("res://scenes/fx/env_dust_motes.tscn"):
+		var s_dust := load("res://scenes/fx/env_dust_motes.tscn") as PackedScene
+		for dp in [Vector3(-1.2, 2.75, -0.5), Vector3(2.8, 2.75, 1.5), Vector3(1.8, 2.85, -34.2), Vector3(-16.8, 2.65, 0.2)]:
+			var inst := s_dust.instantiate() as Node3D
+			inst.position = dp
+			fx_root.add_child(inst)
+
+	if ResourceLoader.exists("res://scenes/fx/env_electric_sparks.tscn"):
+		var s_spk := load("res://scenes/fx/env_electric_sparks.tscn") as PackedScene
+		for sp in [Vector3(-5.3, 1.65, -21.45), Vector3(6.2, 1.65, -21.45), Vector3(-10.45, 1.55, 3.8)]:
+			var inst := s_spk.instantiate() as Node3D
+			inst.position = sp
+			fx_root.add_child(inst)
+
+	if ResourceLoader.exists("res://scenes/fx/env_ground_fog.tscn"):
+		var s_fog := load("res://scenes/fx/env_ground_fog.tscn") as PackedScene
+		for fp in [Vector3(0.0, 0.25, 1.5), Vector3(2.2, 0.25, -34.0)]:
+			var inst := s_fog.instantiate() as Node3D
+			inst.position = fp
+			fx_root.add_child(inst)
+
+
+func _add_decal(
+	parent: Node3D,
+	nname: String,
+	pos: Vector3,
+	rot_deg: Vector3,
+	sz: Vector3,
+	alb: Texture2D,
+	nrm: Texture2D,
+	orm: Texture2D,
+	mix: float
+) -> void:
+	if alb == null:
+		return
+	var d := Decal.new()
+	d.name = nname
+	d.position = pos
+	d.rotation_degrees = rot_deg
+	d.size = sz
+	d.texture_albedo = alb
+	if nrm != null:
+		d.texture_normal = nrm
+	if orm != null:
+		d.texture_orm = orm
+	d.albedo_mix = mix
+	d.normal_fade = 0.55
+	d.upper_fade = 0.25
+	d.lower_fade = 0.25
+	parent.add_child(d)
+	_decals.append(d)
+
+
+func _add_street_lamp(pos: Vector3, rot_y_deg: float) -> void:
+	_place_prop("res://assets/models/env_cc0/street_lamp_01.glb", pos, rot_y_deg, Vector3(0.45, 3.85, 0.45), Vector3(0, 1.92, 0))
+	var bulb := MeshInstance3D.new()
+	bulb.position = pos + Vector3(0, 3.36, 0)
+	bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var sm := SphereMesh.new()
+	sm.radius = 0.085
+	sm.height = 0.22
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(1.0, 0.78, 0.40)
+	bmat.emission_enabled = true
+	bmat.emission = Color(1.0, 0.68, 0.28)
+	bmat.emission_energy_multiplier = 4.2
+	sm.material = bmat
+	bulb.mesh = sm
+	geo_root.add_child(bulb)
+
+	var l := OmniLight3D.new()
+	l.position = pos + Vector3(0, 3.30, 0)
+	l.light_color = Color(1.0, 0.68, 0.30)
+	l.light_energy = 3.0
+	l.omni_range = 15.0
+	l.omni_attenuation = 1.25
+	geo_root.add_child(l)
 
 
 func _add_visual_box(nname: String, size: Vector3, pos: Vector3, mat: Material) -> void:
@@ -467,7 +963,7 @@ func _place_prop(model_path: String, pos: Vector3, rot_y_deg: float, col_size: V
 		l.position = col_offset + Vector3(0, 0.5, 0)
 		l.light_color = glow_color
 		l.light_energy = glow_energy
-		l.omni_range = 9.0
+		l.omni_range = 9.5
 		holder.add_child(l)
 
 
@@ -534,7 +1030,6 @@ func _build_ruined_story(p1: Vector2, p2: Vector2, base_y: float, thick: float, 
 	# Continuous weathered concrete cornice belt dividing 1st floor concrete from 2nd floor brick
 	add_local.call(Vector3(total_len + 0.35, 0.24, thick + 0.24), Vector3(0, 0.12, 0), _mat_concrete)
 
-	# Build segmented spans along local X in [-total_len/2 .. +total_len/2]
 	var win_half_w := 0.88
 	var x_start := -total_len * 0.5
 	var x_end := total_len * 0.5
@@ -552,14 +1047,12 @@ func _build_ruined_story(p1: Vector2, p2: Vector2, base_y: float, thick: float, 
 		if pier_end > cur_x + 0.15:
 			_add_ruined_pier_span(add_local, cur_x, pier_end, total_len, thick, gap_t0, gap_t1, seg_idx)
 			seg_idx += 1
-		# Window sill, boarded planks, header & rugged top masonry
 		var ww := win_half_w * 2.0
 		add_local.call(Vector3(ww + 0.08, 0.86, thick), Vector3(wx, 0.67, 0), _mat_brick)
 		add_local.call(Vector3(ww + 0.24, 0.12, thick + 0.12), Vector3(wx, 1.12, 0), _mat_concrete)
 		add_local.call(Vector3(ww + 0.22, 0.22, thick + 0.10), Vector3(wx, 3.24, 0), _mat_concrete)
 		var par_h := 0.45 + 0.30 * fmod(absf(wx * 0.37), 1.0)
 		add_local.call(Vector3(ww + 0.08, par_h, thick), Vector3(wx, 3.35 + par_h * 0.5, 0), _mat_brick)
-		# Crooked nailed planks across upper window opening
 		add_local.call(Vector3(ww + 0.16, 0.15, 0.05), Vector3(wx, 1.56, 0.02), _mat_wood, Vector3(0, 0, -9.0 + (seg_idx % 3) * 6.0))
 		add_local.call(Vector3(ww + 0.16, 0.15, 0.05), Vector3(wx, 2.38, -0.02), _mat_wood, Vector3(0, 0, 11.0 - (seg_idx % 2) * 8.0))
 		cur_x = wx + win_half_w
@@ -569,7 +1062,6 @@ func _build_ruined_story(p1: Vector2, p2: Vector2, base_y: float, thick: float, 
 
 
 func _add_ruined_pier_span(add_local: Callable, x0: float, x1: float, total_len: float, thick: float, gap_t0: float, gap_t1: float, seed_idx: int) -> void:
-	# Split pier span into 1.4m jagged brick battlements, dipping sharply inside any moon skylight gap
 	var pos_x := x0
 	var chunk_i := 0
 	while pos_x < x1 - 0.1:
@@ -582,7 +1074,6 @@ func _add_ruined_pier_span(add_local: Callable, x0: float, x1: float, total_len:
 		var bh := top_y - 0.24
 		if bh > 0.15:
 			add_local.call(Vector3(cw + 0.02, bh, thick), Vector3(cx, 0.24 + bh * 0.5, 0), _mat_brick)
-		# Protruding twisted dark rebar spikes along ragged roofline
 		if (chunk_i + seed_idx) % 2 == 0:
 			add_local.call(Vector3(0.035, 0.72, 0.035), Vector3(cx - 0.15, top_y + 0.28, 0.04), _mat_steel, Vector3(12, 0, -18))
 			add_local.call(Vector3(0.035, 0.58, 0.035), Vector3(cx + 0.18, top_y + 0.22, -0.05), _mat_steel, Vector3(-14, 0, 22))
@@ -604,18 +1095,18 @@ func _add_light_shaft(pos: Vector3, rot_deg: Vector3, radius: float, height: flo
 	geo_root.add_child(mi)
 
 
-func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, power_controlled: bool, ceiling_mount: bool = false) -> void:
+func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, power_controlled: bool, ceiling_mount: bool = false, flicker: bool = false, spawn_mesh: bool = true, drop_y: float = -0.35) -> void:
 	var n := Node3D.new()
 	n.position = pos
 	n.rotation_degrees.y = rot_y_deg
 	geo_root.add_child(n)
-	if ResourceLoader.exists("res://assets/models/env/light_cage.glb"):
+	if spawn_mesh and ResourceLoader.exists("res://assets/models/env/light_cage.glb"):
 		var inst := (load("res://assets/models/env/light_cage.glb") as PackedScene).instantiate() as Node3D
 		if ceiling_mount:
 			inst.rotation_degrees.x = 90.0
 		n.add_child(inst)
 	var omni := OmniLight3D.new()
-	omni.position = Vector3(0, -0.35, 0) if ceiling_mount else Vector3(0, -0.2, 0.25)
+	omni.position = Vector3(0, drop_y, 0) if ceiling_mount else Vector3(0, -0.2, 0.25)
 	omni.light_color = col
 	omni.omni_range = 16.0
 	omni.light_energy = 0.0 if (power_controlled and not GameManager.power_on) else energy
@@ -623,6 +1114,13 @@ func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, 
 	n.add_child(omni)
 	if power_controlled:
 		_power_lights.append(omni)
+	elif flicker:
+		_flicker_lights.append({
+			"light": omni,
+			"base": energy,
+			"speed": 9.5 + fmod(absf(pos.x + pos.z), 5.0),
+			"phase": pos.x * 0.7 + pos.z * 0.4,
+		})
 
 
 func _add_alarm_light(pos: Vector3) -> void:
@@ -636,7 +1134,7 @@ func _add_alarm_light(pos: Vector3) -> void:
 
 
 func _bake_zone_navigation() -> void:
-	# Add temporary seal colliders at doorways during NavMesh bake so zones stay sealed before purchase
+	# Add temporary seal colliders at doorways + north exterior alley during NavMesh bake
 	var seals := Node3D.new()
 	geo_root.add_child(seals)
 	for spec in [
@@ -645,6 +1143,8 @@ func _bake_zone_navigation() -> void:
 		[Vector3(-15.0, 1.5, -8.0), Vector3(3.6, 3.0, 0.5)],
 		[Vector3(17.0, 1.5, -8.0), Vector3(3.6, 3.0, 0.5)],
 		[Vector3(3.2, 1.5, -8.0), Vector3(3.6, 3.0, 0.5)],
+		[Vector3(16.5, 1.5, -22.0), Vector3(3.6, 3.0, 0.5)],
+		[Vector3(0.0, 1.5, -25.0), Vector3(24.0, 3.0, 6.0)],
 	]:
 		var sb := StaticBody3D.new()
 		sb.position = spec[0]
@@ -662,6 +1162,7 @@ func _bake_zone_navigation() -> void:
 		"Navigation/NavRegionLab": AABB(Vector3(-23.9, -0.4, -7.9), Vector3(13.8, 3.6, 15.8)),
 		"Navigation/NavRegionEast": AABB(Vector3(10.1, -0.4, -7.9), Vector3(13.8, 3.6, 15.8)),
 		"Navigation/NavRegionReactor": AABB(Vector3(-23.9, -0.4, -21.9), Vector3(47.8, 3.6, 13.8)),
+		"Navigation/NavRegionNorthYard": AABB(Vector3(-11.9, -0.4, -41.9), Vector3(35.8, 3.6, 19.8)),
 	}
 	for npath in zone_cfg.keys():
 		var reg := get_node_or_null(npath) as NavigationRegion3D
@@ -697,7 +1198,7 @@ func _on_round_changed(_r: int, is_dog: bool) -> void:
 		return
 	var env := world_env.environment
 	var target_col := _fog_dog_color if is_dog else _fog_base_color
-	var target_den := 0.044 if is_dog else 0.022
+	var target_den := 0.038 if is_dog else 0.015
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(env, "fog_light_color", target_col, 1.4)
@@ -710,6 +1211,7 @@ func _apply_graphics_settings() -> void:
 	var env := world_env.environment
 	var q := SettingsManager.graphics_quality
 	env.ssao_enabled = (q == "High")
+	env.ssil_enabled = (q == "High")
 	env.glow_enabled = (q != "Low")
 	env.volumetric_fog_enabled = (q == "High")
 	if moon_light:

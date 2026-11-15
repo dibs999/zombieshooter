@@ -16,6 +16,8 @@ import bpy
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C
 
+CC0_CACHE_ROOT = "/tmp/cc0_cache/mach"
+
 
 def _tex_env(name):
     return (
@@ -33,9 +35,114 @@ def _tex_wpn(name):
     )
 
 
-def build_perk_machine(key, body_rgb, bottle_rgb):
+def _cc0_tex(asset_id):
+    tdir = os.path.join(CC0_CACHE_ROOT, "tex", asset_id)
+    a = os.path.join(tdir, "albedo.jpg")
+    n = os.path.join(tdir, "normal.jpg")
+    r = os.path.join(tdir, "roughness.jpg")
+    if os.path.exists(a) and os.path.exists(n) and os.path.exists(r):
+        return a, n, r
+    return _tex_env("rusted_steel")
+
+
+def _import_cc0_prop(asset_id, target_name, target_height=None, max_tris=1200, loc=(0, 0, 0), rot=(0, 0, 0)):
+    """Import a cached Poly Haven 1K glTF prop, decimate cleanly, normalize floor origin, and downscale images."""
+    gltf_path = os.path.join(CC0_CACHE_ROOT, "models", asset_id, f"{asset_id}_1k.gltf")
+    if not os.path.exists(gltf_path):
+        print(f"[WARN] Missing CC0 gltf for {asset_id}, falling back to procedural placeholder")
+        return C.add_cyl(target_name, 0.14, target_height or 0.5, loc=loc, rot=rot)
+
+    prev_objs = set(bpy.data.objects)
+    prev_imgs = set(bpy.data.images)
+    bpy.ops.import_scene.gltf(filepath=gltf_path)
+    new_objs = [o for o in bpy.data.objects if o not in prev_objs]
+    meshes = [o for o in new_objs if o.type == "MESH"]
+
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in meshes:
+        o.select_set(True)
+    if meshes:
+        bpy.context.view_layer.objects.active = meshes[0]
+        bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+        bpy.ops.object.make_single_user(object=True, obdata=True, material=False)
+
+    for o in new_objs:
+        if o.type != "MESH":
+            bpy.data.objects.remove(o, do_unlink=True)
+
+    for o in meshes:
+        bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in meshes:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    if len(meshes) > 1:
+        bpy.ops.object.join()
+
+    obj = bpy.context.active_object
+    obj.name = target_name
+
+    obj.data.calc_loop_triangles()
+    raw_tris = len(obj.data.loop_triangles)
+    if raw_tris > max_tris:
+        mod = obj.modifiers.new(name="DecimateCC0", type="DECIMATE")
+        mod.decimate_type = "COLLAPSE"
+        mod.ratio = max(0.04, (max_tris / float(raw_tris)) * 0.94)
+        mod.use_collapse_triangulate = True
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+
+    verts = [obj.matrix_world @ v.co for v in obj.data.vertices]
+    if verts:
+        mnx, mxx = min(v.x for v in verts), max(v.x for v in verts)
+        mny, mxy = min(v.y for v in verts), max(v.y for v in verts)
+        mnz, mxz = min(v.z for v in verts), max(v.z for v in verts)
+        cx, cy = (mnx + mxx) * 0.5, (mny + mxy) * 0.5
+        for v in obj.data.vertices:
+            v.co.x -= cx
+            v.co.y -= cy
+            v.co.z -= mnz
+        cur_h = max(0.01, mxz - mnz)
+        if target_height is not None:
+            sc = target_height / cur_h
+            for v in obj.data.vertices:
+                v.co *= sc
+        obj.data.update()
+
+    # Keep CC0 images <= 384px JPEG so GLB stays super compact (< 1.5 MB)
+    scaled_dir = os.path.join(CC0_CACHE_ROOT, "scaled_imgs", asset_id)
+    os.makedirs(scaled_dir, exist_ok=True)
+    for idx, img in enumerate(bpy.data.images):
+        if img in prev_imgs or img.type != "IMAGE" or img.size[0] == 0:
+            continue
+        w, h = img.size[0], img.size[1]
+        if max(w, h) > 384:
+            sc_px = 384.0 / float(max(w, h))
+            img.scale(max(64, int(round(w * sc_px))), max(64, int(round(h * sc_px))))
+        if img.packed_file:
+            img.unpack(method="REMOVE")
+        jpg_p = os.path.join(scaled_dir, f"img_{idx}.jpg")
+        img.filepath_raw = jpg_p
+        img.file_format = "JPEG"
+        img.save()
+        img.filepath = jpg_p
+        img.reload()
+        img.pack()
+
+    obj.location = loc
+    obj.rotation_euler = rot
+    return obj
+
+
+def build_perk_machine(key, body_rgb, bottle_rgb, topper_fn=None, use_cc0_tex=False):
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
+    if use_cc0_tex:
+        st_a, st_n, st_r = _cc0_tex("rusty_painted_metal")
+    else:
+        st_a, st_n, st_r = _tex_env("rusted_steel")
     br_a, br_n, br_r = _tex_wpn("brass")
 
     # Tinted enameled worn sheetmetal body & cream 1950s fridge hood
@@ -210,6 +317,9 @@ def build_perk_machine(key, body_rgb, bottle_rgb):
     # Rear Junction Box & Power Conduit
     parts.append(C.add_box("RearBreaker", (0.28, 0.08, 0.34), (0.20, 0.36, 0.65), mat=dark_mat, bevel=0.01))
     parts.append(C.add_tube_pipe("RearCable", [(0.20, 0.36, 0.48), (0.20, 0.39, 0.25), (0.24, 0.38, 0.03)], radius=0.018, segments=8, mat=dark_mat))
+
+    if topper_fn is not None:
+        topper_fn(parts, body_mat, cream_mat, chrome_mat, brass_mat, dark_mat, dome_mat, bottle_mat)
 
     C.join_objects(parts, f"PerkCabinet_{key}")
 
@@ -884,16 +994,444 @@ def build_powerups():
     C.export_asset("pickups", "powerup_fire_sale")
 
 
+# ---------------------------------------------------------------------------
+# Stream D: 4 New Perks, Der Wunderfizz, Fire Trap & Easter Egg Quest Assets
+# ---------------------------------------------------------------------------
+
+def _topper_mulekick(parts, body_mat, _cream_mat, _chrome_mat, brass_mat, dark_mat, _dome_mat, bottle_mat):
+    copper = C.make_pbr_mat("MuleCopper", (0.80, 0.44, 0.18, 1.0), metallic=0.88, roughness=0.28)
+    # Crest backplate mounted prominently above the marquee
+    parts.append(C.add_box("MuleCrestPlate", (0.54, 0.045, 0.22), (0, -0.32, 2.08), (math.radians(-8), 0, 0), mat=body_mat, bevel=0.01))
+    # Horseshoe collar frame around crest
+    parts.append(C.add_torus("MuleShoeRing", 0.21, 0.024, (0, -0.335, 2.12), (math.radians(82), 0, 0), major_segments=20, mat=brass_mat))
+    # Triple Bandolier Rifle Cartridges flanking the crest front
+    for bx in (-0.11, 0.0, 0.11):
+        parts.append(C.add_cyl(f"MuleShellCase_{bx}", 0.026, 0.16, (bx, -0.365, 2.13), (math.radians(-6), 0, 0), vertices=14, mat=brass_mat))
+        parts.append(C.add_cone(f"MuleShellTip_{bx}", 0.026, 0.002, 0.075, (bx, -0.372, 2.245), (math.radians(-6), 0, 0), vertices=14, mat=copper))
+        parts.append(C.add_box(f"MuleBeltLoop_{bx}", (0.068, 0.036, 0.036), (bx, -0.355, 2.09), mat=dark_mat, bevel=0.004))
+    parts.append(C.add_box("MuleBandolierStrap", (0.42, 0.03, 0.055), (0, -0.345, 2.09), mat=bottle_mat, bevel=0.006))
+
+
+def _topper_deadshot(parts, _body_mat, _cream_mat, chrome_mat, brass_mat, dark_mat, dome_mat, _bottle_mat):
+    crimson = C.make_pbr_mat("DeadshotTarget", (0.98, 0.16, 0.10, 1.0), roughness=0.18, emission=(1.0, 0.14, 0.08), emission_strength=2.1)
+    # Optical brass scope reticle crest mounted in front of the top dome
+    parts.append(C.add_cyl("DeadshotTube", 0.165, 0.14, (0, -0.29, 2.16), (math.radians(90), 0, 0), vertices=24, mat=dark_mat))
+    parts.append(C.add_torus("DeadshotScopeRimF", 0.175, 0.022, (0, -0.36, 2.16), (math.radians(90), 0, 0), major_segments=24, mat=brass_mat))
+    parts.append(C.add_torus("DeadshotScopeRimR", 0.168, 0.018, (0, -0.22, 2.16), (math.radians(90), 0, 0), major_segments=24, mat=chrome_mat))
+    # Inner reticle crosshairs & crimson bullseye target
+    parts.append(C.add_box("DeadshotCrossH", (0.31, 0.018, 0.022), (0, -0.355, 2.16), mat=dome_mat, bevel=0.003))
+    parts.append(C.add_box("DeadshotCrossV", (0.022, 0.018, 0.31), (0, -0.355, 2.16), mat=dome_mat, bevel=0.003))
+    parts.append(C.add_torus("DeadshotInnerRing", 0.088, 0.011, (0, -0.356, 2.16), (math.radians(90), 0, 0), major_segments=20, mat=brass_mat))
+    parts.append(C.add_sphere("DeadshotBullseye", 0.038, (1.0, 0.55, 1.0), (0, -0.358, 2.16), mat=crimson))
+    for sx in (-1.0, 1.0):
+        parts.append(C.add_box(f"DeadshotWing_{sx}", (0.16, 0.04, 0.075), (sx * 0.24, -0.30, 2.14), (0, math.radians(sx * -18), 0), mat=brass_mat, bevel=0.008))
+
+
+def _topper_phdflopper(parts, body_mat, _cream_mat, _chrome_mat, brass_mat, dark_mat, dome_mat, bottle_mat):
+    amber = C.make_pbr_mat("PhDPlumeGlow", (0.98, 0.52, 0.14, 1.0), roughness=0.22, emission=(0.95, 0.42, 0.12), emission_strength=1.45)
+    # Sculpted Mushroom Cloud & Orbital Atom Finial centered above hood
+    parts.append(C.add_cyl("PhDBasePlinth", 0.24, 0.06, (0, -0.02, 2.05), vertices=20, mat=dark_mat))
+    stem_prof = [(0.11, 2.08), (0.075, 2.18), (0.068, 2.30), (0.095, 2.40), (0.02, 2.42)]
+    parts.append(C.add_lathe("PhDMushroomStem", stem_prof, segments=18, loc=(0, -0.02, 0.0), mat=body_mat))
+    cap_prof = [(0.02, 2.38), (0.24, 2.42), (0.26, 2.49), (0.21, 2.57), (0.12, 2.62), (0.008, 2.64)]
+    parts.append(C.add_lathe("PhDMushroomCap", cap_prof, segments=22, loc=(0, -0.02, 0.0), mat=dome_mat))
+    parts.append(C.add_torus("PhDShockRing", 0.245, 0.018, (0, -0.02, 2.24), major_segments=22, mat=amber))
+    # Dual crossed atomic orbital rings around topper
+    parts.append(C.add_torus("PhDOrbitA", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(28), math.radians(18), 0), major_segments=26, mat=brass_mat))
+    parts.append(C.add_torus("PhDOrbitB", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(-28), math.radians(-18), 0), major_segments=26, mat=bottle_mat))
+
+
+def _topper_electriccherry(parts, _body_mat, _cream_mat, chrome_mat, brass_mat, _dark_mat, dome_mat, _bottle_mat):
+    cherry_red = C.make_pbr_mat("CherryRuby", (0.86, 0.06, 0.08, 1.0), metallic=0.14, roughness=0.14, emission=(0.82, 0.08, 0.08), emission_strength=0.45)
+    stem_green = C.make_pbr_mat("CherryStem", (0.16, 0.56, 0.18, 1.0), roughness=0.42)
+    # 3D Jagged Electric Lightning Finial + Twin Glossy Cherries on top & front bezel
+    bolt_poly = [
+        (-0.02, 2.54), (0.09, 2.54), (0.01, 2.38), (0.10, 2.38),
+        (-0.05, 2.14), (0.00, 2.31), (-0.09, 2.31),
+    ]
+    parts.append(C.add_extruded_poly("CherryBoltTop", bolt_poly, depth=0.042, plane="XZ", loc=(0, -0.10, 0.0), mat=dome_mat, bevel=0.004))
+    parts.append(C.add_torus("CherryTeslaRingA", 0.22, 0.014, (0, -0.02, 2.24), major_segments=22, mat=brass_mat))
+    parts.append(C.add_torus("CherryTeslaRingB", 0.19, 0.012, (0, -0.02, 2.38), major_segments=22, mat=chrome_mat))
+    for sx in (-1.0, 1.0):
+        cx = sx * 0.21
+        parts.append(C.add_sphere(f"CherryFruit_{sx}", 0.072, (1.0, 1.0, 0.94), (cx, -0.28, 2.12), mat=cherry_red))
+        parts.append(C.add_tube_pipe(f"CherryStem_{sx}", [(cx, -0.28, 2.18), (cx * 0.65, -0.24, 2.29), (0.0, -0.18, 2.36)], radius=0.011, segments=8, mat=stem_green))
+
+
+def build_der_wunderfizz():
+    C.reset_scene()
+    pl_a, pl_n, pl_r = _cc0_tex("metal_plate_02")
+    ru_a, ru_n, ru_r = _cc0_tex("rusty_metal_02")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    steel = C.make_pbr_mat("WunderSteel", (0.20, 0.24, 0.30, 1.0), metallic=0.72, roughness=0.42, albedo_tex=pl_a, normal_tex=pl_n, roughness_tex=pl_r, normal_strength=0.55)
+    iron = C.make_pbr_mat("WunderIron", (0.12, 0.14, 0.17, 1.0), metallic=0.68, roughness=0.52, albedo_tex=ru_a, normal_tex=ru_n, roughness_tex=ru_r, normal_strength=0.5)
+    brass = C.make_pbr_mat("WunderBrass", (0.76, 0.56, 0.20, 1.0), metallic=0.88, roughness=0.28, albedo_tex=br_a, normal_tex=br_n)
+    copper = C.make_pbr_mat("WunderCopper", (0.80, 0.42, 0.18, 1.0), metallic=0.88, roughness=0.28)
+    cyan_orb = C.make_pbr_mat("WunderOrbGlow", (0.14, 0.92, 1.0, 1.0), roughness=0.14, emission=(0.14, 0.92, 1.0), emission_strength=2.4)
+    glass = C.make_pbr_mat("WunderGlassDome", (0.68, 0.92, 1.0, 1.0), roughness=0.06, alpha=0.22)
+    spin_bottle_mat = C.make_pbr_mat("WunderSpinBottleMat", (0.20, 0.88, 1.0, 1.0), roughness=0.10, emission=(0.20, 0.88, 1.0), emission_strength=1.55)
+
+    wf_marquee = os.path.join(C.TEX_DIR, "props", "marquee_wunderfizz.png")
+    marquee_mat = C.make_pbr_mat(
+        "WunderMarqueeMat",
+        (1.0, 1.0, 1.0, 1.0),
+        roughness=0.9,
+        specular=0.02,
+        emission_strength=0.45,
+        emissive_albedo=True,
+        albedo_tex=wf_marquee,
+    )
+
+    parts = []
+    # 1. Heavy Octagonal Iron Pedestal & Bolted Brass Collar
+    parts.append(C.add_cyl("BaseFoot", 0.54, 0.12, (0, 0, 0.06), vertices=8, mat=iron, bevel=0.015))
+    ped_rings = [
+        [(math.cos(a) * 0.48, math.sin(a) * 0.48, 0.12) for a in [i * math.pi / 4.0 for i in range(8)]],
+        [(math.cos(a) * 0.44, math.sin(a) * 0.44, 0.98) for a in [i * math.pi / 4.0 for i in range(8)]],
+        [(math.cos(a) * 0.50, math.sin(a) * 0.50, 1.08) for a in [i * math.pi / 4.0 for i in range(8)]],
+    ]
+    parts.append(C.add_ring_loft("PedestalColumn", ped_rings, mat=steel, smooth_angle=32.0, uv_scale=1.6))
+    parts.append(C.add_torus("DeckBrassRim", 0.48, 0.028, (0, 0, 1.10), major_segments=24, mat=brass))
+    # 4 Diagonal Support Brackets & Miniature Stored Bottles in Lower Side Alcoves
+    bottle_prof = [(0.002, 0.0), (0.028, 0.004), (0.030, 0.065), (0.014, 0.11), (0.012, 0.145), (0.002, 0.148)]
+    slot_cols = [
+        (-0.34, -0.22, (0.95, 0.22, 0.22)),
+        (0.34, -0.22, (0.22, 0.90, 0.36)),
+        (-0.34, 0.22, (0.20, 0.68, 1.0)),
+        (0.34, 0.22, (0.76, 0.28, 0.96)),
+    ]
+    for idx, (bx, by, col) in enumerate(slot_cols):
+        bmat = C.make_pbr_mat(f"WunderMini_{idx}", (*col, 1.0), roughness=0.14, emission=col, emission_strength=1.1)
+        parts.append(C.add_lathe(f"MiniBottle_{idx}", bottle_prof, segments=12, loc=(bx, by, 0.56), mat=bmat))
+        parts.append(C.add_cyl(f"MiniCap_{idx}", 0.014, 0.012, (bx, by, 0.715), mat=brass))
+        parts.append(C.add_box(f"Bracket_{idx}", (0.08, 0.14, 0.36), (bx * 1.12, by * 1.12, 0.94), mat=brass, bevel=0.008))
+
+    # Front Control Deck (Slot + Hand Crank + Coin Return)
+    parts.append(C.add_box("FrontDeck", (0.58, 0.12, 0.38), (0, -0.44, 0.72), mat=iron, bevel=0.012))
+    parts.append(C.add_box("DispenseBay", (0.26, 0.10, 0.16), (0, -0.46, 0.42), mat=iron, bevel=0.008))
+    parts.append(C.add_torus("RightCrankWheel", 0.12, 0.018, (0.48, 0.0, 0.84), (0, math.radians(90), 0), mat=brass))
+    parts.append(C.add_cyl("RightCrankPin", 0.018, 0.10, (0.53, 0.0, 0.95), (0, math.radians(90), 0), mat=copper))
+
+    # 2. Upper Glass Chamber Cage & Twin Crown Tesla Coils (Z=1.10 .. 2.38)
+    for rib in range(4):
+        ang = math.radians(45 + rib * 90)
+        cx, cy = math.cos(ang), math.sin(ang)
+        arc = [
+            (cx * 0.43, cy * 0.43, 1.12),
+            (cx * 0.45, cy * 0.45, 1.50),
+            (cx * 0.36, cy * 0.36, 1.84),
+            (cx * 0.18, cy * 0.18, 1.98),
+        ]
+        parts.append(C.add_tube_pipe(f"ChamberRib_{rib}", arc, radius=0.018, segments=8, mat=brass))
+    parts.append(C.add_cyl("TopCrownCap", 0.24, 0.09, (0, 0, 1.99), vertices=16, mat=brass))
+    parts.append(C.add_box("MarqueeBox", (0.64, 0.10, 0.31), (0, -0.44, 0.94), (math.radians(-10), 0, 0), mat=iron, bevel=0.01))
+
+    for sx in (-0.18, 0.18):
+        parts.append(C.add_cyl(f"CrownStem_{sx}", 0.032, 0.28, (sx, 0, 2.16), mat=copper))
+        parts.append(C.add_torus(f"CrownTor_{sx}", 0.068, 0.012, (sx, 0, 2.22), major_segments=16, mat=brass))
+        parts.append(C.add_sphere(f"CrownOrb_{sx}", 0.055, (1, 1, 1), (sx, 0, 2.34), mat=cyan_orb))
+
+    C.join_objects(parts, "WunderfizzBody")
+
+    # Separate UV-intact Marquee plane & Glass Dome shell
+    C.add_textured_plane("WunderfizzMarquee", 0.58, 0.27, loc=(0, -0.495, 0.94), rot=(math.radians(-10), 0, 0), mat=marquee_mat)
+    dome_prof = [(0.42, 1.12), (0.43, 1.48), (0.37, 1.76), (0.24, 1.94), (0.04, 1.98)]
+    C.add_lathe("WunderfizzGlassDome", dome_prof, segments=22, loc=(0, 0, 0.0), mat=glass)
+
+    # Named Animated Children with Exact Local Origins for wunderfizz_machine.gd:
+    # OrbNode at (0, 0, 1.54) Blender -> (0, 1.54, 0) Godot
+    orb_parts = [
+        C.add_sphere("OrbCore", 0.155, (1, 1, 1), (0, 0, 0), segments=14, rings=10, mat=cyan_orb),
+        C.add_torus("OrbBandA", 0.175, 0.012, (0, 0, 0), (math.radians(35), 0, 0), mat=brass),
+        C.add_torus("OrbBandB", 0.175, 0.012, (0, 0, 0), (0, math.radians(55), 0), mat=brass),
+    ]
+    orb = C.join_objects(orb_parts, "OrbNode")
+    orb.location = (0, 0, 1.54)
+
+    # TeslaRing orbiting OrbNode
+    ring = C.add_torus("TeslaRing", 0.255, 0.016, (0, 0, 0), (math.radians(65), 0, 0), major_segments=24, mat=cyan_orb)
+    ring_joined = C.join_objects([ring], "TeslaRing")
+    ring_joined.location = (0, 0, 1.54)
+
+    # SpinBottle prominently inside front chamber glass
+    spin_prof = [
+        (0.002, 0.0), (0.042, 0.005), (0.045, 0.095), (0.036, 0.125),
+        (0.018, 0.165), (0.016, 0.215), (0.020, 0.224), (0.002, 0.228),
+    ]
+    sb_parts = [
+        C.add_lathe("SpinBottleGlass", spin_prof, segments=16, loc=(0, 0, -0.11), mat=spin_bottle_mat),
+        C.add_cyl("SpinBottleCap", 0.021, 0.014, (0, 0, 0.125), mat=brass),
+    ]
+    sb = C.join_objects(sb_parts, "SpinBottle")
+    sb.location = (0, -0.21, 1.48)
+
+    C.export_asset("props", "der_wunderfizz")
+
+
+def build_fire_trap():
+    C.reset_scene()
+    pl_a, pl_n, pl_r = _cc0_tex("metal_plate_02")
+    ru_a, ru_n, ru_r = _cc0_tex("rusty_metal_02")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    steel = C.make_pbr_mat("FireTrapSteel", (0.20, 0.22, 0.24, 1.0), metallic=0.74, roughness=0.44, albedo_tex=pl_a, normal_tex=pl_n, roughness_tex=pl_r, normal_strength=0.55)
+    iron = C.make_pbr_mat("FireTrapIron", (0.10, 0.10, 0.11, 1.0), metallic=0.68, roughness=0.56, albedo_tex=ru_a, normal_tex=ru_n, roughness_tex=ru_r)
+    brass = C.make_pbr_mat("FireTrapBrass", (0.78, 0.56, 0.18, 1.0), metallic=0.88, roughness=0.28, albedo_tex=br_a, normal_tex=br_n)
+    copper = C.make_pbr_mat("FireTrapCopper", (0.82, 0.42, 0.16, 1.0), metallic=0.88, roughness=0.26)
+    bakelite = C.make_pbr_mat("FireTrapGrip", (0.76, 0.10, 0.06, 1.0), roughness=0.32)
+    lamp_amber = C.make_pbr_mat("FireTrapLampMat", (1.0, 0.42, 0.08, 1.0), roughness=0.18, emission=(1.0, 0.38, 0.06), emission_strength=1.8)
+
+    panel_tex = os.path.join(C.TEX_DIR, "props", "fire_trap_panel.png")
+    gauge_tex = os.path.join(C.TEX_DIR, "props", "fire_trap_gauge.png")
+    panel_mat = C.make_pbr_mat("FireTrapPanelMat", (1, 1, 1, 1), roughness=0.75, emission_strength=0.18, emissive_albedo=True, albedo_tex=panel_tex)
+    gauge_mat = C.make_pbr_mat("FireTrapGaugeMat", (1, 1, 1, 1), roughness=0.65, emission_strength=0.20, emissive_albedo=True, albedo_tex=gauge_tex)
+
+    parts = []
+    # Main Steel Console Skid + Side Cradle Frame
+    parts.append(C.add_box("ConsoleBase", (0.86, 0.60, 0.08), (0, 0, 0.04), mat=iron, bevel=0.012))
+    parts.append(C.add_box("ConsoleCabinet", (0.44, 0.46, 1.24), (0.12, -0.02, 0.70), mat=steel, bevel=0.016))
+    parts.append(C.add_box("ConsoleHood", (0.50, 0.52, 0.08), (0.12, -0.02, 1.34), mat=iron, bevel=0.012))
+    # Rear cage rails around CC0 Propane Tank
+    for rz in (0.28, 0.56):
+        parts.append(C.add_torus(f"TankStrap_{rz}", 0.175, 0.014, (-0.23, 0.02, rz), major_segments=18, mat=iron))
+    # Valve wheel & heavy copper feed manifold extending +X toward FireTrapBurner
+    parts.append(C.add_tube_pipe("PropaneFeedPipe", [(-0.23, 0.02, 0.76), (-0.06, 0.02, 0.78), (0.04, 0.02, 0.34), (0.38, 0.0, 0.14), (0.64, 0.0, 0.05)], radius=0.028, segments=10, mat=copper))
+    parts.append(C.add_torus("ValveWheel", 0.085, 0.014, (-0.12, -0.18, 0.80), (math.radians(90), 0, 0), mat=bakelite))
+    # Pressure Gauge Bezel
+    parts.append(C.add_cyl("GaugeCup", 0.095, 0.06, (0.05, -0.255, 1.18), (math.radians(90), 0, 0), vertices=22, mat=brass))
+    parts.append(C.add_torus("GaugeRim", 0.095, 0.013, (0.05, -0.285, 1.18), (math.radians(90), 0, 0), mat=brass))
+    # Lever pivot housing on right front
+    parts.append(C.add_cyl("LeverPivotBoss", 0.045, 0.09, (0.37, -0.08, 1.06), (0, math.radians(90), 0), mat=brass))
+
+    # Import genuine Poly Haven CC0 propane_tank sitting cleanly on base plate left slot!
+    tank = _import_cc0_prop("propane_tank", "CC0_PropaneTank", target_height=0.72, max_tris=1100, loc=(-0.23, 0.02, 0.08))
+    parts.append(tank)
+
+    C.join_objects(parts, "FireTrapConsole")
+
+    # Separate textured placard, pressure dial & IndicatorLamp
+    C.add_textured_plane("FireTrapPlacard", 0.38, 0.22, loc=(0.12, -0.255, 0.86), mat=panel_mat)
+    C.add_textured_disc("FireTrapGaugeDial", 0.084, vertices=22, loc=(0.05, -0.289, 1.18), mat=gauge_mat)
+
+    lamp_obj = C.add_sphere("IndicatorLamp", 0.052, (1, 1, 1.15), (0, 0, 0), mat=lamp_amber)
+    lamp_joined = C.join_objects([lamp_obj], "IndicatorLamp")
+    lamp_joined.location = (0.12, -0.02, 1.43)
+
+    # Pivoting PullLever (origin at (0.37, -0.08, 1.06) Blender -> (0.37, 1.06, 0.08) Godot)
+    lever_parts = [
+        C.add_cyl("LeverArm", 0.018, 0.34, (0.04, -0.15, 0.11), (math.radians(-42), 0, 0), mat=brass),
+        C.add_cyl("LeverGrip", 0.032, 0.14, (0.04, -0.27, 0.24), (0, math.radians(90), 0), mat=bakelite),
+    ]
+    lever = C.join_objects(lever_parts, "PullLever")
+    lever.location = (0.37, -0.08, 1.06)
+
+    C.export_asset("props", "fire_trap")
+
+
+def build_fire_trap_burner():
+    C.reset_scene()
+    gr_a, gr_n, gr_r = _cc0_tex("metal_grate_rusty")
+    ru_a, ru_n, ru_r = _cc0_tex("rusty_metal_02")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    grate_mat = C.make_pbr_mat("BurnerGrateMat", (0.28, 0.26, 0.24, 1.0), metallic=0.80, roughness=0.52, albedo_tex=gr_a, normal_tex=gr_n, roughness_tex=gr_r, normal_strength=0.6)
+    iron = C.make_pbr_mat("BurnerIron", (0.08, 0.085, 0.09, 1.0), metallic=0.72, roughness=0.58, albedo_tex=ru_a, normal_tex=ru_n)
+    brass = C.make_pbr_mat("BurnerBrass", (0.78, 0.56, 0.18, 1.0), metallic=0.88, roughness=0.28, albedo_tex=br_a, normal_tex=br_n)
+    pilot = C.make_pbr_mat("BurnerPilot", (1.0, 0.44, 0.08, 1.0), roughness=0.2, emission=(1.0, 0.36, 0.05), emission_strength=1.9)
+
+    width = 6.2
+    parts = [
+        # Heavy recessed iron floor curb Rails (only 5.5 cm tall so players & zombies glide cleanly over!)
+        C.add_box("BurnerTroughBottom", (width, 0.54, 0.016), (0, 0, 0.008), mat=iron, bevel=0.003),
+        C.add_box("BurnerRailF", (width + 0.08, 0.06, 0.054), (0, -0.27, 0.027), mat=iron, bevel=0.006, uv_scale=1.2),
+        C.add_box("BurnerRailB", (width + 0.08, 0.06, 0.054), (0, 0.27, 0.027), mat=iron, bevel=0.006, uv_scale=1.2),
+        C.add_box("BurnerCapL", (0.06, 0.60, 0.058), (-width * 0.5 - 0.02, 0, 0.029), mat=iron, bevel=0.006),
+        C.add_box("BurnerCapR", (0.06, 0.60, 0.058), (width * 0.5 + 0.02, 0, 0.029), mat=iron, bevel=0.006),
+        # Central copper fuel pipe manifold inside trench
+        C.add_cyl("FuelManifoldPipe", 0.028, width - 0.1, (0, 0, 0.032), (0, math.radians(90), 0), vertices=12, mat=brass),
+    ]
+    # 25 Steel cross-grate ribs along the trench + 8 brass flare nozzles
+    for gx_idx in range(25):
+        gx = -width * 0.48 + (gx_idx / 24.0) * (width * 0.96)
+        parts.append(C.add_box(f"GrateBar_{gx_idx}", (0.032, 0.48, 0.016), (gx, 0, 0.052), mat=grate_mat, bevel=0.002, uv_scale=2.0))
+
+    for n_idx in range(8):
+        nx = -width * 0.42 + (n_idx / 7.0) * (width * 0.84)
+        parts.append(C.add_cyl(f"NozzleCol_{n_idx}", 0.042, 0.036, (nx, 0, 0.042), vertices=12, mat=brass))
+        parts.append(C.add_torus(f"NozzleTip_{n_idx}", 0.030, 0.009, (nx, 0, 0.062), major_segments=14, mat=pilot))
+
+    C.join_objects(parts, "FireTrapBurner")
+    C.export_asset("props", "fire_trap_burner")
+
+
+def build_quest_terminal():
+    C.reset_scene()
+    pl_a, pl_n, pl_r = _cc0_tex("metal_plate_02")
+    rp_a, rp_n, rp_r = _cc0_tex("rusty_painted_metal")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    steel = C.make_pbr_mat("QuestTermSteel", (0.18, 0.22, 0.24, 1.0), metallic=0.72, roughness=0.44, albedo_tex=pl_a, normal_tex=pl_n, roughness_tex=pl_r, normal_strength=0.55)
+    olive_enamel = C.make_pbr_mat("QuestTermEnamel", (0.18, 0.25, 0.22, 1.0), metallic=0.35, roughness=0.48, albedo_tex=rp_a, normal_tex=rp_n, roughness_tex=rp_r, tint_tex=(0.35, 0.48, 0.42))
+    brass = C.make_pbr_mat("QuestTermBrass", (0.76, 0.56, 0.20, 1.0), metallic=0.88, roughness=0.28, albedo_tex=br_a, normal_tex=br_n)
+    copper = C.make_pbr_mat("QuestTermCopper", (0.82, 0.44, 0.16, 1.0), metallic=0.88, roughness=0.28)
+    dark = C.make_pbr_mat("QuestTermDark", (0.05, 0.055, 0.06, 1.0), metallic=0.5, roughness=0.65)
+    beacon_mat = C.make_pbr_mat("QuestBeaconMat", (0.18, 0.92, 1.0, 1.0), roughness=0.14, emission=(0.18, 0.92, 1.0), emission_strength=2.2)
+
+    crt_tex = os.path.join(C.TEX_DIR, "props", "marquee_quest.png")
+    crt_mat = C.make_pbr_mat("QuestCRTMat", (1, 1, 1, 1), roughness=0.35, emission_strength=1.15, emissive_albedo=True, albedo_tex=crt_tex)
+
+    parts = []
+    # Main Lower Desk Cabinet & Side Stanchions
+    parts.append(C.add_box("TermBasePlinth", (1.16, 0.72, 0.10), (0, 0, 0.05), mat=dark, bevel=0.012))
+    parts.append(C.add_box("TermLowerBody", (1.10, 0.64, 0.78), (0, 0.02, 0.49), mat=olive_enamel, bevel=0.018))
+    parts.append(C.add_box("TermWorkDesk", (1.16, 0.76, 0.06), (0, -0.04, 0.90), mat=steel, bevel=0.012))
+    # Upper Monitor Hood
+    parts.append(C.add_box("TermUpperHousing", (0.98, 0.44, 0.68), (0, 0.10, 1.27), mat=steel, bevel=0.018))
+    parts.append(C.add_box("CRTBezel", (0.68, 0.06, 0.52), (0, -0.14, 1.28), (math.radians(-6), 0, 0), mat=dark, bevel=0.01))
+    # Keyboard & Toggle Bank on right side of desk
+    parts.append(C.add_box("KeyboardDeck", (0.46, 0.24, 0.04), (0.22, -0.22, 0.935), (math.radians(8), 0, 0), mat=dark, bevel=0.008))
+    for k in range(5):
+        parts.append(C.add_box(f"SwitchKey_{k}", (0.032, 0.032, 0.032), (0.04 + k * 0.085, -0.16, 0.96), mat=brass, bevel=0.004))
+    # Copper Side Conduits & Top Stanchion Collar
+    parts.append(C.add_tube_pipe("TermPipeL", [(-0.56, 0.10, 0.25), (-0.62, 0.10, 0.95), (-0.50, 0.10, 1.45)], radius=0.028, segments=8, mat=copper))
+    parts.append(C.add_tube_pipe("TermPipeR", [(0.56, 0.10, 0.25), (0.62, 0.10, 0.95), (0.50, 0.10, 1.45)], radius=0.028, segments=8, mat=copper))
+    parts.append(C.add_cyl("BeaconBaseCollar", 0.095, 0.08, (0, 0.08, 1.64), mat=brass))
+
+    # Import genuine Poly Haven CC0 retro_multimeter mounted cleanly on left desk surface!
+    meter = _import_cc0_prop(
+        "retro_multimeter",
+        "CC0_RetroMultimeter",
+        target_height=0.26,
+        max_tris=1000,
+        loc=(-0.34, -0.18, 0.93),
+        rot=(0, 0, math.radians(16)),
+    )
+    parts.append(meter)
+
+    C.join_objects(parts, "QuestTerminalBody")
+
+    # Separate CRT Oscilloscope Screen Plane & Animated StatusBeacon
+    C.add_textured_plane("QuestCRTScreen", 0.60, 0.44, loc=(0, -0.174, 1.28), rot=(math.radians(-6), 0, 0), mat=crt_mat)
+
+    beacon_parts = [
+        C.add_sphere("BeaconBulb", 0.072, (1.0, 1.0, 1.2), (0, 0, 0.04), mat=beacon_mat),
+        C.add_torus("BeaconCageRing", 0.092, 0.009, (0, 0, 0.04), mat=brass),
+    ]
+    beacon = C.join_objects(beacon_parts, "StatusBeacon")
+    beacon.location = (0, 0.08, 1.70)
+
+    C.export_asset("props", "quest_terminal")
+
+
+def build_quest_resonator():
+    C.reset_scene()
+    ru_a, ru_n, ru_r = _cc0_tex("rusty_metal_02")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    iron = C.make_pbr_mat("ResonatorIron", (0.14, 0.16, 0.18, 1.0), metallic=0.76, roughness=0.46, albedo_tex=ru_a, normal_tex=ru_n)
+    brass = C.make_pbr_mat("ResonatorBrass", (0.78, 0.56, 0.20, 1.0), metallic=0.88, roughness=0.26, albedo_tex=br_a, normal_tex=br_n)
+    copper = C.make_pbr_mat("ResonatorCopper", (0.82, 0.44, 0.18, 1.0), metallic=0.88, roughness=0.28)
+    crystal_mat = C.make_pbr_mat("ResonatorCrystalMat", (1.0, 0.58, 0.12, 1.0), roughness=0.14, emission=(1.0, 0.54, 0.10), emission_strength=2.2)
+
+    parts = [
+        C.add_cyl("CradleMountPlate", 0.20, 0.06, (0, 0, -0.34), vertices=12, mat=iron),
+        C.add_cyl("CradleHub", 0.13, 0.10, (0, 0, -0.26), vertices=14, mat=brass),
+        C.add_torus("CradleLowerRing", 0.20, 0.018, (0, 0, -0.14), mat=copper),
+        C.add_torus("CradleUpperRing", 0.18, 0.016, (0, 0, 0.30), mat=brass),
+    ]
+    for arm in range(3):
+        ang = (arm / 3.0) * 2.0 * math.pi
+        cx, cy = math.cos(ang), math.sin(ang)
+        arm_pts = [
+            (cx * 0.13, cy * 0.13, -0.25),
+            (cx * 0.24, cy * 0.24, 0.02),
+            (cx * 0.20, cy * 0.20, 0.30),
+            (cx * 0.11, cy * 0.11, 0.42),
+        ]
+        parts.append(C.add_tube_pipe(f"TuningArm_{arm}", arm_pts, radius=0.018, segments=8, mat=brass))
+    C.join_objects(parts, "ResonatorCradle")
+
+    # Separate rotating faceted SpireCrystal centered at (0, 0, 0.08)
+    spire_prof = [
+        (0.002, -0.24), (0.075, -0.10), (0.095, 0.0), (0.080, 0.12), (0.002, 0.28),
+    ]
+    c_parts = [
+        C.add_lathe("Element115Spire", spire_prof, segments=6, loc=(0, 0, 0), mat=crystal_mat),
+        C.add_torus("SpireOrbitBand", 0.125, 0.011, (0, 0, 0), (math.radians(32), 0, 0), major_segments=18, mat=copper),
+    ]
+    spire = C.join_objects(c_parts, "SpireCrystal")
+    spire.location = (0, 0, 0.08)
+
+    C.export_asset("props", "quest_resonator")
+
+
+def build_quest_canister():
+    C.reset_scene()
+    pl_a, pl_n, pl_r = _cc0_tex("metal_plate_02")
+    ru_a, ru_n, ru_r = _cc0_tex("rusty_metal_02")
+    br_a, br_n, br_r = _tex_wpn("brass")
+
+    steel = C.make_pbr_mat("CanisterSteel", (0.18, 0.21, 0.24, 1.0), metallic=0.76, roughness=0.42, albedo_tex=pl_a, normal_tex=pl_n, roughness_tex=pl_r)
+    iron = C.make_pbr_mat("CanisterIron", (0.10, 0.11, 0.12, 1.0), metallic=0.70, roughness=0.52, albedo_tex=ru_a, normal_tex=ru_n)
+    brass = C.make_pbr_mat("CanisterBrass", (0.76, 0.56, 0.20, 1.0), metallic=0.88, roughness=0.28, albedo_tex=br_a, normal_tex=br_n)
+    glass = C.make_pbr_mat("CanisterGlass", (0.72, 0.92, 0.98, 1.0), roughness=0.06, alpha=0.22)
+    fill_mat = C.make_pbr_mat("CanisterFillMat", (0.16, 0.88, 1.0, 1.0), roughness=0.14, emission=(0.16, 0.88, 1.0), emission_strength=2.2)
+
+    parts = [
+        C.add_cyl("CanisterBaseFoot", 0.30, 0.08, (0, 0, 0.04), vertices=12, mat=iron, bevel=0.01),
+        C.add_cyl("CanisterLowerCollar", 0.24, 0.16, (0, 0, 0.16), vertices=18, mat=brass),
+        C.add_cyl("CanisterUpperCollar", 0.24, 0.14, (0, 0, 1.18), vertices=18, mat=brass),
+        C.add_sphere("CanisterTopDome", 0.20, (1.0, 1.0, 0.68), (0, 0, 1.25), mat=steel),
+        C.add_torus("TopValveWheel", 0.08, 0.012, (0, 0, 1.40), mat=brass),
+    ]
+    for i in range(3):
+        ang = (i / 3.0) * 2.0 * math.pi + math.radians(30)
+        cx, cy = math.cos(ang), math.sin(ang)
+        parts.append(C.add_cyl(f"StrutRod_{i}", 0.022, 0.96, (cx * 0.245, cy * 0.245, 0.68), vertices=10, mat=steel))
+        parts.append(C.add_box(f"TripodLeg_{i}", (0.10, 0.14, 0.08), (cx * 0.26, cy * 0.26, 0.06), (0, 0, ang), mat=iron, bevel=0.008))
+    C.join_objects(parts, "CanisterBody")
+
+    # Translucent outer vacuum chamber cylinder
+    C.add_cyl("CanisterOuterGlass", 0.205, 0.86, (0, 0, 0.67), vertices=24, mat=glass, bevel=0.0)
+
+    # Inner FillCore with origin at BOTTOM (0, 0, 0.24) so scaling Godot Y grows cleanly upward!
+    core = C.add_cyl("FillCoreMesh", 0.145, 0.84, (0, 0, 0.42), vertices=20, mat=fill_mat, bevel=0.004)
+    core_joined = C.join_objects([core], "FillCore")
+    core_joined.location = (0, 0, 0.24)
+
+    C.export_asset("props", "quest_canister")
+
+
+def build_stream_d():
+    build_perk_machine("mulekick", (0.08, 0.46, 0.18), (0.18, 0.92, 0.36), topper_fn=_topper_mulekick, use_cc0_tex=True)
+    build_perk_machine("deadshot", (0.76, 0.52, 0.08), (0.98, 0.78, 0.16), topper_fn=_topper_deadshot, use_cc0_tex=True)
+    build_perk_machine("phdflopper", (0.44, 0.14, 0.68), (0.76, 0.28, 0.98), topper_fn=_topper_phdflopper, use_cc0_tex=True)
+    build_perk_machine("electriccherry", (0.08, 0.48, 0.76), (0.20, 0.90, 1.0), topper_fn=_topper_electriccherry, use_cc0_tex=True)
+    build_der_wunderfizz()
+    build_fire_trap()
+    build_fire_trap_burner()
+    build_quest_terminal()
+    build_quest_resonator()
+    build_quest_canister()
+    print("STREAM D MACHINES & QUEST PROPS EXPORTED!")
+
+
 if __name__ == "__main__":
-    build_perk_machine("juggernog", (0.64, 0.06, 0.06), (0.95, 0.14, 0.12))
-    build_perk_machine("speedcola", (0.07, 0.48, 0.16), (0.14, 0.92, 0.34))
-    build_perk_machine("doubletap", (0.76, 0.46, 0.06), (0.96, 0.72, 0.14))
-    build_perk_machine("quickrevive", (0.08, 0.38, 0.78), (0.18, 0.68, 1.0))
-    build_perk_machine("staminup", (0.80, 0.30, 0.05), (1.0, 0.45, 0.10))
-    build_mystery_box()
-    build_teddy_bear()
-    build_pack_a_punch()
-    build_power_switch()
-    build_electro_trap()
-    build_powerups()
-    print("ALL INTRICATE MACHINES & POWER-UPS EXPORTED!")
+    extra_args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    if "--stream-d" in extra_args:
+        build_stream_d()
+    else:
+        build_perk_machine("juggernog", (0.64, 0.06, 0.06), (0.95, 0.14, 0.12))
+        build_perk_machine("speedcola", (0.07, 0.48, 0.16), (0.14, 0.92, 0.34))
+        build_perk_machine("doubletap", (0.76, 0.46, 0.06), (0.96, 0.72, 0.14))
+        build_perk_machine("quickrevive", (0.08, 0.38, 0.78), (0.18, 0.68, 1.0))
+        build_perk_machine("staminup", (0.80, 0.30, 0.05), (1.0, 0.45, 0.10))
+        build_mystery_box()
+        build_teddy_bear()
+        build_pack_a_punch()
+        build_power_switch()
+        build_electro_trap()
+        build_powerups()
+        build_stream_d()
+        print("ALL INTRICATE MACHINES & POWER-UPS EXPORTED!")

@@ -1,37 +1,64 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/one_shot_fx.gd" id="1"]
 
 [sub_resource type="StandardMaterial3D" id="1"]
 shading_mode = 0
-albedo_color = Color(1, 0.52, 0.1, 1)
+albedo_color = Color(1, 0.54, 0.12, 1)
 
 [sub_resource type="SphereMesh" id="2"]
 material = SubResource("1")
-radius = 0.25
-height = 0.5
+radius = 0.24
+height = 0.48
 radial_segments = 8
 rings = 6
 
+[sub_resource type="StandardMaterial3D" id="3"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.18, 0.16, 0.15, 0.68)
+
+[sub_resource type="SphereMesh" id="4"]
+material = SubResource("3")
+radius = 0.42
+height = 0.84
+radial_segments = 8
+rings = 5
+
 [node name="ExplosionFX" type="Node3D"]
 script = ExtResource("1")
-lifetime = 0.9
+lifetime = 1.15
 
 [node name="Particles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 26
-lifetime = 0.55
+amount = 32
+lifetime = 0.58
 one_shot = true
-explosiveness = 0.95
+explosiveness = 0.96
 mesh = SubResource("2")
 spread = 180.0
-initial_velocity_min = 3.0
-initial_velocity_max = 9.0
+initial_velocity_min = 3.5
+initial_velocity_max = 10.5
 gravity = Vector3(0, -2.5, 0)
-scale_amount_min = 0.4
-scale_amount_max = 1.8
+scale_amount_min = 0.35
+scale_amount_max = 1.85
+
+[node name="SmokeParticles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 18
+lifetime = 1.05
+one_shot = true
+explosiveness = 0.85
+mesh = SubResource("4")
+direction = Vector3(0, 1, 0)
+spread = 85.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.8
+gravity = Vector3(0, 1.4, 0)
+scale_amount_min = 0.75
+scale_amount_max = 2.1
 
 [node name="Flash" type="OmniLight3D" parent="."]
-light_color = Color(1, 0.58, 0.18, 1)
-light_energy = 10.0
-omni_range = 10.0
+light_color = Color(1, 0.6, 0.2, 1)
+light_energy = 14.0
+omni_range = 12.0

@@ -20,12 +20,12 @@
 [ext_resource type="Texture2D" path="res://assets/textures/props/chalk_shotgun.png" id="18"]
 [ext_resource type="Texture2D" path="res://assets/textures/props/chalk_stg44.png" id="19"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/emergency_teleporter.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://scenes/world_features.tscn" id="21"]
+[ext_resource type="Texture2D" path="res://assets/hdri/moonlit_golf_2k.hdr" id="22"]
 
-[sub_resource type="ProceduralSkyMaterial" id="1"]
-sky_top_color = Color(0.015, 0.028, 0.06, 1)
-sky_horizon_color = Color(0.045, 0.075, 0.13, 1)
-ground_bottom_color = Color(0.015, 0.02, 0.025, 1)
-ground_horizon_color = Color(0.035, 0.055, 0.09, 1)
+[sub_resource type="PanoramaSkyMaterial" id="1"]
+panorama = ExtResource("22")
+energy_multiplier = 0.85
 
 [sub_resource type="Sky" id="2"]
 sky_material = SubResource("1")
@@ -34,22 +34,29 @@ sky_material = SubResource("1")
 background_mode = 2
 sky = SubResource("2")
 ambient_light_source = 3
-ambient_light_color = Color(0.20, 0.23, 0.28, 1)
-ambient_light_energy = 0.62
-tonemap_mode = 3
-tonemap_exposure = 1.05
+ambient_light_color = Color(0.26, 0.34, 0.46, 1)
+ambient_light_energy = 0.68
+ambient_light_sky_contribution = 0.68
+reflected_light_source = 2
+tonemap_mode = 4
+tonemap_exposure = 1.06
+tonemap_white = 6.0
 ssao_enabled = true
-ssao_radius = 1.1
-ssao_intensity = 1.5
+ssao_radius = 1.0
+ssao_intensity = 1.45
+ssil_enabled = true
+ssil_radius = 4.0
+ssil_intensity = 0.65
 glow_enabled = true
 glow_intensity = 0.60
 glow_bloom = 0.14
 fog_enabled = true
-fog_light_color = Color(0.07, 0.085, 0.10, 1)
-fog_density = 0.016
+fog_light_color = Color(0.08, 0.10, 0.14, 1)
+fog_density = 0.014
+fog_sky_affect = 0.32
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.016
-volumetric_fog_albedo = Color(0.35, 0.55, 0.72, 1)
+volumetric_fog_density = 0.015
+volumetric_fog_albedo = Color(0.38, 0.56, 0.74, 1)
 
 [node name="GameWorld" type="Node3D"]
 script = ExtResource("1")
@@ -59,9 +66,11 @@ environment = SubResource("3")
 
 [node name="MoonLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 18, 0)
-light_color = Color(0.68, 0.77, 0.88, 1)
-light_energy = 1.25
+light_color = Color(0.58, 0.72, 0.96, 1)
+light_energy = 0.72
 shadow_enabled = true
+shadow_blur = 2.6
+directional_shadow_blend_splits = true
 
 [node name="LevelGeometry" type="Node3D" parent="."]
 
@@ -77,6 +86,8 @@ position = Vector3(-15, 0, -15.5)
 [node name="NavRegionEast" type="NavigationRegion3D" parent="Navigation"]
 
 [node name="NavRegionReactor" type="NavigationRegion3D" parent="Navigation"]
+
+[node name="NavRegionNorthYard" type="NavigationRegion3D" parent="Navigation"]
 
 [node name="Links" type="Node3D" parent="Navigation"]
 
@@ -104,6 +115,11 @@ end_position = Vector3(17, 0, -9.6)
 enabled = false
 start_position = Vector3(3.2, 0, -6.4)
 end_position = Vector3(3.2, 0, -9.6)
+
+[node name="LinkReactorNorth" type="NavigationLink3D" parent="Navigation/Links"]
+enabled = false
+start_position = Vector3(16.5, 0, -20.4)
+end_position = Vector3(16.5, 0, -23.6)
 
 [node name="Interactables" type="Node3D" parent="."]
 
@@ -144,6 +160,13 @@ also_unlock_zone_id = "spawn"
 requires_power = true
 nav_bridge_path = NodePath("../../Navigation/Links/LinkPowerShortcut")
 
+[node name="DoorReactorNorth" parent="Interactables" instance=ExtResource("7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0, -22)
+door_name = "Motorpool Bulkhead"
+cost = 1500
+unlock_zone_id = "north_yard"
+nav_bridge_path = NodePath("../../Navigation/Links/LinkReactorNorth")
+
 [node name="WinSpawnW" parent="Interactables" instance=ExtResource("8")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5.2, 0, 10)
 zone_id = "spawn"
@@ -175,6 +198,14 @@ zone_id = "reactor"
 [node name="WinReactorE" parent="Interactables" instance=ExtResource("8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 0, -22)
 zone_id = "reactor"
+
+[node name="WinNorthYardW" parent="Interactables" instance=ExtResource("8")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -12, 0, -35)
+zone_id = "north_yard"
+
+[node name="WinNorthYardN" parent="Interactables" instance=ExtResource("8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -42)
+zone_id = "north_yard"
 
 [node name="WallM14" parent="Interactables" instance=ExtResource("9")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -8, 1.35, 9.74)
@@ -232,7 +263,7 @@ start_active = false
 zone_id = "west_lab"
 
 [node name="BoxReactor" parent="Interactables" instance=ExtResource("11")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -20.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 0, -20.6)
 start_active = false
 zone_id = "reactor"
 
@@ -244,6 +275,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, -20.8)
 
 [node name="ElectroTrap" parent="Interactables" instance=ExtResource("14")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -2.8)
+
+[node name="WorldFeatures" parent="." instance=ExtResource("21")]
+
+[node name="FeatureSlots" type="Node3D" parent="."]
+
+[node name="FeatureSlot_Perk1" type="Marker3D" parent="FeatureSlots"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 22.9, 0, -30.5)
+
+[node name="FeatureSlot_Perk2" type="Marker3D" parent="FeatureSlots"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -10.9, 0, -30.2)
+
+[node name="FeatureSlot_Quest" type="Marker3D" parent="FeatureSlots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 0, -40.2)
 
 [node name="DogSpawns" type="Node3D" parent="."]
 
@@ -270,6 +314,14 @@ metadata/zone_id = "reactor"
 [node name="DogSpawn6" type="Marker3D" parent="DogSpawns" groups=["dog_spawns"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.1, -18)
 metadata/zone_id = "reactor"
+
+[node name="DogSpawn7" type="Marker3D" parent="DogSpawns" groups=["dog_spawns"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.1, -36)
+metadata/zone_id = "north_yard"
+
+[node name="DogSpawn8" type="Marker3D" parent="DogSpawns" groups=["dog_spawns"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.1, -32)
+metadata/zone_id = "north_yard"
 
 [node name="Player" parent="." instance=ExtResource("3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 6.2)

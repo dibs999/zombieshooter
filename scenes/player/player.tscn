@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player/weapon_controller.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/weapons/muzzle_star_tex.png" id="3"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.36
@@ -9,16 +10,19 @@ height = 1.76
 
 [sub_resource type="StandardMaterial3D" id="2"]
 transparency = 1
+blend_mode = 1
+cull_mode = 2
 shading_mode = 0
-albedo_color = Color(1, 0.8, 0.35, 0.85)
+albedo_color = Color(1, 0.85, 0.48, 0.95)
+albedo_texture = ExtResource("3")
 
-[sub_resource type="SphereMesh" id="3"]
+[sub_resource type="QuadMesh" id="3"]
 material = SubResource("2")
-radius = 0.08
-height = 0.16
+size = Vector2(0.32, 0.32)
 
-[sub_resource type="BoxMesh" id="4"]
-size = Vector3(0.06, 0.06, 0.06)
+[sub_resource type="QuadMesh" id="4"]
+material = SubResource("2")
+size = Vector2(0.38, 0.22)
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 collision_layer = 2
@@ -30,6 +34,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.88, 0)
 shape = SubResource("1")
 
 [node name="Head" type="Node3D" parent="."]
+physics_interpolation_mode = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
@@ -76,3 +81,14 @@ omni_range = 8.0
 [node name="MuzzleFlash" type="MeshInstance3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot"]
 visible = false
 mesh = SubResource("3")
+cast_shadow = 0
+
+[node name="CrossVert" type="MeshInstance3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot/MuzzleFlash"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, -0.09)
+mesh = SubResource("4")
+cast_shadow = 0
+
+[node name="CrossHoriz" type="MeshInstance3D" parent="Head/Camera3D/WeaponController/ViewmodelPivot/MuzzleFlash"]
+transform = Transform3D(0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, -0.09)
+mesh = SubResource("4")
+cast_shadow = 0

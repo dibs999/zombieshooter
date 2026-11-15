@@ -20,7 +20,7 @@ var _cycle_timer: float = 0.0
 var _take_timer: float = 0.0
 var _chosen_weapon: String = ""
 var _last_paid_cost: int = 950
-var _all_weapon_ids: Array[String] = ["m14", "trench_shotgun", "mp40", "stg44", "kar98k", "mg42", "raygun"]
+var _all_weapon_ids: Array[String] = ["m14", "trench_shotgun", "mp40", "stg44", "kar98k", "mg42", "raygun", "wunderwaffe"]
 
 
 func _ready() -> void:

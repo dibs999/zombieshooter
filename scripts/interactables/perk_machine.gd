@@ -44,14 +44,16 @@ func get_interact_prompt(_player: Node) -> String:
 		return "%s — Power Must Be Turned On!" % str(info.get("name", perk_id))
 	if GameManager.has_perk(perk_id):
 		return "%s (Already Active)" % str(info.get("name", perk_id))
+	if GameManager.perks.size() >= GameManager.max_perks:
+		return "Perk Limit Reached (%d/%d)" % [GameManager.perks.size(), GameManager.max_perks]
 	return "[E] Buy %s [Cost: %d]" % [str(info.get("name", perk_id)), int(info.get("cost", 2000))]
 
 
 func interact(_player: Node) -> void:
-	if not visible or not _is_powered() or GameManager.has_perk(perk_id):
+	if not visible or not _is_powered() or not GameManager.can_buy_perk(perk_id):
 		return
 	var info: Dictionary = GameManager.PERK_INFO.get(perk_id, {})
 	var cost := int(info.get("cost", 2000))
 	if GameManager.spend_points(cost):
-		GameManager.grant_perk(perk_id)
+		GameManager.grant_perk(perk_id, true)
 		GameManager.powerup_banner.emit("%s ACQUIRED!" % str(info.get("name", perk_id)).to_upper(), info.get("color", Color.WHITE))

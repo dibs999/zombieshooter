@@ -1,0 +1,76 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/interactables/perk_machine.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/wunderfizz_machine.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/fire_trap.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/quest_resonator.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/quest_canister.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/easter_egg_quest.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/song_teddy.tscn" id="7"]
+
+[node name="WorldFeatures" type="Node3D"]
+
+[node name="PerkMuleKick" parent="." instance=ExtResource("1")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 22.9, 0, -30.5)
+perk_id = "mulekick"
+
+[node name="PerkPhDFlopper" parent="." instance=ExtResource("1")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -10.9, 0, -30.2)
+perk_id = "phdflopper"
+
+[node name="PerkDeadshot" parent="." instance=ExtResource("1")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -20.2, 0, -9.0)
+perk_id = "deadshot"
+
+[node name="PerkElectricCherry" parent="." instance=ExtResource("1")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.2, 0, -29.0)
+perk_id = "electriccherry"
+
+[node name="WunderfizzMachine" parent="." instance=ExtResource("2")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.2, 0, -9.0)
+
+[node name="FireTrap" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.2, 0, -26.2)
+
+[node name="QuestResonator0" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, -7.5)
+resonator_index = 0
+
+[node name="QuestResonator1" parent="." instance=ExtResource("4")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -16.8, 3.1, 0.3)
+resonator_index = 1
+
+[node name="QuestResonator2" parent="." instance=ExtResource("4")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 22.6, 2.8, 0.5)
+resonator_index = 2
+
+[node name="QuestResonator3" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 3.0, -41.4)
+resonator_index = 3
+
+[node name="QuestCanister0" parent="." instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.8, 0, 3.6)
+canister_index = 0
+
+[node name="QuestCanister1" parent="." instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 0, -16.5)
+canister_index = 1
+
+[node name="QuestCanister2" parent="." instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -39.2)
+canister_index = 2
+
+[node name="EasterEggQuest" parent="." instance=ExtResource("6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 0, -40.2)
+
+[node name="SongTeddy0" parent="." instance=ExtResource("7")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 21.4, 0.3, 6.4)
+teddy_index = 0
+
+[node name="SongTeddy1" parent="." instance=ExtResource("7")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 22.3, 1.273, -35.2)
+teddy_index = 1
+
+[node name="SongTeddy2" parent="." instance=ExtResource("7")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -11.9, 0.788, -5.4)
+teddy_index = 2

@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ray_bolt.gd" id="1"]
 
@@ -8,6 +8,19 @@ height = 0.17
 radial_segments = 10
 rings = 6
 
+[sub_resource type="StandardMaterial3D" id="2"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="3"]
+material = SubResource("2")
+radius = 0.04
+height = 0.08
+radial_segments = 6
+rings = 4
+
 [node name="RayBolt" type="Node3D"]
 script = ExtResource("1")
 
@@ -16,5 +29,18 @@ mesh = SubResource("1")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 light_color = Color(0.2, 1, 0.45, 1)
-light_energy = 4.5
-omni_range = 5.0
+light_energy = 5.5
+omni_range = 5.5
+
+[node name="TrailParticles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 20
+lifetime = 0.22
+local_coords = false
+mesh = SubResource("3")
+spread = 22.0
+initial_velocity_min = 0.4
+initial_velocity_max = 1.2
+gravity = Vector3(0, 0, 0)
+scale_amount_min = 0.4
+scale_amount_max = 1.1

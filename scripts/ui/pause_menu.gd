@@ -3,6 +3,7 @@ extends CanvasLayer
 @onready var root: Control = $Root
 @onready var main_panel: VBoxContainer = $Root/Panel/VBox/MainButtons
 @onready var settings_panel: VBoxContainer = $Root/Panel/VBox/SettingsBox
+@onready var status_label: Label = $Root/Panel/VBox/StatusLabel
 @onready var sens_slider: HSlider = $Root/Panel/VBox/SettingsBox/SensSlider
 @onready var fov_slider: HSlider = $Root/Panel/VBox/SettingsBox/FOVSlider
 @onready var vol_slider: HSlider = $Root/Panel/VBox/SettingsBox/VolSlider
@@ -27,6 +28,22 @@ func _sync_ui() -> void:
 	invert_chk.button_pressed = SettingsManager.invert_y
 	var idx := ["High", "Medium", "Low"].find(SettingsManager.graphics_quality)
 	gfx_btn.selected = maxi(0, idx)
+	_refresh_status()
+
+
+func _refresh_status() -> void:
+	if status_label == null:
+		return
+	var q_text := "Inactive (Motorpool Terminal)"
+	if GameManager.quest_completed:
+		q_text = "Operation Element 115 COMPLETE"
+	elif GameManager.quest_step > 0:
+		q_text = "Step %d: %s" % [GameManager.quest_step, GameManager.quest_description]
+	status_label.text = "Perks: %d / %d\nEaster Egg: %s" % [
+		GameManager.perks.size(),
+		GameManager.max_perks,
+		q_text,
+	]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -42,6 +59,8 @@ func toggle_pause() -> void:
 	visible = next_paused
 	main_panel.visible = true
 	settings_panel.visible = false
+	if next_paused:
+		_refresh_status()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if next_paused else Input.MOUSE_MODE_CAPTURED
 
 

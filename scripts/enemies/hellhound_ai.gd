@@ -4,6 +4,8 @@ class_name HellhoundAI
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 @onready var body_area: Area3D = $BodyArea
 @onready var model_root: Node3D = $ModelRoot
+@onready var ember_light: OmniLight3D = $EmberLight
+@onready var ember_trail: CPUParticles3D = $EmberTrail
 
 var max_hp: float = 180.0
 var hp: float = 180.0
@@ -14,6 +16,9 @@ var _attack_cd: float = 0.0
 var _repath_cd: float = 0.0
 var _anim_player: AnimationPlayer = null
 var _current_anim: String = ""
+
+var _blood_decal_scene: PackedScene = preload("res://scenes/fx/blood_decal.tscn")
+var _impact_sparks_scene: PackedScene = preload("res://scenes/fx/impact_sparks.tscn")
 
 signal died(hound: HellhoundAI, was_headshot: bool, death_pos: Vector3, force_drop: bool)
 
@@ -30,21 +35,51 @@ func _ready() -> void:
 		var inst := (load("res://assets/models/characters/hellhound.glb") as PackedScene).instantiate()
 		model_root.add_child(inst)
 		_find_anim(inst)
+	if ember_trail != null:
+		ember_trail.emitting = true
+	_trigger_spawn_lightning()
 	AudioManager.play_3d("hellhound_howl", global_position, 0.1, 0.0)
 	_play_anim("Run")
+
+
+func _fx_parent() -> Node:
+	var p := get_parent()
+	if p != null and p != get_tree().root:
+		return p
+	return get_tree().current_scene if get_tree().current_scene != null else p
+
+
+func _trigger_spawn_lightning() -> void:
+	var flash := OmniLight3D.new()
+	flash.light_color = Color(0.55, 0.80, 1.0)
+	flash.light_energy = 7.5
+	flash.omni_range = 11.0
+	add_child(flash)
+	flash.position = Vector3(0, 1.6, 0)
+	var tw := flash.create_tween()
+	tw.tween_property(flash, "light_energy", 0.0, 0.36).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(flash.queue_free)
+
+	if is_inside_tree():
+		var parent_node := _fx_parent()
+		if parent_node != null:
+			var spk := _impact_sparks_scene.instantiate() as Node3D
+			parent_node.add_child(spk)
+			spk.global_position = global_position + Vector3(0, 0.7, 0)
 
 
 func _find_anim(n: Node) -> void:
 	if n is AnimationPlayer and _anim_player == null:
 		_anim_player = n as AnimationPlayer
-		if _anim_player.has_animation("Run"):
-			_anim_player.get_animation("Run").loop_mode = Animation.LOOP_LINEAR
+		for aname in ["Idle", "Run"]:
+			if _anim_player.has_animation(aname):
+				_anim_player.get_animation(aname).loop_mode = Animation.LOOP_LINEAR
 	for c in n.get_children():
 		_find_anim(c)
 
 
-func _play_anim(a: String) -> void:
-	if _anim_player and _current_anim != a and _anim_player.has_animation(a):
+func _play_anim(a: String, force_restart: bool = false) -> void:
+	if _anim_player and (force_restart or _current_anim != a) and _anim_player.has_animation(a):
 		var blend := 0.0 if _current_anim == "" else 0.12
 		_current_anim = a
 		_anim_player.play(a, blend)
@@ -54,6 +89,9 @@ func _physics_process(delta: float) -> void:
 	if is_dead or GameManager.is_game_over:
 		return
 	_attack_cd = maxf(0.0, _attack_cd - delta)
+	if ember_light != null:
+		ember_light.light_energy = 2.1 + sin(Time.get_ticks_msec() * 0.015) * 0.45
+
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
 		return
@@ -65,7 +103,7 @@ func _physics_process(delta: float) -> void:
 		_face_direction((player.global_position - global_position).normalized(), delta)
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.0
-			_play_anim("Attack")
+			_play_anim("Attack", true)
 			if player.has_method("take_damage"):
 				player.take_damage(attack_damage)
 		return
@@ -90,7 +128,8 @@ func _physics_process(delta: float) -> void:
 	velocity.y = -15.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
-	_play_anim("Run")
+	if _attack_cd <= 0.45:
+		_play_anim("Run")
 
 
 func _face_direction(dir: Vector3, delta: float) -> void:
@@ -123,9 +162,26 @@ func _die(_hs: bool, is_melee: bool, from_nuke: bool) -> void:
 	body_area.set_deferred("monitoring", false)
 	body_area.set_deferred("monitorable", false)
 	($CollisionShape3D as CollisionShape3D).set_deferred("disabled", true)
+	if ember_trail != null:
+		ember_trail.emitting = false
+	if ember_light != null:
+		var tw := ember_light.create_tween()
+		tw.tween_property(ember_light, "light_energy", 0.0, 1.1)
+
 	if not from_nuke:
 		GameManager.stats["kills"] += 1
 		GameManager.add_points(130 if is_melee else 60, "Hellhound")
-	_play_anim("Death")
+		if is_inside_tree():
+			var parent_node := _fx_parent()
+			if parent_node != null:
+				var spk := _impact_sparks_scene.instantiate() as Node3D
+				parent_node.add_child(spk)
+				spk.global_position = global_position + Vector3(0, 0.55, 0)
+				var dec := _blood_decal_scene.instantiate() as BloodDecal
+				dec.setup(0.90)
+				parent_node.add_child(dec)
+				dec.global_position = Vector3(global_position.x, 0.0, global_position.z)
+
+	_play_anim("Death", true)
 	emit_signal("died", self, false, global_position, false)
 	get_tree().create_timer(1.5).timeout.connect(queue_free)

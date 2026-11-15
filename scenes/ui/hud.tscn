@@ -1,20 +1,24 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/textures/ui/blood_vignette.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/textures/ui/hitmarker.png" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/hud_damage_arc.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/ui/hud_chalk_counter.gd" id="5"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/hud_pap_badge.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/textures/ui/hud_grenade_icon.png" id="7"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.05, 0.06, 0.08, 0.78)
+bg_color = Color(0.05, 0.05, 0.06, 0.84)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.85, 0.65, 0.25, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(0.76, 0.58, 0.24, 0.78)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 content_margin_left = 18.0
 content_margin_top = 10.0
 content_margin_right = 18.0
@@ -51,12 +55,12 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="5"]
-bg_color = Color(0.1, 0.04, 0.05, 0.85)
+bg_color = Color(0.1, 0.04, 0.05, 0.88)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.45, 0.15, 0.15, 0.75)
+border_color = Color(0.45, 0.15, 0.15, 0.8)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -75,6 +79,38 @@ corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="8"]
+bg_color = Color(0.08, 0.04, 0.04, 0.82)
+border_width_left = 5
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.74, 0.16, 0.12, 0.92)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 14.0
+content_margin_top = 3.0
+content_margin_right = 16.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxFlat" id="9"]
+bg_color = Color(0.05, 0.05, 0.06, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 4
+border_width_bottom = 1
+border_color = Color(0.55, 0.44, 0.24, 0.75)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
 
 [node name="HUD" type="CanvasLayer"]
 layer = 2
@@ -99,6 +135,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0.97, 0.88, 1)
+
+[node name="DamageArc" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4")
 
 [node name="Center" type="Control" parent="."]
 anchors_preset = 15
@@ -130,43 +175,43 @@ offset_top = 19.0
 offset_right = 21.0
 offset_bottom = 21.0
 mouse_filter = 2
-color = Color(1, 1, 1, 0.85)
+color = Color(1, 1, 1, 0.88)
 
 [node name="TopTick" type="ColorRect" parent="Center/Crosshair"]
 layout_mode = 0
 offset_left = 19.0
-offset_top = 6.0
+offset_top = 4.0
 offset_right = 21.0
-offset_bottom = 14.0
+offset_bottom = 12.0
 mouse_filter = 2
-color = Color(1, 1, 1, 0.72)
+color = Color(1, 1, 1, 0.78)
 
 [node name="BotTick" type="ColorRect" parent="Center/Crosshair"]
 layout_mode = 0
 offset_left = 19.0
-offset_top = 26.0
+offset_top = 28.0
 offset_right = 21.0
-offset_bottom = 34.0
+offset_bottom = 36.0
 mouse_filter = 2
-color = Color(1, 1, 1, 0.72)
+color = Color(1, 1, 1, 0.78)
 
 [node name="LeftTick" type="ColorRect" parent="Center/Crosshair"]
 layout_mode = 0
-offset_left = 6.0
+offset_left = 4.0
 offset_top = 19.0
-offset_right = 14.0
+offset_right = 12.0
 offset_bottom = 21.0
 mouse_filter = 2
-color = Color(1, 1, 1, 0.72)
+color = Color(1, 1, 1, 0.78)
 
 [node name="RightTick" type="ColorRect" parent="Center/Crosshair"]
 layout_mode = 0
-offset_left = 26.0
+offset_left = 28.0
 offset_top = 19.0
-offset_right = 34.0
+offset_right = 36.0
 offset_bottom = 21.0
 mouse_filter = 2
-color = Color(1, 1, 1, 0.72)
+color = Color(1, 1, 1, 0.78)
 
 [node name="Hitmarker" type="TextureRect" parent="Center"]
 layout_mode = 1
@@ -193,9 +238,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -240.0
+offset_left = -250.0
 offset_top = 74.0
-offset_right = 240.0
+offset_right = 250.0
 offset_bottom = 122.0
 grow_horizontal = 2
 mouse_filter = 2
@@ -276,10 +321,10 @@ alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 30.0
-offset_top = -230.0
-offset_right = 420.0
-offset_bottom = -22.0
+offset_left = 28.0
+offset_top = -255.0
+offset_right = 460.0
+offset_bottom = -20.0
 grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 8
@@ -291,7 +336,7 @@ mouse_filter = 2
 theme_override_constants/separation = 5
 
 [node name="HPBar" type="ProgressBar" parent="BottomLeft/Bars"]
-custom_minimum_size = Vector2(250, 16)
+custom_minimum_size = Vector2(256, 15)
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
@@ -301,7 +346,7 @@ value = 100.0
 show_percentage = false
 
 [node name="StamBar" type="ProgressBar" parent="BottomLeft/Bars"]
-custom_minimum_size = Vector2(250, 8)
+custom_minimum_size = Vector2(256, 7)
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
@@ -311,10 +356,10 @@ value = 100.0
 show_percentage = false
 
 [node name="PerksBox" type="HBoxContainer" parent="BottomLeft"]
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="PointsRow" type="HBoxContainer" parent="BottomLeft"]
 layout_mode = 2
@@ -326,7 +371,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.87, 0.34, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.04, 0.02, 0.95)
 theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("8")
 text = "500"
 
 [node name="DeltaBox" type="VBoxContainer" parent="BottomLeft/PointsRow"]
@@ -334,12 +380,23 @@ layout_mode = 2
 mouse_filter = 2
 alignment = 1
 
+[node name="ChalkRow" type="HBoxContainer" parent="BottomLeft"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ChalkCounter" type="Control" parent="BottomLeft/ChalkRow"]
+custom_minimum_size = Vector2(220, 74)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("5")
+
 [node name="RoundLabel" type="Label" parent="BottomLeft"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.14, 0.14, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.01, 0.01, 0.95)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 56
 text = "I"
 
 [node name="BottomRight" type="VBoxContainer" parent="."]
@@ -348,17 +405,42 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -460.0
-offset_top = -170.0
-offset_right = -32.0
-offset_bottom = -26.0
+offset_left = -490.0
+offset_top = -190.0
+offset_right = -28.0
+offset_bottom = -22.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 4
 alignment = 2
 
-[node name="WeaponName" type="Label" parent="BottomRight"]
+[node name="AmmoCard" type="PanelContainer" parent="BottomRight"]
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 2
+theme_override_styles/panel = SubResource("9")
+
+[node name="VBox" type="VBoxContainer" parent="BottomRight/AmmoCard"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 2
+
+[node name="WeaponTopRow" type="HBoxContainer" parent="BottomRight/AmmoCard/VBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="PaPBadge" type="TextureRect" parent="BottomRight/AmmoCard/VBox/WeaponTopRow"]
+custom_minimum_size = Vector2(54, 24)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="WeaponName" type="Label" parent="BottomRight/AmmoCard/VBox/WeaponTopRow"]
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
 theme_override_constants/outline_size = 5
@@ -366,15 +448,44 @@ theme_override_font_sizes/font_size = 24
 text = "M1911"
 horizontal_alignment = 2
 
-[node name="AmmoLabel" type="Label" parent="BottomRight"]
+[node name="AmmoMainRow" type="HBoxContainer" parent="BottomRight/AmmoCard/VBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="AmmoLabel" type="Label" parent="BottomRight/AmmoCard/VBox/AmmoMainRow"]
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
 theme_override_constants/outline_size = 7
 theme_override_font_sizes/font_size = 42
-text = "8 / 80   [G: 2]"
+text = "8 / 80"
 horizontal_alignment = 2
 
-[node name="ReloadHint" type="Label" parent="BottomRight"]
+[node name="GrenadeRow" type="HBoxContainer" parent="BottomRight/AmmoCard/VBox/AmmoMainRow"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 2
+
+[node name="GrenadeIcon" type="TextureRect" parent="BottomRight/AmmoCard/VBox/AmmoMainRow/GrenadeRow"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("7")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GrenadeCount" type="Label" parent="BottomRight/AmmoCard/VBox/AmmoMainRow/GrenadeRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.90, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 22
+text = "x2"
+vertical_alignment = 2
+
+[node name="ReloadHint" type="Label" parent="BottomRight/AmmoCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.42, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
@@ -383,7 +494,7 @@ theme_override_font_sizes/font_size = 18
 text = "[R] RELOAD"
 horizontal_alignment = 2
 
-[node name="SecondaryLabel" type="Label" parent="BottomRight"]
+[node name="SecondaryLabel" type="Label" parent="BottomRight/AmmoCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.76, 0.8, 0.88, 0.9)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)

@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/env/fx_ember_glow.png" id="1"]
+
+[sub_resource type="Gradient" id="1"]
+offsets = PackedFloat32Array(0, 0.12, 0.6, 1)
+colors = PackedColorArray(0.55, 0.88, 1, 0, 1, 0.94, 0.65, 1, 0.35, 0.78, 1, 0.8, 0.15, 0.35, 0.9, 0)
+
+[sub_resource type="GradientTexture1D" id="2"]
+gradient = SubResource("1")
+
+[sub_resource type="ParticleProcessMaterial" id="3"]
+emission_shape = 1
+emission_sphere_radius = 0.10
+direction = Vector3(0, -0.35, 0.9)
+spread = 65.0
+initial_velocity_min = 2.2
+initial_velocity_max = 5.0
+gravity = Vector3(0, -11.0, 0)
+scale_min = 0.65
+scale_max = 1.30
+color_ramp = SubResource("2")
+
+[sub_resource type="StandardMaterial3D" id="4"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1.4, 1.45, 1.65, 1)
+albedo_texture = ExtResource("1")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="5"]
+material = SubResource("4")
+size = Vector2(0.04, 0.04)
+
+[node name="EnvElectricSparks" type="GPUParticles3D"]
+amount = 26
+lifetime = 0.65
+preprocess = 0.5
+explosiveness = 0.72
+randomness = 0.55
+visibility_aabb = AABB(-2.5, -3.5, -2.5, 5, 4.5, 5)
+process_material = SubResource("3")
+draw_pass_1 = SubResource("5")

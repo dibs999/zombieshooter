@@ -12,7 +12,15 @@ const SFX_PATHS := {
 	"shot_sniper": "res://assets/audio/weapons/shot_sniper.wav",
 	"shot_sniper_pap": "res://assets/audio/weapons/shot_sniper_pap.wav",
 	"shot_raygun": "res://assets/audio/weapons/shot_raygun.wav",
+	"shot_wunderwaffe": "res://assets/audio/weapons/shot_wunderwaffe.wav",
+	"shot_wunderwaffe_pap": "res://assets/audio/weapons/shot_wunderwaffe_pap.wav",
 	"reload_click": "res://assets/audio/weapons/reload_click.wav",
+	"reload_mag_out": "res://assets/audio/weapons/reload_mag_out.wav",
+	"reload_mag_in": "res://assets/audio/weapons/reload_mag_in.wav",
+	"reload_bolt": "res://assets/audio/weapons/reload_bolt.wav",
+	"shell_clink": "res://assets/audio/weapons/shell_clink.wav",
+	"perk_electric_cherry": "res://assets/audio/weapons/perk_electric_cherry.wav",
+	"phd_nuke": "res://assets/audio/weapons/phd_nuke.wav",
 	"empty_click": "res://assets/audio/weapons/empty_click.wav",
 	"knife_slash": "res://assets/audio/weapons/knife_slash.wav",
 	"headshot_crunch": "res://assets/audio/weapons/headshot_crunch.wav",
@@ -20,10 +28,12 @@ const SFX_PATHS := {
 	"zombie_groan_1": "res://assets/audio/zombies/zombie_groan_1.wav",
 	"zombie_groan_2": "res://assets/audio/zombies/zombie_groan_2.wav",
 	"hellhound_howl": "res://assets/audio/zombies/hellhound_howl.wav",
+	"boss_roar": "res://assets/audio/zombies/boss_roar.wav",
 	"plank_break": "res://assets/audio/zombies/plank_break.wav",
 	"plank_repair": "res://assets/audio/zombies/plank_repair.wav",
 	"round_start": "res://assets/audio/ui/round_start.wav",
 	"round_end": "res://assets/audio/ui/round_end.wav",
+	"round_chalk": "res://assets/audio/ui/round_chalk.wav",
 	"buy_confirm": "res://assets/audio/ui/buy_confirm.wav",
 	"buy_denied": "res://assets/audio/ui/buy_denied.wav",
 	"mystery_box_jingle": "res://assets/audio/ui/mystery_box_jingle.wav",
@@ -32,6 +42,9 @@ const SFX_PATHS := {
 	"perk_drink": "res://assets/audio/ui/perk_drink.wav",
 	"hitmarker": "res://assets/audio/ui/hitmarker.wav",
 	"player_hurt": "res://assets/audio/ui/player_hurt.wav",
+	"footstep_stone": "res://assets/audio/ui/footstep_stone.wav",
+	"footstep_metal": "res://assets/audio/ui/footstep_metal.wav",
+	"slide_scrape": "res://assets/audio/ui/slide_scrape.wav",
 	"bunker_ambience": "res://assets/audio/ambience/bunker_ambience.wav",
 }
 
@@ -48,11 +61,15 @@ func _ready() -> void:
 		var path: String = SFX_PATHS[key]
 		if ResourceLoader.exists(path):
 			_streams[key] = load(path)
-	for i in range(16):
+		else:
+			var ogg_path := path.get_basename() + ".ogg"
+			if ResourceLoader.exists(ogg_path):
+				_streams[key] = load(ogg_path)
+	for i in range(20):
 		var p2 := AudioStreamPlayer.new()
 		add_child(p2)
 		_pool_2d.append(p2)
-	for i in range(16):
+	for i in range(20):
 		var p3 := AudioStreamPlayer3D.new()
 		p3.max_distance = 38.0
 		p3.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE

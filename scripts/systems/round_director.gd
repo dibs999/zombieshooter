@@ -6,6 +6,7 @@ const POWERUP_TYPES := ["max_ammo", "insta_kill", "double_points", "nuke", "carp
 
 var zombie_scene: PackedScene = preload("res://scenes/enemies/zombie.tscn")
 var hellhound_scene: PackedScene = preload("res://scenes/enemies/hellhound.tscn")
+var panzer_scene: PackedScene = preload("res://scenes/enemies/panzer_boss.tscn")
 var powerup_scene: PackedScene = preload("res://scenes/interactables/power_up.tscn")
 
 var zombies_remaining_to_spawn: int = 0
@@ -17,7 +18,9 @@ var in_transition: bool = false
 var _kills_since_drop: int = 0
 var _drops_this_round: int = 0
 var _brute_spawned_this_round: bool = false
+var _panzer_spawned_this_round: bool = false
 var _is_dog_round: bool = false
+var _is_panzer_round: bool = false
 
 
 func _ready() -> void:
@@ -25,12 +28,18 @@ func _ready() -> void:
 	start_round(1)
 
 
+func is_panzer_round(r: int) -> bool:
+	return r >= 8 and r % 8 == 0 and not GameManager.is_dog_round(r)
+
+
 func start_round(r: int) -> void:
 	GameManager.current_round = r
 	GameManager.round_barrier_points_earned = 0
 	_drops_this_round = 0
 	_brute_spawned_this_round = false
+	_panzer_spawned_this_round = false
 	_is_dog_round = GameManager.is_dog_round(r)
+	_is_panzer_round = is_panzer_round(r)
 	zombies_remaining_to_spawn = GameManager.get_zombie_count_for_round(r)
 	spawn_interval = maxf(0.75, 2.0 * pow(0.95, float(r - 1)))
 	spawn_timer = 1.6
@@ -38,6 +47,34 @@ func start_round(r: int) -> void:
 
 	AudioManager.play_2d("hellhound_howl" if _is_dog_round else "round_start", 0.02, 0.0)
 	GameManager.round_changed.emit(r, _is_dog_round)
+
+
+func _world_root() -> Node:
+	var p := get_parent()
+	if p != null and p != get_tree().root:
+		return p
+	return get_tree().current_scene if get_tree().current_scene != null else p
+
+
+func spawn_panzer_boss(r: int = -1, spawn_pos: Variant = null) -> PanzerBossAI:
+	var use_round := r if r > 0 else GameManager.current_round
+	var boss := panzer_scene.instantiate() as PanzerBossAI
+	boss.setup(use_round)
+	boss.died.connect(_on_enemy_died)
+	_world_root().add_child(boss)
+	if spawn_pos is Vector3:
+		boss.global_position = spawn_pos as Vector3
+	else:
+		var dog_spawns := _get_unlocked_dog_spawns()
+		if not dog_spawns.is_empty():
+			var sp := dog_spawns[randi() % dog_spawns.size()]
+			boss.global_position = sp.global_position
+		else:
+			var windows := _get_unlocked_windows()
+			if not windows.is_empty():
+				boss.global_position = windows[randi() % windows.size()].get_inside_pos()
+	active_zombies += 1
+	return boss
 
 
 func _process(delta: float) -> void:
@@ -71,12 +108,19 @@ func _spawn_next_enemy() -> void:
 			return
 		var sp: Node3D = dog_spawns[randi() % dog_spawns.size()]
 		var hound := hellhound_scene.instantiate() as HellhoundAI
-		get_tree().current_scene.add_child(hound)
+		_world_root().add_child(hound)
 		hound.global_position = sp.global_position
 		hound.setup(maxf(150.0, hp * 0.55))
 		hound.died.connect(_on_enemy_died)
 		zombies_remaining_to_spawn -= 1
 		active_zombies += 1
+		return
+
+	# Spawn Panzersoldat Boss midway through every 8th non-dog round (Rounds 8, 16, 24, ...)
+	if _is_panzer_round and not _panzer_spawned_this_round and zombies_remaining_to_spawn <= maxi(2, GameManager.get_zombie_count_for_round(r) / 2):
+		_panzer_spawned_this_round = true
+		zombies_remaining_to_spawn -= 1
+		spawn_panzer_boss(r)
 		return
 
 	var windows := _get_unlocked_windows()
@@ -85,11 +129,17 @@ func _spawn_next_enemy() -> void:
 	var win := windows[randi() % windows.size()]
 
 	var variant := "soldier"
-	if not _brute_spawned_this_round and r >= 8 and (r - 8) % 5 == 0 and zombies_remaining_to_spawn <= 3:
+	if not _brute_spawned_this_round and not _is_panzer_round and r >= 6 and (r - 6) % 5 == 0 and zombies_remaining_to_spawn <= 3:
 		variant = "brute"
 		_brute_spawned_this_round = true
-	elif randf() < 0.38:
-		variant = "scientist"
+	else:
+		var roll := randf()
+		if r >= 3 and roll < 0.12:
+			variant = "crawler"
+		elif roll < 0.36:
+			variant = "worker"
+		elif roll < 0.64:
+			variant = "scientist"
 
 	# CoD Zombies speed escalation: slow early, sprinters starting Round 4+
 	var speed := 1.85
@@ -104,7 +154,7 @@ func _spawn_next_enemy() -> void:
 	var z := zombie_scene.instantiate() as ZombieAI
 	z.setup(variant, hp, speed, win)
 	z.died.connect(_on_enemy_died)
-	get_tree().current_scene.add_child(z)
+	_world_root().add_child(z)
 	z.global_position = win.get_spawn_pos()
 
 	zombies_remaining_to_spawn -= 1
@@ -128,11 +178,15 @@ func _get_unlocked_dog_spawns() -> Array[Node3D]:
 	return out
 
 
-func _on_enemy_died(_enemy: Node, _hs: bool, pos: Vector3, force_drop: bool) -> void:
+func _on_enemy_died(enemy: Node, _hs: bool, pos: Vector3, force_drop: bool) -> void:
 	active_zombies = maxi(0, active_zombies - 1)
 	_kills_since_drop += 1
 
-	# Dog round finale ALWAYS drops Max Ammo!
+	# Panzersoldat Boss & Dog round finale ALWAYS drop Max Ammo!
+	if enemy is PanzerBossAI:
+		_spawn_powerup("max_ammo", pos + Vector3.UP * 0.6)
+		return
+
 	if _is_dog_round and zombies_remaining_to_spawn <= 0 and active_zombies <= 0:
 		_spawn_powerup("max_ammo", pos + Vector3.UP * 0.6)
 		return
@@ -146,7 +200,7 @@ func _on_enemy_died(_enemy: Node, _hs: bool, pos: Vector3, force_drop: bool) -> 
 
 func _spawn_powerup(kind: String, pos: Vector3) -> void:
 	var pu := powerup_scene.instantiate() as Node3D
-	get_tree().current_scene.add_child(pu)
+	_world_root().add_child(pu)
 	pu.global_position = pos
 	if pu.has_method("setup"):
 		pu.setup(kind)

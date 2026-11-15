@@ -12,11 +12,21 @@ sys.path.insert(0, os.path.dirname(__file__))
 import common as C
 
 
-def materials():
+def _env_tex(name):
     return (
-        C.make_pbr_mat("FacilityPaint", (0.23, 0.28, 0.27, 1), metallic=0.55, roughness=0.64),
-        C.make_pbr_mat("ExposedSteel", (0.34, 0.32, 0.27, 1), metallic=0.8, roughness=0.42),
-        C.make_pbr_mat("SafetyOchre", (0.72, 0.46, 0.08, 1), metallic=0.25, roughness=0.7),
+        os.path.join(C.TEX_DIR, "env", f"{name}_albedo.jpg"),
+        os.path.join(C.TEX_DIR, "env", f"{name}_normal.jpg"),
+        os.path.join(C.TEX_DIR, "env", f"{name}_roughness.jpg"),
+    )
+
+
+def materials():
+    st_a, st_n, st_r = _env_tex("cc0_rust_steel")
+    mp_a, mp_n, mp_r = _env_tex("cc0_metal_plate")
+    return (
+        C.make_pbr_mat("FacilityPaint", (0.24, 0.30, 0.28, 1), metallic=0.52, roughness=0.62, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.56, 0.64, 0.60), normal_strength=0.75),
+        C.make_pbr_mat("ExposedSteel", (0.34, 0.34, 0.32, 1), metallic=0.78, roughness=0.44, albedo_tex=mp_a, normal_tex=mp_n, roughness_tex=mp_r, tint_tex=(0.60, 0.62, 0.62), normal_strength=0.80),
+        C.make_pbr_mat("SafetyOchre", (0.72, 0.46, 0.08, 1), metallic=0.25, roughness=0.68, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.92, 0.64, 0.18), normal_strength=0.65),
         C.make_pbr_mat("Rubber", (0.045, 0.05, 0.055, 1), roughness=0.92),
         C.make_pbr_mat("Phosphor", (0.08, 0.5, 0.39, 1), roughness=0.3,
                        emission=(0.12, 0.85, 0.65), emission_strength=1.2),

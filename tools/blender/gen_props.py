@@ -24,10 +24,11 @@ import common as C
 
 
 def _tex_env(name):
+    ext = "jpg" if name.startswith("cc0_") else "png"
     return (
-        os.path.join(C.TEX_DIR, "env", f"{name}_albedo.png"),
-        os.path.join(C.TEX_DIR, "env", f"{name}_normal.png"),
-        os.path.join(C.TEX_DIR, "env", f"{name}_roughness.png"),
+        os.path.join(C.TEX_DIR, "env", f"{name}_albedo.{ext}"),
+        os.path.join(C.TEX_DIR, "env", f"{name}_normal.{ext}"),
+        os.path.join(C.TEX_DIR, "env", f"{name}_roughness.{ext}"),
     )
 
 
@@ -41,22 +42,23 @@ def _tex_wpn(name):
 
 def build_barricade_window():
     C.reset_scene()
-    bc_a, bc_n, bc_r = _tex_env("bunker_concrete")
-    rb_a, rb_n, rb_r = _tex_env("ruin_brick")
-    cw_a, cw_n, cw_r = _tex_env("charred_wood")
+    bc_a, bc_n, bc_r = _tex_env("cc0_concrete_wall")
+    rb_a, rb_n, rb_r = _tex_env("cc0_brick")
+    cw_a, cw_n, cw_r = _tex_env("cc0_planks")
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
 
-    stone = C.make_pbr_mat("WindowStone", (0.36, 0.38, 0.40, 1.0), roughness=0.88, albedo_tex=bc_a, normal_tex=bc_n, roughness_tex=bc_r)
-    brick = C.make_pbr_mat("WindowBrick", (0.45, 0.34, 0.28, 1.0), roughness=0.90, albedo_tex=rb_a, normal_tex=rb_n, roughness_tex=rb_r)
-    wood = C.make_pbr_mat("WindowWood", (0.44, 0.29, 0.18, 1.0), roughness=0.78, albedo_tex=cw_a, normal_tex=cw_n, roughness_tex=cw_r)
-    iron = C.make_pbr_mat("WindowIron", (0.12, 0.13, 0.14, 1.0), metallic=0.82, roughness=0.45)
+    stone = C.make_pbr_mat("WindowStone", (0.42, 0.44, 0.46, 1.0), roughness=0.88, albedo_tex=bc_a, normal_tex=bc_n, roughness_tex=bc_r, tint_tex=(0.72, 0.74, 0.76), normal_strength=0.9)
+    brick = C.make_pbr_mat("WindowBrick", (0.50, 0.42, 0.36, 1.0), roughness=0.90, albedo_tex=rb_a, normal_tex=rb_n, roughness_tex=rb_r, tint_tex=(0.78, 0.72, 0.68), normal_strength=0.95)
+    wood = C.make_pbr_mat("WindowWood", (0.46, 0.32, 0.20, 1.0), roughness=0.82, albedo_tex=cw_a, normal_tex=cw_n, roughness_tex=cw_r, tint_tex=(0.82, 0.74, 0.66), normal_strength=0.85)
+    iron = C.make_pbr_mat("WindowIron", (0.16, 0.17, 0.18, 1.0), metallic=0.82, roughness=0.45, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.45, 0.46, 0.48))
 
     # Opening remains strictly clear: X in [-0.88..+0.88], Z in [0.85..2.45] for ballistic & zombie climb
     frame_parts = [
-        C.add_box("SillBase", (2.34, 0.46, 0.75), (0, 0, 0.375), mat=brick, bevel=0.02, uv_scale=0.6),
-        C.add_box("SillLedge", (2.42, 0.56, 0.10), (0, 0, 0.80), mat=stone, bevel=0.015, uv_scale=0.8),
-        C.add_box("LintelBeam", (2.40, 0.54, 0.38), (0, 0, 2.66), mat=stone, bevel=0.02, uv_scale=0.6),
-        C.add_box("PillarL", (0.30, 0.48, 1.62), (-1.03, 0, 1.66), mat=brick, bevel=0.018, uv_scale=0.6),
-        C.add_box("PillarR", (0.30, 0.48, 1.62), (1.03, 0, 1.66), mat=brick, bevel=0.018, uv_scale=0.6),
+        C.add_box("SillBase", (2.34, 0.46, 0.75), (0, 0, 0.375), mat=brick, bevel=0.02, uv_scale=0.55),
+        C.add_box("SillLedge", (2.42, 0.56, 0.10), (0, 0, 0.80), mat=stone, bevel=0.015, uv_scale=0.65),
+        C.add_box("LintelBeam", (2.40, 0.54, 0.38), (0, 0, 2.66), mat=stone, bevel=0.02, uv_scale=0.55),
+        C.add_box("PillarL", (0.30, 0.48, 1.62), (-1.03, 0, 1.66), mat=brick, bevel=0.018, uv_scale=0.55),
+        C.add_box("PillarR", (0.30, 0.48, 1.62), (1.03, 0, 1.66), mat=brick, bevel=0.018, uv_scale=0.55),
     ]
     for ix in (-0.90, 0.90):
         for iz in (1.05, 1.45, 1.85, 2.25):
@@ -73,7 +75,7 @@ def build_barricade_window():
         (5, (0, -0.23, 1.65), (0, math.radians(36.0), 0)),
     ]
     for idx, loc, rot in planks_cfg:
-        b = C.add_box(f"PlankBoard_{idx}", (1.98, 0.048, 0.185), (0, 0, 0), mat=wood, bevel=0.008, uv_scale=1.6)
+        b = C.add_box(f"PlankBoard_{idx}", (1.98, 0.048, 0.185), (0, 0, 0), mat=wood, bevel=0.008, uv_scale=1.1)
         n1 = C.add_cyl(f"BoltL_{idx}", 0.016, 0.068, (-0.86, 0, 0), (math.radians(90), 0, 0), vertices=6, mat=iron)
         n2 = C.add_cyl(f"BoltR_{idx}", 0.016, 0.068, (0.86, 0, 0), (math.radians(90), 0, 0), vertices=6, mat=iron)
         plank = C.join_objects([b, n1, n2], f"Plank_{idx}")
@@ -85,15 +87,16 @@ def build_barricade_window():
 
 def build_element115_crystal():
     C.reset_scene()
-    pa_a, pa_n, pa_r = _tex_env("panzer_armor")
+    pa_a, pa_n, pa_r = _tex_env("cc0_concrete_wall")
     rock = C.make_pbr_mat(
         "MeteorRock",
         (0.09, 0.095, 0.105, 1.0),
         roughness=0.92,
         albedo_tex=pa_a,
         normal_tex=pa_n,
-        tint_tex=(0.38, 0.40, 0.46),
-        normal_strength=0.9,
+        roughness_tex=pa_r,
+        tint_tex=(0.24, 0.26, 0.32),
+        normal_strength=1.05,
     )
     crystal = C.make_pbr_mat(
         "Crystal115",
@@ -144,7 +147,7 @@ def build_element115_crystal():
 def build_ruined_tank():
     C.reset_scene()
     pa_a, pa_n, pa_r = _tex_env("panzer_armor")
-    st_a, st_n, st_r = _tex_env("rusted_steel")
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
 
     armor = C.make_pbr_mat(
         "TankPanzerArmor",
@@ -164,10 +167,12 @@ def build_ruined_tank():
         roughness=0.72,
         albedo_tex=st_a,
         normal_tex=st_n,
-        tint_tex=(0.52, 0.50, 0.48),
+        roughness_tex=st_r,
+        tint_tex=(0.45, 0.42, 0.40),
+        normal_strength=0.85,
     )
-    dark_steel = C.make_pbr_mat("TankDarkSteel", (0.10, 0.11, 0.11, 1.0), metallic=0.72, roughness=0.50)
-    treads = C.make_pbr_mat("TankTreads", (0.08, 0.075, 0.07, 1.0), metallic=0.52, roughness=0.78)
+    dark_steel = C.make_pbr_mat("TankDarkSteel", (0.10, 0.11, 0.11, 1.0), metallic=0.72, roughness=0.50, albedo_tex=st_a, normal_tex=st_n, tint_tex=(0.30, 0.32, 0.34))
+    treads = C.make_pbr_mat("TankTreads", (0.08, 0.075, 0.07, 1.0), metallic=0.52, roughness=0.78, albedo_tex=st_a, normal_tex=st_n, tint_tex=(0.35, 0.30, 0.26))
     rubber = C.make_pbr_mat("TankWheelRubber", (0.045, 0.045, 0.048, 1.0), metallic=0.05, roughness=0.88)
 
     parts = []
@@ -325,10 +330,10 @@ def build_ruined_tank():
 def build_sandbag_wall():
     C.reset_scene()
     bu_a, bu_n, bu_r = _tex_env("burlap")
-    cw_a, cw_n, cw_r = _tex_env("charred_wood")
+    cw_a, cw_n, cw_r = _tex_env("cc0_planks")
 
     bag = C.make_pbr_mat("SandbagCloth", (0.38, 0.32, 0.22, 1.0), roughness=0.95, albedo_tex=bu_a, normal_tex=bu_n, roughness_tex=bu_r, tint_tex=(0.76, 0.68, 0.56), normal_strength=0.90)
-    stake = C.make_pbr_mat("SandbagStake", (0.28, 0.18, 0.10, 1.0), roughness=0.86, albedo_tex=cw_a, normal_tex=cw_n)
+    stake = C.make_pbr_mat("SandbagStake", (0.34, 0.24, 0.16, 1.0), roughness=0.86, albedo_tex=cw_a, normal_tex=cw_n, roughness_tex=cw_r, tint_tex=(0.72, 0.64, 0.56))
 
     def _add_pinched_bag(name, loc, rot_deg):
         rings = []
@@ -368,10 +373,11 @@ def build_sandbag_wall():
 def build_crate_military():
     C.reset_scene()
     wc_a, wc_n, wc_r = _tex_env("wood_crate")
-    cw_a, cw_n, cw_r = _tex_env("charred_wood")
+    cw_a, cw_n, cw_r = _tex_env("cc0_planks")
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
     olive = C.make_pbr_mat("CrateOlive", (0.28, 0.34, 0.22, 1.0), roughness=0.80, albedo_tex=wc_a, normal_tex=wc_n, roughness_tex=wc_r)
-    trim = C.make_pbr_mat("CrateTrim", (0.22, 0.26, 0.16, 1.0), roughness=0.82, albedo_tex=cw_a, normal_tex=cw_n, tint_tex=(0.65, 0.72, 0.55))
-    iron = C.make_pbr_mat("CrateIron", (0.14, 0.15, 0.16, 1.0), metallic=0.75, roughness=0.50)
+    trim = C.make_pbr_mat("CrateTrim", (0.24, 0.28, 0.18, 1.0), roughness=0.82, albedo_tex=cw_a, normal_tex=cw_n, roughness_tex=cw_r, tint_tex=(0.68, 0.74, 0.56))
+    iron = C.make_pbr_mat("CrateIron", (0.16, 0.17, 0.18, 1.0), metallic=0.75, roughness=0.50, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.45, 0.46, 0.48))
 
     parts = [
         C.add_box("CoreBox", (1.06, 0.72, 0.64), (0, 0, 0.32), mat=olive, bevel=0.01),
@@ -394,17 +400,17 @@ def build_crate_military():
 
 def build_barrel_rusted():
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
     rust = C.make_pbr_mat(
         "BarrelRust",
-        (0.38, 0.20, 0.12, 1.0),
-        metallic=0.48,
+        (0.42, 0.24, 0.16, 1.0),
+        metallic=0.45,
         roughness=0.68,
         albedo_tex=st_a,
         normal_tex=st_n,
         roughness_tex=st_r,
-        tint_tex=(0.76, 0.44, 0.30),
-        normal_strength=0.72,
+        tint_tex=(0.74, 0.52, 0.40),
+        normal_strength=0.85,
     )
     cap = C.make_pbr_mat("BarrelBung", (0.14, 0.14, 0.15, 1.0), metallic=0.80, roughness=0.42)
 
@@ -425,7 +431,8 @@ def build_barrel_rusted():
 
 def build_light_cage():
     C.reset_scene()
-    iron = C.make_pbr_mat("CageIron", (0.14, 0.15, 0.17, 1.0), metallic=0.82, roughness=0.45)
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
+    iron = C.make_pbr_mat("CageIron", (0.16, 0.17, 0.19, 1.0), metallic=0.82, roughness=0.45, albedo_tex=st_a, normal_tex=st_n, tint_tex=(0.45, 0.46, 0.48))
     bulb = C.make_pbr_mat("WarmBulb", (1.0, 0.66, 0.25, 1.0), roughness=0.12, emission=(1.0, 0.60, 0.20), emission_strength=2.8)
     parts = [
         C.add_cyl("MountPlate", 0.15, 0.05, (0, 0, 0), (math.radians(90), 0, 0), mat=iron),
@@ -453,11 +460,11 @@ def build_light_cage():
 
 def build_lab_pod():
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
+    st_a, st_n, st_r = _tex_env("cc0_metal_plate")
     zf_a, zf_n, zf_r = _tex_env("zombie_flesh")
     br_a, br_n, br_r = _tex_wpn("brass")
 
-    steel = C.make_pbr_mat("PodSteel", (0.18, 0.21, 0.24, 1.0), metallic=0.80, roughness=0.40, albedo_tex=st_a, normal_tex=st_n)
+    steel = C.make_pbr_mat("PodSteel", (0.24, 0.27, 0.30, 1.0), metallic=0.80, roughness=0.40, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.50, 0.54, 0.58))
     brass = C.make_pbr_mat("PodBrass", (0.70, 0.50, 0.18, 1.0), metallic=0.86, roughness=0.30, albedo_tex=br_a, normal_tex=br_n)
     copper = C.make_pbr_mat("PodCopper", (0.78, 0.42, 0.18, 1.0), metallic=0.88, roughness=0.30)
     valve_red = C.make_pbr_mat("PodValveRed", (0.68, 0.10, 0.08, 1.0), metallic=0.3, roughness=0.45)
@@ -527,8 +534,8 @@ def build_lab_pod():
 
 def build_teleporter_pad():
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
-    steel = C.make_pbr_mat("PadSteel", (0.18, 0.21, 0.24, 1.0), metallic=0.80, roughness=0.40, albedo_tex=st_a, normal_tex=st_n)
+    st_a, st_n, st_r = _tex_env("cc0_metal_plate")
+    steel = C.make_pbr_mat("PadSteel", (0.22, 0.25, 0.28, 1.0), metallic=0.80, roughness=0.40, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.50, 0.54, 0.58))
     copper = C.make_pbr_mat("PadCopper", (0.76, 0.40, 0.16, 1.0), metallic=0.88, roughness=0.28)
     ceramic = C.make_pbr_mat("PadCeramic", (0.72, 0.72, 0.68, 1.0), roughness=0.25)
     glow = C.make_pbr_mat("PadGlow", (0.10, 0.90, 1.0, 1.0), roughness=0.14, emission=(0.10, 0.90, 1.0), emission_strength=2.2)
@@ -566,11 +573,11 @@ def build_teleporter_pad():
 def build_blast_door():
     """3.4m x 3.2m Vaulted Bunker Blast Door centered at (0, 0, 0) for buyable_door.tscn."""
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
-    pa_a, pa_n, pa_r = _tex_env("panzer_armor")
+    st_a, st_n, st_r = _tex_env("cc0_metal_plate")
+    pa_a, pa_n, pa_r = _tex_env("cc0_rust_steel")
 
-    steel = C.make_pbr_mat("DoorSteel", (0.28, 0.30, 0.32, 1.0), metallic=0.72, roughness=0.46, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r)
-    armor = C.make_pbr_mat("DoorArmor", (0.20, 0.22, 0.24, 1.0), metallic=0.65, roughness=0.52, albedo_tex=pa_a, normal_tex=pa_n, roughness_tex=pa_r)
+    steel = C.make_pbr_mat("DoorSteel", (0.28, 0.30, 0.32, 1.0), metallic=0.72, roughness=0.46, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.56, 0.58, 0.62), normal_strength=0.9)
+    armor = C.make_pbr_mat("DoorArmor", (0.22, 0.24, 0.26, 1.0), metallic=0.65, roughness=0.52, albedo_tex=pa_a, normal_tex=pa_n, roughness_tex=pa_r, tint_tex=(0.45, 0.44, 0.42), normal_strength=0.85)
     brass = C.make_pbr_mat("DoorBrass", (0.68, 0.48, 0.18, 1.0), metallic=0.86, roughness=0.30)
     hazard = C.make_pbr_mat("DoorHazard", (0.78, 0.54, 0.08, 1.0), roughness=0.45)
 
@@ -613,9 +620,10 @@ def build_blast_door():
 def build_steel_gantry():
     """10.0m modular industrial overhead catwalk bridge along X (deck at Z=0, guardrails to +1.05)."""
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
-    steel = C.make_pbr_mat("GantrySteel", (0.20, 0.22, 0.24, 1.0), metallic=0.76, roughness=0.46, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r)
-    grate = C.make_pbr_mat("GantryGrate", (0.14, 0.15, 0.16, 1.0), metallic=0.80, roughness=0.52)
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
+    gr_a, gr_n, gr_r = _tex_env("cc0_metal_plate")
+    steel = C.make_pbr_mat("GantrySteel", (0.22, 0.24, 0.26, 1.0), metallic=0.76, roughness=0.46, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.50, 0.48, 0.46))
+    grate = C.make_pbr_mat("GantryGrate", (0.16, 0.17, 0.18, 1.0), metallic=0.80, roughness=0.52, albedo_tex=gr_a, normal_tex=gr_n, roughness_tex=gr_r, tint_tex=(0.45, 0.48, 0.50))
 
     parts = []
     for sy in (-0.98, 0.98):
@@ -644,8 +652,8 @@ def build_steel_gantry():
 def build_wall_pipes():
     """4.0m wide flush-backed industrial 3-pipe manifold + spoked red valve + gauge dial (mounts flush at Y=0 facing -Y)."""
     C.reset_scene()
-    st_a, st_n, st_r = _tex_env("rusted_steel")
-    steel = C.make_pbr_mat("PipeSteel", (0.20, 0.22, 0.25, 1.0), metallic=0.78, roughness=0.42, albedo_tex=st_a, normal_tex=st_n)
+    st_a, st_n, st_r = _tex_env("cc0_rust_steel")
+    steel = C.make_pbr_mat("PipeSteel", (0.22, 0.24, 0.27, 1.0), metallic=0.78, roughness=0.42, albedo_tex=st_a, normal_tex=st_n, roughness_tex=st_r, tint_tex=(0.56, 0.54, 0.52))
     copper = C.make_pbr_mat("PipeCopper", (0.72, 0.38, 0.16, 1.0), metallic=0.88, roughness=0.30)
     valve_red = C.make_pbr_mat("ValveRed", (0.72, 0.10, 0.08, 1.0), metallic=0.35, roughness=0.45)
     gauge_mat = C.make_pbr_mat("WallGaugeFace", (0.95, 0.92, 0.84, 1.0), roughness=0.32, albedo_tex=os.path.join(C.TEX_DIR, "props", "pap_gauge.png"))
@@ -679,8 +687,8 @@ def build_wall_pipes():
 def build_barbed_wire():
     """2.2m cheval-de-frise timber X-frames + coiled helical barbed wire."""
     C.reset_scene()
-    cw_a, cw_n, cw_r = _tex_env("charred_wood")
-    wood = C.make_pbr_mat("WireWood", (0.32, 0.20, 0.12, 1.0), roughness=0.86, albedo_tex=cw_a, normal_tex=cw_n)
+    cw_a, cw_n, cw_r = _tex_env("cc0_planks")
+    wood = C.make_pbr_mat("WireWood", (0.34, 0.22, 0.14, 1.0), roughness=0.86, albedo_tex=cw_a, normal_tex=cw_n, roughness_tex=cw_r, tint_tex=(0.72, 0.64, 0.56))
     wire = C.make_pbr_mat("RazorWire", (0.16, 0.17, 0.18, 1.0), metallic=0.82, roughness=0.48)
 
     parts = [
@@ -700,10 +708,10 @@ def build_barbed_wire():
 def build_rubble_pile():
     """2.4m x 1.5m x 0.72m bombed masonry debris mound with jagged bent protruding rebar."""
     C.reset_scene()
-    rb_a, rb_n, rb_r = _tex_env("ruin_brick")
-    bc_a, bc_n, bc_r = _tex_env("bunker_concrete")
-    brick = C.make_pbr_mat("RubbleBrick", (0.44, 0.32, 0.26, 1.0), roughness=0.92, albedo_tex=rb_a, normal_tex=rb_n, roughness_tex=rb_r)
-    conc = C.make_pbr_mat("RubbleConcrete", (0.34, 0.36, 0.38, 1.0), roughness=0.90, albedo_tex=bc_a, normal_tex=bc_n, roughness_tex=bc_r)
+    rb_a, rb_n, rb_r = _tex_env("cc0_brick")
+    bc_a, bc_n, bc_r = _tex_env("cc0_concrete_wall")
+    brick = C.make_pbr_mat("RubbleBrick", (0.48, 0.38, 0.32, 1.0), roughness=0.92, albedo_tex=rb_a, normal_tex=rb_n, roughness_tex=rb_r, tint_tex=(0.76, 0.70, 0.66), normal_strength=0.95)
+    conc = C.make_pbr_mat("RubbleConcrete", (0.38, 0.40, 0.42, 1.0), roughness=0.90, albedo_tex=bc_a, normal_tex=bc_n, roughness_tex=bc_r, tint_tex=(0.70, 0.72, 0.74), normal_strength=0.95)
     rebar = C.make_pbr_mat("RubbleRebar", (0.24, 0.14, 0.10, 1.0), metallic=0.65, roughness=0.66)
 
     slabs = [
@@ -714,7 +722,7 @@ def build_rubble_pile():
         ("ChunkD",    (0.54, 0.48, 0.26), (0.68, 0.28, 0.18), (12, -16, -40), conc),
         ("ChunkE",    (0.46, 0.42, 0.22), (-0.75, -0.26, 0.15), (-18, 12, 22), brick),
     ]
-    parts = [C.add_box(n, sz, loc, tuple(math.radians(a) for a in rot), mat=m, bevel=0.04, uv_scale=0.65) for n, sz, loc, rot, m in slabs]
+    parts = [C.add_box(n, sz, loc, tuple(math.radians(a) for a in rot), mat=m, bevel=0.04, uv_scale=0.55) for n, sz, loc, rot, m in slabs]
 
     rebar_paths = [
         [(-0.22, 0.05, 0.22), (-0.12, -0.02, 0.52), (-0.24, -0.18, 0.74)],

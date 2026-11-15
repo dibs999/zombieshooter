@@ -13,3 +13,8 @@ script = ExtResource("1")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("1")
+
+[node name="BeaconLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.18, 0.12, 1)
+light_energy = 0.65
+omni_range = 2.2

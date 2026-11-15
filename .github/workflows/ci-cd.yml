@@ -47,7 +47,7 @@ jobs:
       - name: Import Godot project resources
         run: godot --headless --editor --quit
 
-      - name: Run 85-check headless verification suite
+      - name: Run full headless verification suite
         run: godot --headless res://tools/verify/test_runner.tscn
 
   build:
@@ -62,8 +62,8 @@ jobs:
             preset: "Windows Desktop"
             export_path: "build/windows/Bunker115.exe"
             package_cmd: |
-              cp README.md build/windows/README.md
-              (cd build/windows && zip -q -r ../../dist/Bunker115-Windows-x86_64.zip Bunker115.exe README.md)
+              cp README.md CREDITS.md build/windows/
+              (cd build/windows && zip -q -r ../../dist/Bunker115-Windows-x86_64.zip Bunker115.exe README.md CREDITS.md)
             artifact_name: "Bunker115-Windows-x86_64"
             artifact_file: "dist/Bunker115-Windows-x86_64.zip"
           - label: "Linux x86_64"
@@ -71,8 +71,8 @@ jobs:
             export_path: "build/linux/Bunker115.x86_64"
             package_cmd: |
               chmod +x build/linux/Bunker115.x86_64
-              cp README.md build/linux/README.md
-              tar -czf dist/Bunker115-Linux-x86_64.tar.gz -C build/linux Bunker115.x86_64 README.md
+              cp README.md CREDITS.md build/linux/
+              tar -czf dist/Bunker115-Linux-x86_64.tar.gz -C build/linux Bunker115.x86_64 README.md CREDITS.md
             artifact_name: "Bunker115-Linux-x86_64"
             artifact_file: "dist/Bunker115-Linux-x86_64.tar.gz"
           - label: "macOS Universal"

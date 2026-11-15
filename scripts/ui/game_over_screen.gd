@@ -14,11 +14,15 @@ func _on_game_over(stats: Dictionary) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var rounds := int(stats.get("rounds_survived", 1))
 	title_lbl.text = "GAME OVER\nYOU SURVIVED %d ROUND%s" % [rounds, "" if rounds == 1 else "S"]
+	var ee_done := bool(stats.get("easter_egg_completed", false))
+	var ee_step := int(stats.get("quest_step", 0))
+	var ee_str := "COMPLETED" if ee_done else ("Step %d/5" % ee_step if ee_step > 0 else "Incomplete")
 	stats_lbl.text = (
 		"Kills: %d   |   Headshots: %d\n" % [int(stats.get("kills", 0)), int(stats.get("headshots", 0))] +
 		"Total Points Earned: %d\n" % int(stats.get("total_points", 0)) +
 		"Doors Opened: %d   |   Pack-a-Punch Upgrades: %d\n" % [int(stats.get("doors_opened", 0)), int(stats.get("pap_upgrades", 0))] +
-		"Barriers Repaired: %d" % int(stats.get("barriers_repaired", 0))
+		"Barriers Repaired: %d\n" % int(stats.get("barriers_repaired", 0)) +
+		"Perks: %d / %d   |   Easter Egg: %s" % [GameManager.perks.size(), GameManager.max_perks, ee_str]
 	)
 
 

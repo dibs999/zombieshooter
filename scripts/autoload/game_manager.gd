@@ -17,6 +17,7 @@ signal player_downed_changed(is_downed: bool, revive_progress: float)
 signal weapon_hud_updated(weapon_name: String, packed: bool, mag: int, reserve: int, grenades: int, secondary_name: String)
 signal prompt_changed(text: String)
 signal hitmarker_triggered(is_kill: bool, is_headshot: bool)
+signal quest_updated(step: int, description: String, completed: bool)
 
 const PERK_INFO := {
 	"quickrevive": {"name": "Quick Revive", "cost": 500, "icon": "res://assets/textures/ui/perk_quickrevive.png", "color": Color(0.2, 0.65, 1.0)},
@@ -24,18 +25,27 @@ const PERK_INFO := {
 	"speedcola": {"name": "Speed Cola", "cost": 3000, "icon": "res://assets/textures/ui/perk_speedcola.png", "color": Color(0.2, 0.9, 0.35)},
 	"doubletap": {"name": "Double Tap II", "cost": 2000, "icon": "res://assets/textures/ui/perk_doubletap.png", "color": Color(0.98, 0.72, 0.15)},
 	"staminup": {"name": "Stamin-Up", "cost": 2000, "icon": "res://assets/textures/ui/perk_staminup.png", "color": Color(0.98, 0.45, 0.12)},
+	"mulekick": {"name": "Mule Kick", "cost": 4000, "icon": "res://assets/textures/ui/perk_mulekick.png", "color": Color(0.22, 0.86, 0.38)},
+	"deadshot": {"name": "Deadshot Daiquiri", "cost": 1500, "icon": "res://assets/textures/ui/perk_deadshot.png", "color": Color(0.96, 0.76, 0.18)},
+	"phdflopper": {"name": "PhD Flopper", "cost": 2000, "icon": "res://assets/textures/ui/perk_phdflopper.png", "color": Color(0.72, 0.28, 0.96)},
+	"electriccherry": {"name": "Electric Cherry", "cost": 2000, "icon": "res://assets/textures/ui/perk_electriccherry.png", "color": Color(0.22, 0.88, 1.0)},
 }
 
 var points: int = 500
 var current_round: int = 1
 var power_on: bool = false
 var perks: Array[String] = []
+var max_perks: int = 4
 var quick_revive_uses_left: int = 3
+var quest_step: int = 0
+var quest_description: String = ""
+var quest_completed: bool = false
 var unlocked_zones: Dictionary = {
 	"spawn": true,
 	"west_lab": false,
 	"east_courtyard": false,
 	"reactor": false,
+	"north_yard": false,
 }
 var active_powerups: Dictionary = {
 	"insta_kill": 0.0,
@@ -53,6 +63,8 @@ var stats: Dictionary = {
 	"total_points": 500,
 	"pap_upgrades": 0,
 	"barriers_repaired": 0,
+	"easter_egg_completed": false,
+	"quest_step": 0,
 }
 
 
@@ -77,12 +89,17 @@ func reset_match() -> void:
 	current_round = 1
 	power_on = false
 	perks.clear()
+	max_perks = 4
 	quick_revive_uses_left = 3
+	quest_step = 0
+	quest_description = ""
+	quest_completed = false
 	unlocked_zones = {
 		"spawn": true,
 		"west_lab": false,
 		"east_courtyard": false,
 		"reactor": false,
+		"north_yard": false,
 	}
 	active_powerups = {
 		"insta_kill": 0.0,
@@ -99,10 +116,13 @@ func reset_match() -> void:
 		"total_points": 500,
 		"pap_upgrades": 0,
 		"barriers_repaired": 0,
+		"easter_egg_completed": false,
+		"quest_step": 0,
 	}
 	emit_signal("points_changed", points, 0, "")
 	emit_signal("perks_changed", perks)
 	emit_signal("powerup_updated", active_powerups.duplicate())
+	emit_signal("quest_updated", quest_step, quest_description, quest_completed)
 
 
 func add_points(amount: int, reason: String = "") -> void:
@@ -139,8 +159,35 @@ func has_perk(perk_id: String) -> bool:
 	return perk_id in perks
 
 
-func grant_perk(perk_id: String) -> bool:
+func can_buy_perk(perk_id: String) -> bool:
+	return not has_perk(perk_id) and perks.size() < max_perks
+
+
+func get_unowned_perks() -> Array[String]:
+	var out: Array[String] = []
+	for pid in PERK_INFO.keys():
+		if not has_perk(str(pid)):
+			out.append(str(pid))
+	return out
+
+
+func unlock_all_perk_slots() -> void:
+	max_perks = PERK_INFO.size()
+
+
+func set_quest_state(step: int, desc: String, completed: bool) -> void:
+	quest_step = step
+	quest_description = desc
+	quest_completed = completed
+	stats["quest_step"] = step
+	stats["easter_egg_completed"] = completed
+	emit_signal("quest_updated", step, desc, completed)
+
+
+func grant_perk(perk_id: String, respect_limit: bool = false) -> bool:
 	if has_perk(perk_id):
+		return false
+	if respect_limit and perks.size() >= max_perks:
 		return false
 	perks.append(perk_id)
 	AudioManager.play_2d("perk_drink", 0.02, 0.0)

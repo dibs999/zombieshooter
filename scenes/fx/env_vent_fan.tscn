@@ -1,0 +1,70 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/light_shaft.gdshader" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="1"]
+albedo_color = Color(0.18, 0.20, 0.22, 1)
+metallic = 0.78
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="2"]
+albedo_color = Color(0.03, 0.035, 0.04, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_color = Color(0.28, 0.30, 0.32, 1)
+metallic = 0.84
+roughness = 0.38
+
+[sub_resource type="BoxMesh" id="4"]
+material = SubResource("1")
+size = Vector3(1.5, 1.5, 0.28)
+
+[sub_resource type="CylinderMesh" id="5"]
+material = SubResource("2")
+top_radius = 0.62
+bottom_radius = 0.62
+height = 0.30
+
+[sub_resource type="BoxMesh" id="6"]
+material = SubResource("3")
+size = Vector3(1.12, 0.16, 0.04)
+
+[sub_resource type="ShaderMaterial" id="7"]
+shader = ExtResource("1")
+shader_parameter/shaft_color = Color(0.55, 0.74, 0.95, 0.075)
+
+[sub_resource type="CylinderMesh" id="8"]
+material = SubResource("7")
+top_radius = 0.56
+bottom_radius = 1.45
+height = 4.2
+
+[node name="EnvVentFan" type="Node3D"]
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+mesh = SubResource("4")
+
+[node name="Backing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.02)
+mesh = SubResource("5")
+
+[node name="FanBlades" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.16)
+
+[node name="BladeA" type="MeshInstance3D" parent="FanBlades"]
+transform = Transform3D(1, 0, 0, 0, 0.92388, 0.382683, 0, -0.382683, 0.92388, 0, 0, 0)
+mesh = SubResource("6")
+
+[node name="BladeB" type="MeshInstance3D" parent="FanBlades"]
+transform = Transform3D(0, -1, 0, 0.92388, 0, 0.382683, -0.382683, 0, 0.92388, 0, 0, 0)
+mesh = SubResource("6")
+
+[node name="BladeC" type="MeshInstance3D" parent="FanBlades"]
+transform = Transform3D(0.707107, -0.707107, 0, 0.653281, 0.653281, 0.382683, -0.270598, -0.270598, 0.92388, 0, 0, 0)
+mesh = SubResource("6")
+
+[node name="AirBeam" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 2.2)
+cast_shadow = 0
+mesh = SubResource("8")

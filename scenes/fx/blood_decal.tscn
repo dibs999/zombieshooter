@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/blood_decal.gd" id="1"]
+
+[sub_resource type="PlaneMesh" id="1"]
+size = Vector2(1.35, 1.35)
+
+[node name="BloodDecal" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Quad" type="MeshInstance3D" parent="."]
+mesh = SubResource("1")
+cast_shadow = 0
