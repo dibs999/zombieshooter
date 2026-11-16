@@ -21,11 +21,39 @@ var _brute_spawned_this_round: bool = false
 var _panzer_spawned_this_round: bool = false
 var _is_dog_round: bool = false
 var _is_panzer_round: bool = false
+var _cached_windows: Array[Node] = []
+var _cached_dog_spawns: Array[Node3D] = []
+var _windows_cache_dirty: bool = true
+var _dog_spawns_cache_dirty: bool = true
+var _windows_zones_snapshot: Dictionary = {}
+var _dog_spawns_zones_snapshot: Dictionary = {}
 
 
 func _ready() -> void:
 	GameManager.nuke_triggered.connect(_on_nuke)
+	if not GameManager.zone_unlocked.is_connected(_on_zone_unlocked):
+		GameManager.zone_unlocked.connect(_on_zone_unlocked)
+	if not GameManager.power_activated.is_connected(invalidate_spawn_caches):
+		GameManager.power_activated.connect(invalidate_spawn_caches)
+	invalidate_spawn_caches()
 	start_round(1)
+
+
+func _exit_tree() -> void:
+	invalidate_spawn_caches()
+
+
+func invalidate_spawn_caches() -> void:
+	_windows_cache_dirty = true
+	_dog_spawns_cache_dirty = true
+	_cached_windows.clear()
+	_cached_dog_spawns.clear()
+	_windows_zones_snapshot.clear()
+	_dog_spawns_zones_snapshot.clear()
+
+
+func _on_zone_unlocked(_zone_id: String) -> void:
+	invalidate_spawn_caches()
 
 
 func is_panzer_round(r: int) -> bool:
@@ -162,20 +190,44 @@ func _spawn_next_enemy() -> void:
 
 
 func _get_unlocked_windows() -> Array[Node]:
+	var zones := GameManager.unlocked_zones
+	if not _windows_cache_dirty and _windows_zones_snapshot == zones and not _cached_windows.is_empty():
+		var all_valid := true
+		for w in _cached_windows:
+			if not is_instance_valid(w) or not w.is_inside_tree():
+				all_valid = false
+				break
+		if all_valid:
+			return _cached_windows
 	var out: Array[Node] = []
 	for w in get_tree().get_nodes_in_group("window_barricades"):
-		if GameManager.unlocked_zones.get(str(w.get("zone_id")), true):
+		if zones.get(str(w.get("zone_id")), true):
 			out.append(w)
-	return out
+	_cached_windows = out
+	_windows_zones_snapshot = zones.duplicate()
+	_windows_cache_dirty = false
+	return _cached_windows
 
 
 func _get_unlocked_dog_spawns() -> Array[Node3D]:
+	var zones := GameManager.unlocked_zones
+	if not _dog_spawns_cache_dirty and _dog_spawns_zones_snapshot == zones and not _cached_dog_spawns.is_empty():
+		var all_valid := true
+		for s in _cached_dog_spawns:
+			if not is_instance_valid(s) or not s.is_inside_tree():
+				all_valid = false
+				break
+		if all_valid:
+			return _cached_dog_spawns
 	var out: Array[Node3D] = []
 	for s in get_tree().get_nodes_in_group("dog_spawns"):
 		var zid := str(s.get_meta("zone_id", "spawn"))
-		if GameManager.unlocked_zones.get(zid, true):
+		if zones.get(zid, true):
 			out.append(s as Node3D)
-	return out
+	_cached_dog_spawns = out
+	_dog_spawns_zones_snapshot = zones.duplicate()
+	_dog_spawns_cache_dirty = false
+	return _cached_dog_spawns
 
 
 func _on_enemy_died(enemy: Node, _hs: bool, pos: Vector3, force_drop: bool) -> void:

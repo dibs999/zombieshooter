@@ -42,7 +42,7 @@ material = SubResource("4")
 size = Vector2(0.055, 0.055)
 
 [node name="EnvEmbers" type="GPUParticles3D"]
-amount = 46
+amount = 26
 lifetime = 2.4
 preprocess = 2.0
 visibility_aabb = AABB(-2, -0.5, -2, 4, 5, 4)

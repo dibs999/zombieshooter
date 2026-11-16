@@ -16,6 +16,7 @@ var _attack_cd: float = 0.0
 var _repath_cd: float = 0.0
 var _anim_player: AnimationPlayer = null
 var _current_anim: String = ""
+var _player: Node3D = null
 
 var _blood_decal_scene: PackedScene = preload("res://scenes/fx/blood_decal.tscn")
 var _impact_sparks_scene: PackedScene = preload("res://scenes/fx/impact_sparks.tscn")
@@ -42,6 +43,13 @@ func _ready() -> void:
 	_play_anim("Run")
 
 
+func _get_player() -> Node3D:
+	if _player != null and is_instance_valid(_player) and _player.is_inside_tree():
+		return _player
+	_player = get_tree().get_first_node_in_group("player") as Node3D
+	return _player
+
+
 func _fx_parent() -> Node:
 	var p := get_parent()
 	if p != null and p != get_tree().root:
@@ -54,6 +62,9 @@ func _trigger_spawn_lightning() -> void:
 	flash.light_color = Color(0.55, 0.80, 1.0)
 	flash.light_energy = 7.5
 	flash.omni_range = 11.0
+	flash.distance_fade_enabled = true
+	flash.distance_fade_begin = 20.0
+	flash.distance_fade_length = 8.0
 	add_child(flash)
 	flash.position = Vector3(0, 1.6, 0)
 	var tw := flash.create_tween()
@@ -92,7 +103,7 @@ func _physics_process(delta: float) -> void:
 	if ember_light != null:
 		ember_light.light_energy = 2.1 + sin(Time.get_ticks_msec() * 0.015) * 0.45
 
-	var player := get_tree().get_first_node_in_group("player") as Node3D
+	var player := _get_player()
 	if player == null:
 		return
 

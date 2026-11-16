@@ -258,6 +258,29 @@ def _build_soldier(m):
     CC.bind_accessory_to_bones(gear, rig, lambda x, y, z: {"pelvis": 0.65, "spine_01": 0.35}, scale=scale, keep_existing_uv=True)
     skinned.append(gear)
 
+    CC.cull_body_faces(
+        body,
+        scale,
+        lambda x, y, z, w: (
+            (
+                (w.get("calf_l", 0) + w.get("calf_r", 0) + w.get("foot_l", 0) + w.get("foot_r", 0) + w.get("ball_l", 0) + w.get("ball_r", 0)) > 0.50
+                and z < 0.24
+            )
+            or (
+                (w.get("thigh_l", 0) + w.get("thigh_r", 0) + w.get("calf_l", 0) + w.get("calf_r", 0)) > 0.55
+                and (0.24 <= z <= 0.92)
+                and not (y > 0.00 and x > 0.01 and 0.42 <= z <= 0.68)
+                and not (w.get("pelvis", 0) >= 0.35 and 0.80 <= z <= 0.90)
+            )
+            or (
+                sum(w.get(b, 0) for b in (CC.ARM_L_BONES | CC.ARM_R_BONES)) < 0.15
+                and sum(w.get(b, 0) for b in CC.HEAD_BONES) < 0.12
+                and (0.90 <= z <= 1.37)
+                and not (y > 0.00 and -0.18 <= x <= 0.07 and 1.13 <= z <= 1.43)
+            )
+        ),
+    )
+
     parts = CC.split_dismemberment_parts(rig, skinned, m["gore_flesh"], m["bone"], scale=scale, z_neck_cut=1.45)
     CC.add_zombie_nla_animations(rig, scale=scale)
     tris = sum(len(p.vertices) - 2 for obj in parts.values() if obj for p in obj.data.polygons)
@@ -354,6 +377,27 @@ def _build_scientist(m):
     ], "SciHeadgear", apply_uv=False)
     CC.bind_accessory_to_bones(head_acc, rig, "Head", scale=scale, keep_existing_uv=True)
     skinned.append(head_acc)
+
+    CC.cull_body_faces(
+        body,
+        scale,
+        lambda x, y, z, w: (
+            (
+                (w.get("calf_l", 0) + w.get("calf_r", 0) + w.get("foot_l", 0) + w.get("foot_r", 0) + w.get("ball_l", 0) + w.get("ball_r", 0)) > 0.50
+                and z < 0.24
+            )
+            or (
+                (w.get("thigh_l", 0) + w.get("thigh_r", 0) + w.get("calf_l", 0) + w.get("calf_r", 0)) > 0.55
+                and (0.24 <= z <= 0.92)
+                and not (w.get("pelvis", 0) >= 0.35 and 0.80 <= z <= 0.90)
+            )
+            or (
+                sum(w.get(b, 0) for b in (CC.ARM_L_BONES | CC.ARM_R_BONES)) < 0.15
+                and sum(w.get(b, 0) for b in CC.HEAD_BONES) < 0.12
+                and (0.90 <= z <= 1.36)
+            )
+        ),
+    )
 
     parts = CC.split_dismemberment_parts(rig, skinned, m["gore_flesh"], m["bone"], scale=scale, z_neck_cut=1.45)
     CC.add_zombie_nla_animations(rig, scale=scale)
@@ -479,6 +523,23 @@ def _build_brute(m):
     CC.bind_accessory_to_bones(brute_head, rig, "Head", scale=scale, keep_existing_uv=True)
     skinned.append(brute_head)
 
+    CC.cull_body_faces(
+        body,
+        scale,
+        lambda x, y, z, w: (
+            (
+                (w.get("calf_l", 0) + w.get("calf_r", 0) + w.get("foot_l", 0) + w.get("foot_r", 0) + w.get("ball_l", 0) + w.get("ball_r", 0)) > 0.50
+                and z < 0.24
+            )
+            or (
+                sum(w.get(b, 0) for b in (CC.ARM_L_BONES | CC.ARM_R_BONES) if "upperarm" not in b and "clavicle" not in b) < 0.15
+                and sum(w.get(b, 0) for b in CC.HEAD_BONES) < 0.12
+                and (0.24 <= z <= 1.38)
+                and not (w.get("pelvis", 0) >= 0.35 and 0.80 <= z <= 0.90)
+            )
+        ),
+    )
+
     parts = CC.split_dismemberment_parts(rig, skinned, m["gore_flesh"], m["bone"], scale=scale, z_neck_cut=1.45)
     CC.add_zombie_nla_animations(rig, scale=scale)
     tris = sum(len(p.vertices) - 2 for obj in parts.values() if obj for p in obj.data.polygons)
@@ -490,7 +551,7 @@ def _build_worker_or_crawler(m, variant="worker", skip_legs=False):
     scale = 1.02 if not skip_legs else 1.0
     rig, body, eyes = CC.create_mpfb_zombie_base(
         variant, scale=scale, age=0.65, muscle=0.62, weight=0.30, height=0.52,
-        skin_mat=m["skin_worker"], eye_mat=m["eye_amber"], boot_sole=0.022, decimate_ratio=0.30 if not skip_legs else 0.40,
+        skin_mat=m["skin_worker"], eye_mat=m["eye_amber"], boot_sole=0.022, decimate_ratio=0.30 if not skip_legs else 0.34,
     )
     skinned = [body, eyes]
 
@@ -553,6 +614,35 @@ def _build_worker_or_crawler(m, variant="worker", skip_legs=False):
         )
         if cr_hair:
             skinned.append(cr_hair)
+
+    CC.cull_body_faces(
+        body,
+        scale,
+        (
+            (lambda x, y, z, w: (
+                sum(w.get(b, 0) for b in (CC.ARM_L_BONES | CC.ARM_R_BONES)) < 0.15
+                and sum(w.get(b, 0) for b in CC.HEAD_BONES) < 0.12
+                and (0.91 <= z <= 1.12)
+            ))
+            if skip_legs
+            else (lambda x, y, z, w: (
+                (
+                    (w.get("calf_l", 0) + w.get("calf_r", 0) + w.get("foot_l", 0) + w.get("foot_r", 0) + w.get("ball_l", 0) + w.get("ball_r", 0)) > 0.50
+                    and z < 0.24
+                )
+                or (
+                    (w.get("thigh_l", 0) + w.get("thigh_r", 0) + w.get("calf_l", 0) + w.get("calf_r", 0)) > 0.55
+                    and (0.24 <= z <= 0.92)
+                    and not (w.get("pelvis", 0) >= 0.35 and 0.80 <= z <= 0.90)
+                )
+                or (
+                    sum(w.get(b, 0) for b in (CC.ARM_L_BONES | CC.ARM_R_BONES)) < 0.15
+                    and sum(w.get(b, 0) for b in CC.HEAD_BONES) < 0.12
+                    and (0.90 <= z <= 1.12)
+                )
+            ))
+        ),
+    )
 
     parts = CC.split_dismemberment_parts(rig, skinned, m["gore_flesh"], m["bone"], scale=scale, z_neck_cut=1.45, skip_legs=skip_legs)
     CC.add_zombie_nla_animations(rig, scale=scale, is_crawler=skip_legs)

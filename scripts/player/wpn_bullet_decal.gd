@@ -1,14 +1,37 @@
 extends Decal
+class_name WpnBulletDecal
 
 static var _active_decals: Array[Decal] = []
-const MAX_DECALS := 36
+const MAX_DECALS := 24
 
-const TEX_CONCRETE := preload("res://assets/textures/weapons/bullet_hole_concrete.png")
-const TEX_METAL := preload("res://assets/textures/weapons/bullet_hole_metal.png")
+static var _tex_concrete: Texture2D = null
+static var _tex_metal: Texture2D = null
+
+
+static func _get_decal_texture(is_metal: bool) -> Texture2D:
+	if is_metal:
+		if _tex_metal == null:
+			_tex_metal = load("res://assets/textures/weapons/bullet_hole_metal.png") as Texture2D
+		return _tex_metal
+	if _tex_concrete == null:
+		_tex_concrete = load("res://assets/textures/weapons/bullet_hole_concrete.png") as Texture2D
+	return _tex_concrete
+
+
+static func clear_shared_caches() -> void:
+	for d in _active_decals:
+		if is_instance_valid(d) and not d.is_inside_tree() and not d.is_queued_for_deletion():
+			d.free()
+	_active_decals.clear()
+	_tex_concrete = null
+	_tex_metal = null
 
 
 func setup(hit_pos: Vector3, hit_normal: Vector3, is_metal: bool = false) -> void:
-	texture_albedo = TEX_METAL if is_metal else TEX_CONCRETE
+	texture_albedo = _get_decal_texture(is_metal)
+	distance_fade_enabled = true
+	distance_fade_begin = 18.0
+	distance_fade_length = 6.0
 	var s := randf_range(0.085, 0.125)
 	size = Vector3(s, 0.10, s)
 	global_position = hit_pos + hit_normal * 0.012
@@ -37,6 +60,10 @@ func setup(hit_pos: Vector3, hit_normal: Vector3, is_metal: bool = false) -> voi
 	tw.tween_interval(8.5)
 	tw.tween_property(self, "modulate:a", 0.0, 1.5)
 	tw.tween_callback(_cleanup)
+
+
+func _exit_tree() -> void:
+	_active_decals.erase(self)
 
 
 func _cleanup() -> void:

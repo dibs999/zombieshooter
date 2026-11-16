@@ -6,6 +6,9 @@ const COOLDOWN := 45.0
 const EXIT_POSITION := Vector3(0.0, 0.1, 6.0)
 
 var cooldown_remaining: float = 0.0
+var _last_power: int = -1
+var _last_ready: int = -1
+var _last_secs: int = -2
 @onready var status_light: OmniLight3D = $StatusLight
 @onready var display: Label3D = $Display
 
@@ -16,16 +19,29 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
-	_refresh_status()
+	if cooldown_remaining > 0.0:
+		cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
+	var cur_power := 1 if GameManager.power_on else 0
+	var cur_ready := 1 if (GameManager.power_on and cooldown_remaining <= 0.0) else 0
+	var cur_secs := ceili(cooldown_remaining) if (GameManager.power_on and cooldown_remaining > 0.0) else -1
+	if cur_power != _last_power or cur_ready != _last_ready or cur_secs != _last_secs:
+		_refresh_status()
 
 
 func _refresh_status() -> void:
+	var cur_power := 1 if GameManager.power_on else 0
 	var ready := GameManager.power_on and cooldown_remaining <= 0.0
+	var cur_ready := 1 if ready else 0
+	var cur_secs := ceili(cooldown_remaining) if (GameManager.power_on and cooldown_remaining > 0.0) else -1
+	_last_power = cur_power
+	_last_ready = cur_ready
+	_last_secs = cur_secs
 	status_light.light_color = Color(0.15, 0.95, 0.75) if ready else Color(1.0, 0.22, 0.06)
 	status_light.light_energy = 1.8 if ready else 0.35
-	display.text = "RETURN TO COURTYARD\n500 POINTS" if ready else (
-		"RECHARGING %ds" % ceili(cooldown_remaining) if GameManager.power_on else "AUXILIARY LINK\nNO POWER")
+	var txt := "RETURN TO COURTYARD\n500 POINTS" if ready else (
+		"RECHARGING %ds" % cur_secs if GameManager.power_on else "AUXILIARY LINK\nNO POWER")
+	if display.text != txt:
+		display.text = txt
 	display.modulate = status_light.light_color
 
 

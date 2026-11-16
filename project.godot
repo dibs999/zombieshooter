@@ -132,10 +132,12 @@ pause={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+textures/vram_compression/import_s3tc_bptc=true
 textures/vram_compression/import_etc2_astc=true
-anti_aliasing/quality/msaa_3d=2
-lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
-lights_and_shadows/positional_shadow/soft_shadow_filter_quality=3
+occlusion_culling/use_occlusion_culling=true
+anti_aliasing/quality/msaa_3d=1
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=1
 environment/glow/upscale_mode=1
-environment/volumetric_fog/volume_size=64
-environment/volumetric_fog/volume_depth=64
+environment/volumetric_fog/volume_size=32
+environment/volumetric_fog/volume_depth=32

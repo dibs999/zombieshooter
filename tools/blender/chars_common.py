@@ -34,6 +34,23 @@ ARM_L_BONES = {
 ARM_R_BONES = {b[:-2] + "_r" for b in ARM_L_BONES}
 LEG_BONES = {"thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r"}
 HEAD_BONES = {"Head", "head", "neck_01"}
+FINGER_BONE_PREFIXES = ("index", "middle", "ring", "pinky", "thumb")
+FINGER_BONES = {
+    f"{p}_0{i}_{sfx}"
+    for p in FINGER_BONE_PREFIXES
+    for i in (1, 2, 3)
+    for sfx in ("l", "r")
+}
+CLAW_HAND_POSES = {
+    "index_01_l": (28, 0, 0), "index_02_l": (35, 0, 0),
+    "middle_01_l": (32, 0, 0), "middle_02_l": (38, 0, 0),
+    "ring_01_l": (36, 0, 0), "ring_02_l": (42, 0, 0),
+    "pinky_01_l": (40, 0, 0), "pinky_02_l": (45, 0, 0),
+    "index_01_r": (28, 0, 0), "index_02_r": (35, 0, 0),
+    "middle_01_r": (32, 0, 0), "middle_02_r": (38, 0, 0),
+    "ring_01_r": (36, 0, 0), "ring_02_r": (42, 0, 0),
+    "pinky_01_r": (40, 0, 0), "pinky_02_r": (45, 0, 0),
+}
 
 
 def _ensure_mpfb():
@@ -278,6 +295,91 @@ def _apply_xform(objs):
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 
+def _merge_finger_weights_and_strip_bones(bm_obj, rig_obj, bake_claw=True):
+    """Optionally bake CLAW_HAND_POSES into rest mesh, merge all finger weights into hand_l/hand_r, and strip 30 finger bones (53 -> 23)."""
+    if bake_claw:
+        arm_bake = bm_obj.modifiers.new("ArmatureBake", "ARMATURE")
+        arm_bake.object = rig_obj
+
+        bpy.ops.object.select_all(action="DESELECT")
+        rig_obj.select_set(True)
+        bpy.context.view_layer.objects.active = rig_obj
+        bpy.ops.object.mode_set(mode="POSE")
+        for pb in rig_obj.pose.bones:
+            pb.rotation_mode = "XYZ"
+            pb.rotation_euler = (0.0, 0.0, 0.0)
+            pb.location = (0.0, 0.0, 0.0)
+        for bn, degs in CLAW_HAND_POSES.items():
+            _pose_bone_world_rot(rig_obj, bn, degs)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.context.view_layer.update()
+
+        bpy.ops.object.select_all(action="DESELECT")
+        bm_obj.select_set(True)
+        bpy.context.view_layer.objects.active = bm_obj
+        bpy.ops.object.modifier_apply(modifier=arm_bake.name)
+
+        bpy.ops.object.select_all(action="DESELECT")
+        rig_obj.select_set(True)
+        bpy.context.view_layer.objects.active = rig_obj
+        bpy.ops.object.mode_set(mode="POSE")
+        for pb in rig_obj.pose.bones:
+            pb.rotation_euler = (0.0, 0.0, 0.0)
+            pb.location = (0.0, 0.0, 0.0)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.context.view_layer.update()
+
+    if "hand_l" not in bm_obj.vertex_groups:
+        bm_obj.vertex_groups.new(name="hand_l")
+    if "hand_r" not in bm_obj.vertex_groups:
+        bm_obj.vertex_groups.new(name="hand_r")
+
+    hand_l_idx = bm_obj.vertex_groups["hand_l"].index
+    hand_r_idx = bm_obj.vertex_groups["hand_r"].index
+    finger_l_idxs = {bm_obj.vertex_groups[bn].index for bn in FINGER_BONES if bn.endswith("_l") and bn in bm_obj.vertex_groups}
+    finger_r_idxs = {bm_obj.vertex_groups[bn].index for bn in FINGER_BONES if bn.endswith("_r") and bn in bm_obj.vertex_groups}
+
+    if finger_l_idxs or finger_r_idxs:
+        bm = bmesh.new()
+        bm.from_mesh(bm_obj.data)
+        d_lay = bm.verts.layers.deform.active
+        if d_lay is not None:
+            for v in bm.verts:
+                deform = v[d_lay]
+                add_l = 0.0
+                for idx in finger_l_idxs:
+                    if idx in deform:
+                        add_l += deform[idx]
+                        del deform[idx]
+                if add_l > 0.0:
+                    deform[hand_l_idx] = deform.get(hand_l_idx, 0.0) + add_l
+
+                add_r = 0.0
+                for idx in finger_r_idxs:
+                    if idx in deform:
+                        add_r += deform[idx]
+                        del deform[idx]
+                if add_r > 0.0:
+                    deform[hand_r_idx] = deform.get(hand_r_idx, 0.0) + add_r
+        bm.to_mesh(bm_obj.data)
+        bm.free()
+        bm_obj.data.update()
+
+    for bn in FINGER_BONES:
+        if bn in bm_obj.vertex_groups:
+            bm_obj.vertex_groups.remove(bm_obj.vertex_groups[bn])
+
+    bpy.ops.object.select_all(action="DESELECT")
+    rig_obj.select_set(True)
+    bpy.context.view_layer.objects.active = rig_obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    for bn in list(FINGER_BONES):
+        eb = rig_obj.data.edit_bones.get(bn)
+        if eb is not None:
+            rig_obj.data.edit_bones.remove(eb)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
 def create_mpfb_zombie_base(
     variant,
     scale=1.0,
@@ -290,6 +392,7 @@ def create_mpfb_zombie_base(
     boot_sole=0.022,
     decimate_ratio=0.50,
     target_overrides=None,
+    bake_claw=True,
 ):
     HumanService, TargetService = _ensure_mpfb()
     macro = TargetService.get_default_macro_info_dict()
@@ -372,7 +475,7 @@ def create_mpfb_zombie_base(
     rig.name = f"Zombie_{variant}_Armature"
     rig.data.name = f"Zombie_{variant}_ArmData"
 
-    # Step 4: Decimate body (after helpers removed and before re-attaching Armature)
+    # Step 4: Decimate body (after helpers removed and before baking claw/stripping finger bones)
     if decimate_ratio < 0.99:
         bpy.ops.object.select_all(action="DESELECT")
         bm_obj.select_set(True)
@@ -382,6 +485,8 @@ def create_mpfb_zombie_base(
         dec.ratio = decimate_ratio
         dec.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier=dec.name)
+
+    _merge_finger_weights_and_strip_bones(bm_obj, rig, bake_claw=bake_claw)
 
     if skin_mat:
         C.assign_mat(bm_obj, skin_mat)
@@ -511,6 +616,40 @@ def make_tailored_garment(
     mod.object = rig_obj
     obj.parent = rig_obj
     return obj
+
+
+def cull_body_faces(body_obj, scale, cull_fn):
+    """Remove strictly occluded inner human body triangles using face center + bone weights."""
+    vg_by_idx = {vg.index: vg.name for vg in body_obj.vertex_groups}
+    inv_s = 1.0 / max(1e-5, scale)
+
+    bm = bmesh.new()
+    bm.from_mesh(body_obj.data)
+    d_lay = bm.verts.layers.deform.active
+
+    del_faces = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        cx, cy, cz = c.x * inv_s, c.y * inv_s, c.z * inv_s
+        weights = {}
+        if d_lay is not None:
+            inv_n = 1.0 / max(1, len(f.verts))
+            for v in f.verts:
+                for gi, gw in v[d_lay].items():
+                    gn = vg_by_idx.get(gi, "")
+                    if gn:
+                        weights[gn] = weights.get(gn, 0.0) + gw * inv_n
+        if cull_fn(cx, cy, cz, weights):
+            del_faces.append(f)
+
+    if del_faces and len(del_faces) < len(bm.faces):
+        bmesh.ops.delete(bm, geom=del_faces, context="FACES")
+        lv = [v for v in bm.verts if not v.link_faces]
+        if lv:
+            bmesh.ops.delete(bm, geom=lv, context="VERTS")
+        bm.to_mesh(body_obj.data)
+        body_obj.data.update()
+    bm.free()
 
 
 def bind_accessory_to_bones(obj, rig_obj, weight_spec, scale=1.0, keep_existing_uv=False):
@@ -725,19 +864,7 @@ def add_zombie_nla_animations(rig_obj, scale=1.0, is_crawler=False):
     for pb in rig_obj.pose.bones:
         pb.rotation_mode = "XYZ"
 
-    # Helper to blend a slightly curled zombie claw hand pose on all animations
-    CLAW_HAND = {
-        "index_01_l": (28, 0, 0), "index_02_l": (35, 0, 0),
-        "middle_01_l": (32, 0, 0), "middle_02_l": (38, 0, 0),
-        "ring_01_l": (36, 0, 0), "ring_02_l": (42, 0, 0),
-        "pinky_01_l": (40, 0, 0), "pinky_02_l": (45, 0, 0),
-        "index_01_r": (28, 0, 0), "index_02_r": (35, 0, 0),
-        "middle_01_r": (32, 0, 0), "middle_02_r": (38, 0, 0),
-        "ring_01_r": (36, 0, 0), "ring_02_r": (42, 0, 0),
-        "pinky_01_r": (40, 0, 0), "pinky_02_r": (45, 0, 0),
-    }
-
-    def make_action(name, frame_poses, with_claw=True):
+    def make_action(name, frame_poses):
         act = bpy.data.actions.new(name=name)
         act.use_fake_user = True
         rig_obj.animation_data.action = act
@@ -745,9 +872,6 @@ def add_zombie_nla_animations(rig_obj, scale=1.0, is_crawler=False):
             for pb in rig_obj.pose.bones:
                 pb.rotation_euler = (0.0, 0.0, 0.0)
                 pb.location = (0.0, 0.0, 0.0)
-            if with_claw:
-                for bn, degs in CLAW_HAND.items():
-                    _pose_bone_world_rot(rig_obj, bn, degs)
             for bname, vals in poses.items():
                 if "rot" in vals:
                     _pose_bone_world_rot(rig_obj, bname, vals["rot"])

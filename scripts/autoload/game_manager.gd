@@ -287,3 +287,11 @@ func get_zombie_count_for_round(r: int) -> int:
 			return 18
 		_:
 			return mini(120, int(roundf(24.0 + 0.15 * float(r * r))))
+
+
+func _exit_tree() -> void:
+	WeaponController.clear_shared_caches()
+	WpnShellCasing.clear_shared_caches()
+	WpnBulletDecal.clear_shared_caches()
+	GibChunk.clear_shared_caches()
+	BloodDecal.clear_shared_caches()

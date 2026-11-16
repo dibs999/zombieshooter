@@ -374,7 +374,7 @@ def add_hollow_barrel(name, r_outer=0.012, r_inner=0.0085, length=0.35, loc=(0, 
     return obj
 
 
-def add_coil_spring(name, major_r=0.04, wire_r=0.007, length=0.18, turns=5.5, steps_per_turn=14, loc=(0, 0, 0), rot=(0, 0, 0), mat=None):
+def add_coil_spring(name, major_r=0.04, wire_r=0.007, length=0.18, turns=5.5, steps_per_turn=14, loc=(0, 0, 0), rot=(0, 0, 0), mat=None, wire_segments=8):
     """Create a 3D helical heating/tesla coil oriented along local +Y."""
     pts = []
     total = int(turns * steps_per_turn) + 1
@@ -382,7 +382,7 @@ def add_coil_spring(name, major_r=0.04, wire_r=0.007, length=0.18, turns=5.5, st
         t = i / max(1, total - 1)
         ang = t * turns * 2.0 * math.pi
         pts.append((math.cos(ang) * major_r, -length * 0.5 + t * length, math.sin(ang) * major_r))
-    obj = add_tube_pipe(name, pts, radius=wire_r, segments=8, mat=mat, cap=True)
+    obj = add_tube_pipe(name, pts, radius=wire_r, segments=wire_segments, mat=mat, cap=True)
     if obj:
         obj.location = loc
         obj.rotation_euler = rot
@@ -446,7 +446,7 @@ def add_gear(name, teeth=16, r_outer=0.14, r_root=0.116, r_bore=0.028, thickness
     return joined
 
 
-def add_chain(name, points, link_len=0.068, link_w=0.036, wire_r=0.007, mat=None):
+def add_chain(name, points, link_len=0.068, link_w=0.036, wire_r=0.007, mat=None, major_segments=14, minor_segments=7):
     """Build interlocking 3D metal chain links along a polyline."""
     if len(points) < 2:
         return None
@@ -466,7 +466,7 @@ def add_chain(name, points, link_len=0.068, link_w=0.036, wire_r=0.007, mat=None
         for k in range(count):
             t = (k + 0.5) / count
             pos = p0.lerp(p1, t)
-            lk = add_torus(f"{name}_L{idx}", link_w * 0.5, wire_r, major_segments=14, minor_segments=7, mat=mat)
+            lk = add_torus(f"{name}_L{idx}", link_w * 0.5, wire_r, major_segments=major_segments, minor_segments=minor_segments, mat=mat)
             lk.scale = (0.72, 1.38, 1.0)
             bpy.context.view_layer.objects.active = lk
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -480,14 +480,13 @@ def add_chain(name, points, link_len=0.068, link_w=0.036, wire_r=0.007, mat=None
     return join_objects(links, name, apply_uv=False) if links else None
 
 
-def add_vented_shroud(name, r_outer=0.020, thickness=0.0035, length=0.22, bands=7, struts=6, loc=(0, 0, 0), rot=(0, 0, 0), mat=None):
+def add_vented_shroud(name, r_outer=0.020, thickness=0.0035, length=0.22, bands=7, struts=6, loc=(0, 0, 0), rot=(0, 0, 0), mat=None, segs=20):
     """Build a genuine see-through perforated heatshield along local +Y using axial ribs and band rings."""
     parts = []
     ring_w = (length / bands) * 0.42
     for i in range(bands):
         y = -length * 0.5 + (i + 0.5) * (length / bands)
         bm = bmesh.new()
-        segs = 20
         r_in = r_outer - thickness
         vo_f, vo_b, vi_f, vi_b = [], [], [], []
         for s in range(segs):

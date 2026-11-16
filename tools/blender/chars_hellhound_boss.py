@@ -87,11 +87,17 @@ def build_hellhound(m):
     xf = Matrix.Scale(hound_scale, 4) @ Matrix.Translation((0.0, 0.0, -min_z))
     wolf.data.transform(xf)
 
-    # Subdivide smoothly for anatomical canine muscle/rib definition while staying ~3.6k tris
+    # Subdivide smoothly then decimate into ~3.6k tris keeping canine anatomy crisp
     sub = wolf.modifiers.new("Subsurf", "SUBSURF")
     sub.levels = 1
     sub.render_levels = 1
     bpy.ops.object.modifier_apply(modifier=sub.name)
+
+    dec = wolf.modifiers.new("Decimate", "DECIMATE")
+    dec.decimate_type = "COLLAPSE"
+    dec.ratio = 0.58
+    dec.use_collapse_triangulate = True
+    bpy.ops.object.modifier_apply(modifier=dec.name)
 
     C.uv_box_project(wolf, scale=2.8)
     C.smooth_shade(wolf, 64.0)
@@ -129,7 +135,7 @@ def build_hellhound(m):
     magma_core = C.add_sphere(
         "HoundMagmaCore", 1.0, (0.132, 0.168, 0.102),
         (0.0, 0.055, 0.568), (math.radians(-6), 0, 0),
-        segments=14, rings=10, mat=m["magma"],
+        segments=12, rings=8, mat=m["magma"],
     )
     CC.bind_accessory_to_bones(magma_core, rig, {"Bone.005": 0.55, "Bone.001": 0.45}, scale=1.0, keep_existing_uv=True)
 
@@ -151,7 +157,7 @@ def build_hellhound(m):
                     (sx * (spread * 0.80), ry + 0.013, z_bot + 0.044),
                     (sx * 0.052, ry + 0.016, z_bot),
                 ],
-                radius=0.0085, segments=6,
+                radius=0.0085, segments=5,
                 radii=[0.008, 0.0095, 0.010, 0.0085, 0.006],
                 mat=m["hound_bone"],
             ))
@@ -358,12 +364,12 @@ def _import_cc0_diving_helmet(m, rig, scale):
     for v in helm.data.vertices:
         v.co = Vector(((v.co.x - cx) * helm_scale, (v.co.y - cy) * helm_scale + 0.015 * scale, (v.co.z - min_z) * helm_scale + 1.445 * scale))
 
-    # Decimate helmet cleanly to ~4.4k tris while preserving silhouette & viewport grill
+    # Decimate helmet cleanly to ~1.7k-2.0k tris while preserving silhouette & viewport grill
     bpy.ops.object.select_all(action="DESELECT")
     helm.select_set(True)
     bpy.context.view_layer.objects.active = helm
     dec = helm.modifiers.new("Decimate", "DECIMATE")
-    dec.ratio = 0.48
+    dec.ratio = 0.16
     dec.use_collapse_triangulate = True
     bpy.ops.object.modifier_apply(modifier=dec.name)
 
@@ -552,7 +558,8 @@ def build_panzer_boss(m):
 
     rig, body, eyes = CC.create_mpfb_zombie_base(
         "panzer", scale=scale, age=0.72, muscle=0.95, weight=0.55, height=0.60,
-        skin_mat=m["panzer_suit"], eye_mat=m["eye_orange"], boot_sole=0.030, decimate_ratio=0.19,
+        skin_mat=m["panzer_suit"], eye_mat=m["eye_orange"], boot_sole=0.030, decimate_ratio=0.11,
+        bake_claw=False,
     )
     rig.name = "Panzer_boss_Armature"
     rig.data.name = "Panzer_boss_ArmData"
@@ -601,7 +608,7 @@ def build_panzer_boss(m):
 
     for side, sfx, sx in (("L", "l", -1), ("R", "r", 1)):
         _, _, th_len = CC.bone_frame(rig, f"thigh_{sfx}", along_t=0.5)
-        thigh_g = C.add_cyl(f"PanzerThigh_{side}", 0.122 * scale, th_len * 0.84, (0, 0, 0), vertices=14, mat=m["panzer_trim"], bevel=0.014 * scale)
+        thigh_g = C.add_cyl(f"PanzerThigh_{side}", 0.122 * scale, th_len * 0.84, (0, 0, 0), vertices=12, mat=m["panzer_trim"], bevel=0.0)
         CC.transform_along_bone(thigh_g, rig, f"thigh_{sfx}", along_t=0.50)
         CC.bind_accessory_to_bones(thigh_g, rig, f"thigh_{sfx}", scale=scale, keep_existing_uv=True)
 
@@ -610,7 +617,7 @@ def build_panzer_boss(m):
         CC.bind_accessory_to_bones(hip_plate, rig, {"pelvis": 0.50, f"thigh_{sfx}": 0.50}, scale=scale, keep_existing_uv=True)
 
         _, _, cf_len = CC.bone_frame(rig, f"calf_{sfx}", along_t=0.5)
-        shin_g = C.add_cyl(f"PanzerShin_{side}", 0.092 * scale, cf_len * 0.72, (0, 0, 0), vertices=14, mat=m["panzer_trim"], bevel=0.010 * scale)
+        shin_g = C.add_cyl(f"PanzerShin_{side}", 0.092 * scale, cf_len * 0.72, (0, 0, 0), vertices=12, mat=m["panzer_trim"], bevel=0.0)
         CC.transform_along_bone(shin_g, rig, f"calf_{sfx}", along_t=0.40)
         CC.bind_accessory_to_bones(shin_g, rig, f"calf_{sfx}", scale=scale, keep_existing_uv=True)
 
@@ -625,28 +632,28 @@ def build_panzer_boss(m):
         C.add_box("PanzerGroinTasset", s((0.18, 0.12, 0.16)), s((0.0, 0.105, 0.92)), (math.radians(8), 0, 0), mat=m["panzer_armor"], bevel=0.018 * scale),
         C.add_box("PanzerHazardBelt", s((0.38, 0.25, 0.048)), s((0.0, 0.014, 1.045)), mat=m["hazard_metal"], bevel=0.010 * scale),
         C.add_box("PanzerChassis", s((0.36, 0.24, 0.34)), s((0.0, 0.010, 1.25)), mat=m["panzer_trim"], bevel=0.036 * scale),
-        C.add_cyl("PanzerChestCollar", 0.145 * scale, 0.068 * scale, s((0.0, 0.008, 1.43)), vertices=16, mat=m["panzer_armor"], bevel=0.014 * scale),
+        C.add_cyl("PanzerChestCollar", 0.145 * scale, 0.068 * scale, s((0.0, 0.008, 1.43)), vertices=12, mat=m["panzer_armor"], bevel=0.0),
         # Multi-layered radial furnace turbine behind ArmorPlate_Chest
-        C.add_cyl("PanzerCoreOuterFlange", 0.084 * scale, 0.036 * scale, s((0.0, 0.146, 1.27)), (math.radians(90), 0, 0), vertices=16, mat=m["panzer_armor"], bevel=0.004 * scale),
-        C.add_cyl("PanzerChestCoreRing", 0.068 * scale, 0.044 * scale, s((0.0, 0.148, 1.27)), (math.radians(90), 0, 0), vertices=16, mat=m["brass"]),
-        C.add_cyl("PanzerChestCoreGlow", 0.054 * scale, 0.038 * scale, s((0.0, 0.146, 1.27)), (math.radians(90), 0, 0), vertices=16, mat=m["magma"]),
-        C.add_cyl("PanzerCoreHub", 0.020 * scale, 0.048 * scale, s((0.0, 0.158, 1.27)), (math.radians(90), 0, 0), vertices=10, mat=m["panzer_armor"]),
+        C.add_cyl("PanzerCoreOuterFlange", 0.084 * scale, 0.036 * scale, s((0.0, 0.146, 1.27)), (math.radians(90), 0, 0), vertices=12, mat=m["panzer_armor"], bevel=0.0),
+        C.add_cyl("PanzerChestCoreRing", 0.068 * scale, 0.044 * scale, s((0.0, 0.148, 1.27)), (math.radians(90), 0, 0), vertices=12, mat=m["brass"], bevel=0.0),
+        C.add_cyl("PanzerChestCoreGlow", 0.054 * scale, 0.038 * scale, s((0.0, 0.146, 1.27)), (math.radians(90), 0, 0), vertices=12, mat=m["magma"], bevel=0.0),
+        C.add_cyl("PanzerCoreHub", 0.020 * scale, 0.048 * scale, s((0.0, 0.158, 1.27)), (math.radians(90), 0, 0), vertices=10, mat=m["panzer_armor"], bevel=0.0),
         # Twin Back Fuel/Thruster Tanks + Weathered Hazard Bands + Exhaust Nozzles
-        C.add_cyl("FuelTankL", 0.088 * scale, 0.44 * scale, s((-0.115, -0.215, 1.24)), vertices=16, mat=m["tank_metal"], bevel=0.012 * scale),
-        C.add_cyl("FuelTankR", 0.088 * scale, 0.44 * scale, s((0.115, -0.215, 1.24)), vertices=16, mat=m["tank_metal"], bevel=0.012 * scale),
-        C.add_cyl("FuelBandL", 0.092 * scale, 0.045 * scale, s((-0.115, -0.215, 1.32)), vertices=16, mat=m["hazard_metal"]),
-        C.add_cyl("FuelBandR", 0.092 * scale, 0.045 * scale, s((0.115, -0.215, 1.32)), vertices=16, mat=m["hazard_metal"]),
+        C.add_cyl("FuelTankL", 0.088 * scale, 0.44 * scale, s((-0.115, -0.215, 1.24)), vertices=12, mat=m["tank_metal"], bevel=0.0),
+        C.add_cyl("FuelTankR", 0.088 * scale, 0.44 * scale, s((0.115, -0.215, 1.24)), vertices=12, mat=m["tank_metal"], bevel=0.0),
+        C.add_cyl("FuelBandL", 0.092 * scale, 0.045 * scale, s((-0.115, -0.215, 1.32)), vertices=12, mat=m["hazard_metal"], bevel=0.0),
+        C.add_cyl("FuelBandR", 0.092 * scale, 0.045 * scale, s((0.115, -0.215, 1.32)), vertices=12, mat=m["hazard_metal"], bevel=0.0),
         C.add_cone("ThrusterBellL", 0.072 * scale, 0.042 * scale, 0.10 * scale, s((-0.115, -0.220, 0.97)), (math.radians(168), 0, 0), vertices=12, mat=m["panzer_armor"]),
         C.add_cone("ThrusterBellR", 0.072 * scale, 0.042 * scale, 0.10 * scale, s((0.115, -0.220, 0.97)), (math.radians(168), 0, 0), vertices=12, mat=m["panzer_armor"]),
         C.add_box("BackManifold", s((0.28, 0.10, 0.14)), s((0.0, -0.195, 1.26)), mat=m["panzer_armor"], bevel=0.012 * scale),
-        C.add_box("BackVentGlow", s((0.10, 0.03, 0.06)), s((0.0, -0.245, 1.26)), mat=m["magma"]),
+        C.add_box("BackVentGlow", s((0.10, 0.03, 0.06)), s((0.0, -0.245, 1.26)), mat=m["magma"], bevel=0.0),
     ]
     for vi in range(3):
         ang = math.radians(vi * 60.0 + 30.0)
-        torso_parts.append(C.add_box(f"PanzerTurbineVane_{vi}", s((0.013, 0.022, 0.112)), s((0.0, 0.162, 1.27)), (0, ang, 0), mat=m["panzer_armor"], bevel=0.002 * scale))
+        torso_parts.append(C.add_box(f"PanzerTurbineVane_{vi}", s((0.013, 0.022, 0.112)), s((0.0, 0.162, 1.27)), (0, ang, 0), mat=m["panzer_armor"], bevel=0.0))
     for rx in (-0.062, 0.062):
         for rz in (1.208, 1.332):
-            torso_parts.append(C.add_cyl(f"CoreRivet_{rx:.2f}_{rz:.2f}", 0.008 * scale, 0.018 * scale, s((rx, 0.168, rz)), (math.radians(90), 0, 0), vertices=6, mat=m["brass"]))
+            torso_parts.append(C.add_cyl(f"CoreRivet_{rx:.2f}_{rz:.2f}", 0.008 * scale, 0.018 * scale, s((rx, 0.168, rz)), (math.radians(90), 0, 0), vertices=6, mat=m["brass"], bevel=0.0))
 
     torso_acc = C.join_objects(torso_parts, "PanzerTorsoPack", apply_uv=False)
     CC.bind_accessory_to_bones(torso_acc, rig, lambda x, y, z: {"spine_03": 0.55, "spine_02": 0.45} if z > 1.12 else {"pelvis": 0.65, "spine_01": 0.35}, scale=scale, keep_existing_uv=True)
@@ -655,7 +662,7 @@ def build_panzer_boss(m):
     arm_bridge_objs = []
     for side, sfx in (("L", "l"), ("R", "r")):
         _, _, ua_len = CC.bone_frame(rig, f"upperarm_{sfx}", along_t=0.5)
-        ua_sleeve = C.add_cyl(f"PanzerUpperArm_{side}", 0.068 * scale, ua_len * 0.78, (0, 0, 0), vertices=12, mat=m["panzer_trim"], bevel=0.008 * scale)
+        ua_sleeve = C.add_cyl(f"PanzerUpperArm_{side}", 0.068 * scale, ua_len * 0.78, (0, 0, 0), vertices=12, mat=m["panzer_trim"], bevel=0.0)
         CC.transform_along_bone(ua_sleeve, rig, f"upperarm_{sfx}", along_t=0.54)
         CC.bind_accessory_to_bones(ua_sleeve, rig, f"upperarm_{sfx}", scale=scale, keep_existing_uv=True)
 
@@ -666,15 +673,15 @@ def build_panzer_boss(m):
 
     # --- Left Arm: Coaxial Bone-Aligned Hydraulic Pincer Claw ---
     _, _, la_l_len = CC.bone_frame(rig, "lowerarm_l", along_t=0.5)
-    claw_housing = C.add_cyl("ClawHousing", 0.066 * scale, la_l_len * 0.88, (0, 0, 0), vertices=12, mat=m["panzer_armor"], bevel=0.006 * scale)
+    claw_housing = C.add_cyl("ClawHousing", 0.066 * scale, la_l_len * 0.88, (0, 0, 0), vertices=12, mat=m["panzer_armor"], bevel=0.0)
     CC.transform_along_bone(claw_housing, rig, "lowerarm_l", along_t=0.52)
-    claw_band = C.add_cyl("ClawBand", 0.072 * scale, 0.036 * scale, (0, 0, 0), vertices=12, mat=m["hazard_metal"])
+    claw_band = C.add_cyl("ClawBand", 0.072 * scale, 0.036 * scale, (0, 0, 0), vertices=12, mat=m["hazard_metal"], bevel=0.0)
     CC.transform_along_bone(claw_band, rig, "lowerarm_l", along_t=0.72)
     claw_forearm = C.join_objects([claw_housing, claw_band], "PanzerClawForearm", apply_uv=False)
     CC.bind_accessory_to_bones(claw_forearm, rig, {"lowerarm_l": 0.90, "upperarm_l": 0.10}, scale=scale, keep_existing_uv=True)
 
     hand_l_parts = []
-    claw_wrist = C.add_cyl("ClawWrist", 0.056 * scale, 0.088 * scale, (0, 0, 0), vertices=12, mat=m["brass"])
+    claw_wrist = C.add_cyl("ClawWrist", 0.056 * scale, 0.088 * scale, (0, 0, 0), vertices=12, mat=m["brass"], bevel=0.0)
     CC.transform_along_bone(claw_wrist, rig, "hand_l", along_t=0.25)
     claw_hub = C.add_box("ClawHub", (0.105 * scale, 0.088 * scale, 0.074 * scale), (0, 0, 0), mat=m["panzer_trim"], bevel=0.008 * scale)
     CC.transform_along_bone(claw_hub, rig, "hand_l", along_t=1.0, local_offset=(0.0, 0.0, 0.025 * scale))
@@ -698,15 +705,15 @@ def build_panzer_boss(m):
     _, _, la_r_len = CC.bone_frame(rig, "lowerarm_r", along_t=0.5)
     flame_gauntlet = C.add_box("FlameGauntlet", (0.116 * scale, 0.120 * scale, la_r_len * 0.86), (0, 0, 0), mat=m["panzer_armor"], bevel=0.012 * scale)
     CC.transform_along_bone(flame_gauntlet, rig, "lowerarm_r", along_t=0.50)
-    flame_tank_u = C.add_cyl("FlameTankUnder", 0.045 * scale, 0.25 * scale, (0, 0, 0), vertices=12, mat=m["tank_metal"], bevel=0.006 * scale)
+    flame_tank_u = C.add_cyl("FlameTankUnder", 0.045 * scale, 0.25 * scale, (0, 0, 0), vertices=12, mat=m["tank_metal"], bevel=0.0)
     CC.transform_along_bone(flame_tank_u, rig, "lowerarm_r", along_t=0.72, local_offset=(0.0, -0.068 * scale, 0.04 * scale))
     flame_forearm = C.join_objects([flame_gauntlet, flame_tank_u], "PanzerFlameForearm", apply_uv=False)
     CC.bind_accessory_to_bones(flame_forearm, rig, {"lowerarm_r": 0.88, "hand_r": 0.12}, scale=scale, keep_existing_uv=True)
 
     # Note add_vented_shroud & add_hollow_barrel orient along local +Y -> local_rot_deg=(90, 0, 0) maps +Y onto +Z (arm axis!)
-    flame_shroud = C.add_vented_shroud("FlameShroud", r_outer=0.042 * scale, thickness=0.007 * scale, length=0.30 * scale, bands=6, struts=6, mat=m["panzer_trim"])
+    flame_shroud = C.add_vented_shroud("FlameShroud", r_outer=0.042 * scale, thickness=0.007 * scale, length=0.30 * scale, bands=6, struts=6, mat=m["panzer_trim"], segs=12)
     CC.transform_along_bone(flame_shroud, rig, "hand_r", along_t=1.0, local_offset=(0.0, 0.012 * scale, 0.12 * scale), local_rot_deg=(90, 0, 0))
-    flame_nozzle = C.add_hollow_barrel("FlameNozzle", r_outer=0.030 * scale, r_inner=0.019 * scale, length=0.36 * scale, segments=14, mat=m["brass"], bore_mat=m["magma"])
+    flame_nozzle = C.add_hollow_barrel("FlameNozzle", r_outer=0.030 * scale, r_inner=0.019 * scale, length=0.36 * scale, segments=10, mat=m["brass"], bore_mat=m["magma"])
     CC.transform_along_bone(flame_nozzle, rig, "hand_r", along_t=1.0, local_offset=(0.0, 0.012 * scale, 0.15 * scale), local_rot_deg=(90, 0, 0))
     flame_pilot = C.add_sphere("FlamePilotGlow", 0.019 * scale, (1.0, 1.0, 1.3), (0, 0, 0), segments=8, rings=6, mat=m["visor_glow"])
     CC.transform_along_bone(flame_pilot, rig, "hand_r", along_t=1.0, local_offset=(0.0, -0.022 * scale, 0.315 * scale))

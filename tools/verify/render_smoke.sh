@@ -8,9 +8,11 @@ export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$RUNTIME/config}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$RUNTIME/cache}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$RUNTIME/data}"
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
-export LD_LIBRARY_PATH="$GRAPHICS_ROOT/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+LVP_ICD=""
 if [ -f "$GRAPHICS_ROOT/usr/share/vulkan/icd.d/lvp_icd.json" ]; then
-    export VK_ICD_FILENAMES="$GRAPHICS_ROOT/usr/share/vulkan/icd.d/lvp_icd.json"
+    LVP_ICD="$GRAPHICS_ROOT/usr/share/vulkan/icd.d/lvp_icd.json"
+elif [ -f "$GRAPHICS_ROOT/usr/share/vulkan/icd.d/lvp_icd.x86_64.json" ]; then
+    LVP_ICD="$GRAPHICS_ROOT/usr/share/vulkan/icd.d/lvp_icd.x86_64.json"
 fi
 export LP_NUM_THREADS="${LP_NUM_THREADS:-4}"
 export BUNKER_SHOT_DIR="${BUNKER_SHOT_DIR:-$ROOT/build/verification-shots}"
@@ -27,13 +29,17 @@ if [ -z "${DISPLAY:-}" ]; then
     # Xvfb selects a free display; never kill or reuse another desktop.
     display_file="$(mktemp)"
     xvfb="$(command -v Xvfb || true)"
-    xvfb="${xvfb:-$GRAPHICS_ROOT/usr/bin/Xvfb}"
-    if [ ! -x "$xvfb" ]; then
+    if [ -x "$xvfb" ]; then
+        "$xvfb" -displayfd 3 -screen 0 1280x720x24 -nolisten tcp 3>"$display_file" >"$RUNTIME/xvfb.log" 2>&1 &
+        display_pid=$!
+    elif [ -x "$GRAPHICS_ROOT/usr/bin/Xvfb" ]; then
+        LD_LIBRARY_PATH="$GRAPHICS_ROOT/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+            "$GRAPHICS_ROOT/usr/bin/Xvfb" -displayfd 3 -screen 0 1280x720x24 -nolisten tcp 3>"$display_file" >"$RUNTIME/xvfb.log" 2>&1 &
+        display_pid=$!
+    else
         echo "Xvfb is missing; see README.md (software renderer setup)." >&2
         exit 1
     fi
-    "$xvfb" -displayfd 3 -screen 0 1280x720x24 -nolisten tcp 3>"$display_file" >"$RUNTIME/xvfb.log" 2>&1 &
-    display_pid=$!
     for attempt in $(seq 1 50); do
         if [ -s "$display_file" ]; then break; fi
         if ! kill -0 "$display_pid" 2>/dev/null; then break; fi
@@ -46,6 +52,11 @@ if [ -z "${DISPLAY:-}" ]; then
     fi
     export DISPLAY=":$(cat "$display_file")"
     rm -f "$display_file"
+fi
+export LD_LIBRARY_PATH="$GRAPHICS_ROOT/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+if [ -n "$LVP_ICD" ]; then
+    export VK_ICD_FILENAMES="$LVP_ICD"
+    export VK_DRIVER_FILES="$LVP_ICD"
 fi
 cd "$ROOT"
 export BUNKER_CAPTURE_STARTED_NS="$(python3 -c 'import time; print(time.time_ns())')"

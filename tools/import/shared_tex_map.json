@@ -1,0 +1,1670 @@
+{
+  "res://assets/models/characters/hellhound.glb": {
+    "HellhoundHide": {
+      "albedo": "res://assets/models/_shared_tex/hellhound_hide_albedo_512_370307d8.jpg",
+      "emissive": "res://assets/models/_shared_tex/hellhound_hide_emission_512_088ab802.jpg",
+      "normal": "res://assets/models/_shared_tex/hellhound_hide_normal_512_ee4d5c08.png",
+      "normal_scale": 0.9200000166893005,
+      "orm": "res://assets/models/_shared_tex/hellhound_hide_roughness_512_48c2c152.png"
+    }
+  },
+  "res://assets/models/characters/panzer_boss.glb": {
+    "HazardMetal": {
+      "albedo": "res://assets/models/_shared_tex/hazard_metal_albedo_512_e4dc2f5b.jpg",
+      "normal": "res://assets/models/_shared_tex/hazard_metal_normal_512_afd61545.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/hazard_metal_roughness_512_63b7385b.png"
+    },
+    "PanzerArmor": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_e64ab914.jpg",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d754b6b5.png",
+      "normal_scale": 0.8199999928474426,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_36d9520d.png"
+    },
+    "PanzerSuit": {
+      "albedo": "res://assets/models/_shared_tex/panzer_suit_albedo_512_15feb364.jpg",
+      "normal": "res://assets/models/_shared_tex/panzer_suit_normal_512_4301a6f6.png",
+      "normal_scale": 0.7599999904632568,
+      "orm": "res://assets/models/_shared_tex/panzer_suit_roughness_512_b9b5191e.png"
+    },
+    "PanzerTrim": {
+      "albedo": "res://assets/models/_shared_tex/stahlhelm_steel_albedo_512_3cbf97aa.jpg",
+      "normal": "res://assets/models/_shared_tex/stahlhelm_steel_normal_512_d1605e35.png",
+      "normal_scale": 0.699999988079071,
+      "orm": "res://assets/models/_shared_tex/stahlhelm_steel_roughness_512_f35a72f0.png"
+    },
+    "TankMetal": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_e64ab914.jpg",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d754b6b5.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_36d9520d.png"
+    }
+  },
+  "res://assets/models/characters/zombie_brute.glb": {
+    "CharLeather": {
+      "albedo": "res://assets/models/_shared_tex/leather_gear_albedo_512_1f8731c2.jpg",
+      "normal": "res://assets/models/_shared_tex/leather_gear_normal_512_8cc37e38.png",
+      "normal_scale": 0.6800000071525574,
+      "orm": "res://assets/models/_shared_tex/leather_gear_roughness_512_58944643.png"
+    },
+    "GoreFlesh": {
+      "albedo": "res://assets/models/_shared_tex/gore_flesh_albedo_512_1cc9860b.jpg",
+      "normal": "res://assets/models/_shared_tex/gore_flesh_normal_512_227cce69.jpg",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/gore_flesh_roughness_512_b0bea0b4.png"
+    },
+    "HazardMetal": {
+      "albedo": "res://assets/models/_shared_tex/hazard_metal_albedo_512_e4dc2f5b.jpg",
+      "normal": "res://assets/models/_shared_tex/hazard_metal_normal_512_afd61545.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/hazard_metal_roughness_512_63b7385b.png"
+    },
+    "HazmatBrute": {
+      "albedo": "res://assets/models/_shared_tex/hazmat_brute_albedo_512_23df28f4.jpg",
+      "normal": "res://assets/models/_shared_tex/hazmat_brute_normal_512_f58db2dc.png",
+      "normal_scale": 0.7799999713897705,
+      "orm": "res://assets/models/_shared_tex/hazmat_brute_roughness_512_1c684ff9.png"
+    },
+    "PanzerArmor": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_e64ab914.jpg",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d754b6b5.png",
+      "normal_scale": 0.8199999928474426,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_36d9520d.png"
+    },
+    "PanzerTrim": {
+      "albedo": "res://assets/models/_shared_tex/stahlhelm_steel_albedo_512_3cbf97aa.jpg",
+      "normal": "res://assets/models/_shared_tex/stahlhelm_steel_normal_512_d1605e35.png",
+      "normal_scale": 0.699999988079071,
+      "orm": "res://assets/models/_shared_tex/stahlhelm_steel_roughness_512_f35a72f0.png"
+    },
+    "SkinBrute": {
+      "albedo": "res://assets/models/_shared_tex/zombie_skin_brute_albedo_512_1dd95c2f.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_skin_brute_normal_512_df53ad8e.png",
+      "normal_scale": 0.8799999952316284,
+      "orm": "res://assets/models/_shared_tex/zombie_skin_brute_roughness_512_8a459826.png"
+    },
+    "TankMetal": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_e64ab914.jpg",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d754b6b5.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_36d9520d.png"
+    },
+    "ZombieEyeOrange": {
+      "albedo": "res://assets/models/_shared_tex/zombie_eye_orange_albedo_512_5579d3ee.jpg",
+      "emissive": "res://assets/models/_shared_tex/zombie_eye_orange_emission_512_201a71ac.jpg"
+    }
+  },
+  "res://assets/models/characters/zombie_crawler.glb": {
+    "CharLeather": {
+      "albedo": "res://assets/models/_shared_tex/leather_gear_albedo_512_1f8731c2.jpg",
+      "normal": "res://assets/models/_shared_tex/leather_gear_normal_512_8cc37e38.png",
+      "normal_scale": 0.6800000071525574,
+      "orm": "res://assets/models/_shared_tex/leather_gear_roughness_512_58944643.png"
+    },
+    "GoreFlesh": {
+      "albedo": "res://assets/models/_shared_tex/gore_flesh_albedo_512_1cc9860b.jpg",
+      "normal": "res://assets/models/_shared_tex/gore_flesh_normal_512_227cce69.jpg",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/gore_flesh_roughness_512_b0bea0b4.png"
+    },
+    "OverallsWorker": {
+      "albedo": "res://assets/models/_shared_tex/overalls_worker_albedo_512_31e0cb51.jpg",
+      "normal": "res://assets/models/_shared_tex/overalls_worker_normal_512_8e35bb43.png",
+      "normal_scale": 0.7599999904632568,
+      "orm": "res://assets/models/_shared_tex/overalls_worker_roughness_512_44a9ecc1.png"
+    },
+    "SkinWorker": {
+      "albedo": "res://assets/models/_shared_tex/zombie_skin_worker_albedo_512_b7157f51.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_skin_worker_normal_512_b2eecb5b.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/zombie_skin_worker_roughness_512_bb751c06.png"
+    },
+    "ZombieEyeAmber": {
+      "albedo": "res://assets/models/_shared_tex/zombie_eye_amber_albedo_512_4ec7aa93.jpg",
+      "emissive": "res://assets/models/_shared_tex/zombie_eye_amber_emission_512_d29e5a54.jpg"
+    },
+    "ZombieHair": {
+      "albedo": "res://assets/models/_shared_tex/zombie_hair_albedo_512_4f8567ea.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_hair_normal_512_5b3ba2af.jpg",
+      "normal_scale": 0.949999988079071,
+      "orm": "res://assets/models/_shared_tex/zombie_hair_roughness_512_01ff78f1.png"
+    }
+  },
+  "res://assets/models/characters/zombie_scientist.glb": {
+    "CharLeather": {
+      "albedo": "res://assets/models/_shared_tex/leather_gear_albedo_512_1f8731c2.jpg",
+      "normal": "res://assets/models/_shared_tex/leather_gear_normal_512_8cc37e38.png",
+      "normal_scale": 0.6800000071525574,
+      "orm": "res://assets/models/_shared_tex/leather_gear_roughness_512_58944643.png"
+    },
+    "GoreFlesh": {
+      "albedo": "res://assets/models/_shared_tex/gore_flesh_albedo_512_1cc9860b.jpg",
+      "normal": "res://assets/models/_shared_tex/gore_flesh_normal_512_227cce69.jpg",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/gore_flesh_roughness_512_b0bea0b4.png"
+    },
+    "JumpsuitScientist": {
+      "albedo": "res://assets/models/_shared_tex/uniform_soldier_albedo_512_7de8d616.jpg",
+      "normal": "res://assets/models/_shared_tex/uniform_soldier_normal_512_88adc3ef.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/uniform_soldier_roughness_512_3f74d37a.png"
+    },
+    "LabcoatScientist": {
+      "albedo": "res://assets/models/_shared_tex/labcoat_scientist_albedo_512_7d2f1e94.jpg",
+      "normal": "res://assets/models/_shared_tex/labcoat_scientist_normal_512_f792797f.png",
+      "normal_scale": 0.7200000286102295,
+      "orm": "res://assets/models/_shared_tex/labcoat_scientist_roughness_512_d15e98bf.png"
+    },
+    "SkinScientist": {
+      "albedo": "res://assets/models/_shared_tex/zombie_skin_scientist_albedo_512_e6a6b036.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_skin_scientist_normal_512_c9c4e3a4.png",
+      "normal_scale": 0.8199999928474426,
+      "orm": "res://assets/models/_shared_tex/zombie_skin_scientist_roughness_512_08c1599e.png"
+    },
+    "ZombieEyeAmber": {
+      "albedo": "res://assets/models/_shared_tex/zombie_eye_amber_albedo_512_4ec7aa93.jpg",
+      "emissive": "res://assets/models/_shared_tex/zombie_eye_amber_emission_512_d29e5a54.jpg"
+    },
+    "ZombieHair": {
+      "albedo": "res://assets/models/_shared_tex/zombie_hair_albedo_512_4f8567ea.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_hair_normal_512_5b3ba2af.jpg",
+      "normal_scale": 0.949999988079071,
+      "orm": "res://assets/models/_shared_tex/zombie_hair_roughness_512_01ff78f1.png"
+    }
+  },
+  "res://assets/models/characters/zombie_soldier.glb": {
+    "CharLeather": {
+      "albedo": "res://assets/models/_shared_tex/leather_gear_albedo_512_1f8731c2.jpg",
+      "normal": "res://assets/models/_shared_tex/leather_gear_normal_512_8cc37e38.png",
+      "normal_scale": 0.6800000071525574,
+      "orm": "res://assets/models/_shared_tex/leather_gear_roughness_512_58944643.png"
+    },
+    "GoreFlesh": {
+      "albedo": "res://assets/models/_shared_tex/gore_flesh_albedo_512_1cc9860b.jpg",
+      "normal": "res://assets/models/_shared_tex/gore_flesh_normal_512_227cce69.jpg",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/gore_flesh_roughness_512_b0bea0b4.png"
+    },
+    "PantsSoldier": {
+      "albedo": "res://assets/models/_shared_tex/uniform_soldier_albedo_512_7de8d616.jpg",
+      "normal": "res://assets/models/_shared_tex/uniform_soldier_normal_512_88adc3ef.png",
+      "normal_scale": 0.7200000286102295,
+      "orm": "res://assets/models/_shared_tex/uniform_soldier_roughness_512_3f74d37a.png"
+    },
+    "SkinSoldier": {
+      "albedo": "res://assets/models/_shared_tex/zombie_skin_soldier_albedo_512_973735e8.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_skin_worker_normal_512_b2eecb5b.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/zombie_skin_soldier_roughness_512_315556bb.png"
+    },
+    "StahlhelmSteel": {
+      "albedo": "res://assets/models/_shared_tex/stahlhelm_steel_albedo_512_3cbf97aa.jpg",
+      "normal": "res://assets/models/_shared_tex/stahlhelm_steel_normal_512_d1605e35.png",
+      "normal_scale": 0.7200000286102295,
+      "orm": "res://assets/models/_shared_tex/stahlhelm_steel_roughness_512_f35a72f0.png"
+    },
+    "UniformSoldier": {
+      "albedo": "res://assets/models/_shared_tex/uniform_soldier_albedo_512_7de8d616.jpg",
+      "normal": "res://assets/models/_shared_tex/uniform_soldier_normal_512_88adc3ef.png",
+      "normal_scale": 0.7799999713897705,
+      "orm": "res://assets/models/_shared_tex/uniform_soldier_roughness_512_3f74d37a.png"
+    },
+    "ZombieEyeAmber": {
+      "albedo": "res://assets/models/_shared_tex/zombie_eye_amber_albedo_512_4ec7aa93.jpg",
+      "emissive": "res://assets/models/_shared_tex/zombie_eye_amber_emission_512_d29e5a54.jpg"
+    }
+  },
+  "res://assets/models/characters/zombie_worker.glb": {
+    "CharLeather": {
+      "albedo": "res://assets/models/_shared_tex/leather_gear_albedo_512_1f8731c2.jpg",
+      "normal": "res://assets/models/_shared_tex/leather_gear_normal_512_8cc37e38.png",
+      "normal_scale": 0.6800000071525574,
+      "orm": "res://assets/models/_shared_tex/leather_gear_roughness_512_58944643.png"
+    },
+    "GoreFlesh": {
+      "albedo": "res://assets/models/_shared_tex/gore_flesh_albedo_512_1cc9860b.jpg",
+      "normal": "res://assets/models/_shared_tex/gore_flesh_normal_512_227cce69.jpg",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/gore_flesh_roughness_512_b0bea0b4.png"
+    },
+    "OverallsWorker": {
+      "albedo": "res://assets/models/_shared_tex/overalls_worker_albedo_512_31e0cb51.jpg",
+      "normal": "res://assets/models/_shared_tex/overalls_worker_normal_512_8e35bb43.png",
+      "normal_scale": 0.7599999904632568,
+      "orm": "res://assets/models/_shared_tex/overalls_worker_roughness_512_44a9ecc1.png"
+    },
+    "SkinWorker": {
+      "albedo": "res://assets/models/_shared_tex/zombie_skin_worker_albedo_512_b7157f51.jpg",
+      "normal": "res://assets/models/_shared_tex/zombie_skin_worker_normal_512_b2eecb5b.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/zombie_skin_worker_roughness_512_bb751c06.png"
+    },
+    "ZombieEyeAmber": {
+      "albedo": "res://assets/models/_shared_tex/zombie_eye_amber_albedo_512_4ec7aa93.jpg",
+      "emissive": "res://assets/models/_shared_tex/zombie_eye_amber_emission_512_d29e5a54.jpg"
+    }
+  },
+  "res://assets/models/env/barbed_wire.glb": {
+    "WireWood": {
+      "albedo": "res://assets/models/_shared_tex/cc0_planks_albedo_512_af794763.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_planks_normal_512_34ba989e.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_planks_roughness_512_45045582.png"
+    }
+  },
+  "res://assets/models/env/barrel_rusted.glb": {
+    "BarrelRust": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    }
+  },
+  "res://assets/models/env/barricade_window.glb": {
+    "WindowBrick": {
+      "albedo": "res://assets/models/_shared_tex/cc0_brick_albedo_512_2e3ba5c6.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_brick_normal_512_7a3e4074.png",
+      "normal_scale": 0.949999988079071,
+      "orm": "res://assets/models/_shared_tex/cc0_brick_roughness_512_be0bfc59.png"
+    },
+    "WindowIron": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "WindowStone": {
+      "albedo": "res://assets/models/_shared_tex/cc0_concrete_wall_albedo_512_59b2bb3e.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_concrete_wall_normal_512_4e0ffeae.png",
+      "normal_scale": 0.8999999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_concrete_wall_roughness_512_bae6f2f9.png"
+    },
+    "WindowWood": {
+      "albedo": "res://assets/models/_shared_tex/cc0_planks_albedo_512_af794763.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_planks_normal_512_34ba989e.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/cc0_planks_roughness_512_45045582.png"
+    }
+  },
+  "res://assets/models/env/blast_door.glb": {
+    "DoorArmor": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "DoorSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.8999999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    }
+  },
+  "res://assets/models/env/containment_arch.glb": {
+    "ExposedSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    },
+    "FacilityPaint": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "SafetyOchre": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    }
+  },
+  "res://assets/models/env/crate_military.glb": {
+    "CrateIron": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "CrateOlive": {
+      "albedo": "res://assets/models/_shared_tex/wood_crate_albedo_512_b8c8e72b.png",
+      "normal": "res://assets/models/_shared_tex/wood_crate_normal_512_9a012138.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/wood_crate_roughness_512_bd54ab5b.png"
+    },
+    "CrateTrim": {
+      "albedo": "res://assets/models/_shared_tex/cc0_planks_albedo_512_af794763.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_planks_normal_512_34ba989e.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_planks_roughness_512_45045582.png"
+    }
+  },
+  "res://assets/models/env/element115_crystal.glb": {
+    "MeteorRock": {
+      "albedo": "res://assets/models/_shared_tex/cc0_concrete_wall_albedo_512_59b2bb3e.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_concrete_wall_normal_512_4e0ffeae.png",
+      "normal_scale": 1.0499999523162842,
+      "orm": "res://assets/models/_shared_tex/cc0_concrete_wall_roughness_512_bae6f2f9.png"
+    }
+  },
+  "res://assets/models/env/lab_pod.glb": {
+    "PodBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PodGaugeFace": {
+      "albedo": "res://assets/models/_shared_tex/pap_gauge_512_f057e127.png"
+    },
+    "PodSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    },
+    "SpecimenFlesh": {
+      "albedo": "res://assets/models/_shared_tex/zombie_flesh_albedo_512_a340dbf3.png",
+      "normal": "res://assets/models/_shared_tex/zombie_flesh_normal_512_11d87ae5.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/env/light_cage.glb": {
+    "CageIron": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/env/rubble_pile.glb": {
+    "RubbleBrick": {
+      "albedo": "res://assets/models/_shared_tex/cc0_brick_albedo_512_2e3ba5c6.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_brick_normal_512_7a3e4074.png",
+      "normal_scale": 0.949999988079071,
+      "orm": "res://assets/models/_shared_tex/cc0_brick_roughness_512_be0bfc59.png"
+    },
+    "RubbleConcrete": {
+      "albedo": "res://assets/models/_shared_tex/cc0_concrete_wall_albedo_512_59b2bb3e.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_concrete_wall_normal_512_4e0ffeae.png",
+      "normal_scale": 0.949999988079071,
+      "orm": "res://assets/models/_shared_tex/cc0_concrete_wall_roughness_512_bae6f2f9.png"
+    }
+  },
+  "res://assets/models/env/ruined_tank.glb": {
+    "TankDarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "TankPanzerArmor": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_f57c4ccb.png",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d08f4dbe.png",
+      "normal_scale": 0.7200000286102295,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_d49e7a42.png"
+    },
+    "TankScorchedArmor": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.8500000238418579,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "TankTreads": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/env/sandbag_wall.glb": {
+    "SandbagCloth": {
+      "albedo": "res://assets/models/_shared_tex/burlap_albedo_512_c9996636.png",
+      "normal": "res://assets/models/_shared_tex/burlap_normal_512_21672be5.png",
+      "normal_scale": 0.8999999761581421,
+      "orm": "res://assets/models/_shared_tex/burlap_roughness_512_ad83a16b.png"
+    },
+    "SandbagStake": {
+      "albedo": "res://assets/models/_shared_tex/cc0_planks_albedo_512_af794763.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_planks_normal_512_34ba989e.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_planks_roughness_512_45045582.png"
+    }
+  },
+  "res://assets/models/env/service_pipes.glb": {
+    "ExposedSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    },
+    "FacilityPaint": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "SafetyOchre": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    }
+  },
+  "res://assets/models/env/steel_gantry.glb": {
+    "GantryGrate": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    },
+    "GantrySteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    }
+  },
+  "res://assets/models/env/teleporter_console.glb": {
+    "ExposedSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    },
+    "FacilityPaint": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "SafetyOchre": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    }
+  },
+  "res://assets/models/env/teleporter_pad.glb": {
+    "PadSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_metal_plate_albedo_512_8c40727c.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_metal_plate_normal_512_4f921bb4.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_metal_plate_roughness_512_ff153540.png"
+    }
+  },
+  "res://assets/models/env/wall_pipes.glb": {
+    "PipeSteel": {
+      "albedo": "res://assets/models/_shared_tex/cc0_rust_steel_albedo_512_ce33017d.jpg",
+      "normal": "res://assets/models/_shared_tex/cc0_rust_steel_normal_512_737eb556.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/cc0_rust_steel_roughness_512_fab288e2.png"
+    },
+    "WallGaugeFace": {
+      "albedo": "res://assets/models/_shared_tex/pap_gauge_512_f057e127.png"
+    }
+  },
+  "res://assets/models/env_cc0/ammo_box.glb": {
+    "ammo_box": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_33c01645.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_ae77104f.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_0a60adda.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/barrel_01.glb": {
+    "Barrel_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_a064c9c6.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_491fe039.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_f7b42d03.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/barrel_02.glb": {
+    "Barrel_02": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_e60e5651.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_c854bd98.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_9b7e31d0.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/barrel_stove.glb": {
+    "barrel_stove": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_24f0de56.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_00d3bbe0.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_eafda169.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/boulder_01.glb": {
+    "boulder_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_d81c3419.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_1_512_05bf73c7.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_60d1848d.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/bunsen_burner.glb": {
+    "bunsen_burner": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_37f0da57.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_c294ded4.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_339ca835.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/caged_hanging_light.glb": {
+    "caged_hanging_light": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_6e03a2c4.jpg",
+      "emissive": "res://assets/models/_shared_tex/tex_1_512_e4ac52b3.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_3_512_35b5a651.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_4dba6c30.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/cement_bag.glb": {
+    "cement_bag": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_6954c3a4.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_1_512_a1f7337e.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_0e3343ca.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/chemistry_set.glb": {
+    "chemistry_set": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_d657e37b.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_586aed99.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_e281f041.jpg"
+    },
+    "chemistry_set_glass": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_af991caf.png",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_586aed99.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_e281f041.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/concrete_road_barrier.glb": {
+    "concrete_road_barrier": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_c5ad3b0d.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_1_512_ec94adc9.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_39af20cd.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/concrete_road_barrier_02.glb": {
+    "concrete_road_barrier_02": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_34f608eb.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_1_512_7654a9c2.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_ad657353.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/covered_car.glb": {
+    "covered_car": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_9f131702.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_2f3271ea.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_8642fd11.jpg"
+    },
+    "covered_car.001": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_9f131702.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_2f3271ea.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_8642fd11.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/crowbar_01.glb": {
+    "crowbar_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_7505e5e1.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_15fbe093.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_cfba4a0b.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/dead_tree_trunk.glb": {
+    "dead_tree_trunk": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_9fdd0602.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_1_512_bc232d95.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_2_512_eb76bef1.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/drawer_cabinet.glb": {
+    "drawer_cabinet": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_56369adc.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_27732bb8.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_7f33d29d.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/flood_lights.glb": {
+    "flood_lights": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_71a26c4e.jpg",
+      "emissive": "res://assets/models/_shared_tex/tex_1_512_56245ee8.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_6_512_d421383f.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_5_512_cea0f20c.jpg"
+    },
+    "flood_lights_glass": {
+      "albedo": "res://assets/models/_shared_tex/tex_2_512_f84aeb17.png",
+      "normal": "res://assets/models/_shared_tex/tex_3_512_4b7f943e.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_4_512_2817171b.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/hanging_industrial_lamp.glb": {
+    "hanging_industrial_lamp": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_6ef4590f.jpg",
+      "emissive": "res://assets/models/_shared_tex/tex_1_512_16cf3d24.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_4_512_78403892.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_3_512_152780f9.jpg"
+    },
+    "hanging_industrial_lamp_glass": {
+      "normal": "res://assets/models/_shared_tex/tex_2_512_d238a834.jpg",
+      "normal_scale": 1.0
+    }
+  },
+  "res://assets/models/env_cc0/industrial_storage_cart.glb": {
+    "industrial_storage_cart": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_28d18ad3.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_665dadf7.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_de927977.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/industrial_wall_lamp.glb": {
+    "industrial_wall_lamp": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_f36f9912.jpg",
+      "emissive": "res://assets/models/_shared_tex/tex_1_512_888f11cd.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_5_512_b14e5eeb.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_6_512_edcf14b4.jpg"
+    },
+    "industrial_wall_lamp_glass": {
+      "albedo": "res://assets/models/_shared_tex/tex_2_512_585cc95e.png",
+      "normal": "res://assets/models/_shared_tex/tex_3_512_ab2228d8.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_4_512_179498ea.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/medical_box.glb": {
+    "medical_box": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_fc344d42.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_242d7533.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_a830a5c8.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/metal_office_desk.glb": {
+    "metal_office_desk": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_037e921a.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_3b3a6605.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_5c3178fe.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/metal_toolbox.glb": {
+    "metal_toolbox": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_6747726a.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_79da4f5d.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_0f2b5e4e.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/old_military_crate.glb": {
+    "military_crate_m_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_7ac77fe9.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_72b4ff23.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_74c25fc5.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/portable_welding_cart.glb": {
+    "portable_welding_cart": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_645cbb86.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_f7c34cb5.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_abe84034.jpg"
+    },
+    "portable_welding_cart_glass": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_714ee8e5.png",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_f7c34cb5.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_abe84034.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/power_box_01.glb": {
+    "power_box_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_d51ebaa2.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_56fe0d86.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_99f3281a.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/steel_frame_shelves_01.glb": {
+    "steel_frame_shelves_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_e266efb3.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_d40048fd.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_b21db7be.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/street_lamp_01.glb": {
+    "street_lamp_01": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_c95845f2.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_d81f24b6.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_7cb33405.jpg"
+    },
+    "street_lamp_01_bulb": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_c95845f2.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_d81f24b6.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_7cb33405.jpg"
+    },
+    "street_lamp_01_glass": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_f778ce38.png",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_d81f24b6.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_7cb33405.jpg"
+    }
+  },
+  "res://assets/models/env_cc0/vintage_radio_transceiver.glb": {
+    "vintage_radio_transceiver": {
+      "albedo": "res://assets/models/_shared_tex/tex_3_512_a6773474.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_5_512_4077f0a3.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_4_512_a3dee4a4.jpg"
+    },
+    "vintage_radio_transceiver_accessories": {
+      "albedo": "res://assets/models/_shared_tex/tex_0_512_7577d1bf.jpg",
+      "normal": "res://assets/models/_shared_tex/tex_2_512_3eea3828.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/tex_1_512_771b324b.jpg"
+    }
+  },
+  "res://assets/models/pickups/powerup_carpenter.glb": {
+    "PowerBronze": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.3499999940395355
+    },
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    },
+    "PowerWalnut": {
+      "albedo": "res://assets/models/_shared_tex/walnut_albedo_512_83b5b8f7.png",
+      "normal": "res://assets/models/_shared_tex/walnut_normal_512_73cfb53f.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/walnut_roughness_512_2ddec544.png"
+    }
+  },
+  "res://assets/models/pickups/powerup_double_points.glb": {
+    "PowerBronze": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.3499999940395355
+    },
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    }
+  },
+  "res://assets/models/pickups/powerup_fire_sale.glb": {
+    "PowerBronze": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.3499999940395355
+    },
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    }
+  },
+  "res://assets/models/pickups/powerup_insta_kill.glb": {
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    }
+  },
+  "res://assets/models/pickups/powerup_max_ammo.glb": {
+    "PowerBronze": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.3499999940395355
+    },
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    },
+    "PowerOliveSteel": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/pickups/powerup_nuke.glb": {
+    "PowerBronze": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_512_5fa0b13c.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_512_59de3a1d.png",
+      "normal_scale": 0.3499999940395355
+    },
+    "PowerGold": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.3499999940395355,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_60af4cf4.png"
+    }
+  },
+  "res://assets/models/props/der_wunderfizz.glb": {
+    "WunderBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "WunderIron": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_b80a82c1.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_f045692d.jpg",
+      "normal_scale": 0.5,
+      "orm": "res://assets/models/_shared_tex/roughness_512_9e836a5e.png"
+    },
+    "WunderMarqueeMat": {
+      "albedo": "res://assets/models/_shared_tex/marquee_wunderfizz_512_9ff32606.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_wunderfizz_512_9ff32606.png"
+    },
+    "WunderSteel": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_70e1db6b.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_14dfbb47.jpg",
+      "normal_scale": 0.550000011920929,
+      "orm": "res://assets/models/_shared_tex/roughness_512_43460987.png"
+    }
+  },
+  "res://assets/models/props/electro_trap.glb": {
+    "TrapSteel": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/props/fire_trap.glb": {
+    "FireTrapBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "FireTrapGaugeMat": {
+      "albedo": "res://assets/models/_shared_tex/fire_trap_gauge_512_d47a248a.png",
+      "emissive": "res://assets/models/_shared_tex/fire_trap_gauge_512_d47a248a.png"
+    },
+    "FireTrapIron": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_b80a82c1.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_f045692d.jpg",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/roughness_512_9e836a5e.png"
+    },
+    "FireTrapPanelMat": {
+      "albedo": "res://assets/models/_shared_tex/fire_trap_panel_512_51eac054.png",
+      "emissive": "res://assets/models/_shared_tex/fire_trap_panel_512_51eac054.png"
+    },
+    "FireTrapSteel": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_70e1db6b.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_14dfbb47.jpg",
+      "normal_scale": 0.550000011920929,
+      "orm": "res://assets/models/_shared_tex/roughness_512_43460987.png"
+    },
+    "propane_tank": {
+      "albedo": "res://assets/models/_shared_tex/img_8_512_abf43060.jpg",
+      "normal": "res://assets/models/_shared_tex/img_10_512_982b26a7.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/img_9_512_0b054569.jpg"
+    }
+  },
+  "res://assets/models/props/fire_trap_burner.glb": {
+    "BurnerBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "BurnerGrateMat": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_5231e466.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_02abc672.jpg",
+      "normal_scale": 0.6000000238418579,
+      "orm": "res://assets/models/_shared_tex/roughness_512_77ac5262.png"
+    },
+    "BurnerIron": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_b80a82c1.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_f045692d.jpg",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/props/mystery_box.glb": {
+    "BoxBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "BoxCharredWood": {
+      "albedo": "res://assets/models/_shared_tex/charred_wood_albedo_512_5ff70da1.png",
+      "normal": "res://assets/models/_shared_tex/charred_wood_normal_512_ca79641e.png",
+      "normal_scale": 0.800000011920929,
+      "orm": "res://assets/models/_shared_tex/charred_wood_roughness_512_ecdca601.png"
+    },
+    "BoxForgedIron": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.550000011920929,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    }
+  },
+  "res://assets/models/props/pack_a_punch.glb": {
+    "PaPArmor": {
+      "albedo": "res://assets/models/_shared_tex/panzer_armor_albedo_512_f57c4ccb.png",
+      "normal": "res://assets/models/_shared_tex/panzer_armor_normal_512_d08f4dbe.png",
+      "normal_scale": 0.6000000238418579,
+      "orm": "res://assets/models/_shared_tex/panzer_armor_roughness_512_d49e7a42.png"
+    },
+    "PaPBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_512_1baedf60.png"
+    },
+    "PaPGaugeFace": {
+      "albedo": "res://assets/models/_shared_tex/pap_gauge_512_f057e127.png",
+      "emissive": "res://assets/models/_shared_tex/pap_gauge_512_f057e127.png"
+    },
+    "PaPIron": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PaPMarquee": {
+      "albedo": "res://assets/models/_shared_tex/pap_marquee_512_51363dd9.png",
+      "emissive": "res://assets/models/_shared_tex/pap_marquee_512_51363dd9.png"
+    }
+  },
+  "res://assets/models/props/perk_deadshot.glb": {
+    "PerkBody_deadshot": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/roughness_512_955dcd99.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.25
+    },
+    "PerkSign_deadshot": {
+      "albedo": "res://assets/models/_shared_tex/marquee_deadshot_512_564feb7d.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_deadshot_512_564feb7d.png"
+    }
+  },
+  "res://assets/models/props/perk_doubletap.glb": {
+    "PerkBody_doubletap": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.25
+    },
+    "PerkSign_doubletap": {
+      "albedo": "res://assets/models/_shared_tex/marquee_doubletap_512_dee9c08d.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_doubletap_512_dee9c08d.png"
+    }
+  },
+  "res://assets/models/props/perk_electriccherry.glb": {
+    "PerkBody_electriccherry": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/roughness_512_955dcd99.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.25
+    },
+    "PerkSign_electriccherry": {
+      "albedo": "res://assets/models/_shared_tex/marquee_electriccherry_512_e31d37c2.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_electriccherry_512_e31d37c2.png"
+    }
+  },
+  "res://assets/models/props/perk_juggernog.glb": {
+    "PerkBody_juggernog": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.25
+    },
+    "PerkSign_juggernog": {
+      "albedo": "res://assets/models/_shared_tex/marquee_juggernog_512_a27d616c.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_juggernog_512_a27d616c.png"
+    }
+  },
+  "res://assets/models/props/perk_mulekick.glb": {
+    "PerkBody_mulekick": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/roughness_512_955dcd99.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.25
+    },
+    "PerkSign_mulekick": {
+      "albedo": "res://assets/models/_shared_tex/marquee_mulekick_512_8c5f92e3.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_mulekick_512_8c5f92e3.png"
+    }
+  },
+  "res://assets/models/props/perk_phdflopper.glb": {
+    "PerkBody_phdflopper": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/roughness_512_955dcd99.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.25
+    },
+    "PerkSign_phdflopper": {
+      "albedo": "res://assets/models/_shared_tex/marquee_phdflopper_512_a1676a7f.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_phdflopper_512_a1676a7f.png"
+    }
+  },
+  "res://assets/models/props/perk_quickrevive.glb": {
+    "PerkBody_quickrevive": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.25
+    },
+    "PerkSign_quickrevive": {
+      "albedo": "res://assets/models/_shared_tex/marquee_quickrevive_512_95e6abcb.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_quickrevive_512_95e6abcb.png"
+    }
+  },
+  "res://assets/models/props/perk_speedcola.glb": {
+    "PerkBody_speedcola": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.25
+    },
+    "PerkSign_speedcola": {
+      "albedo": "res://assets/models/_shared_tex/marquee_speedcola_512_ba0ac0ec.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_speedcola_512_ba0ac0ec.png"
+    }
+  },
+  "res://assets/models/props/perk_staminup.glb": {
+    "PerkBody_staminup": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    },
+    "PerkBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "PerkCream": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.25
+    },
+    "PerkSign_staminup": {
+      "albedo": "res://assets/models/_shared_tex/marquee_staminup_512_6b144b56.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_staminup_512_6b144b56.png"
+    }
+  },
+  "res://assets/models/props/power_switch.glb": {
+    "SwitchBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_baaae181.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_2a6b166f.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "SwitchSteel": {
+      "albedo": "res://assets/models/_shared_tex/rusted_steel_albedo_512_a2d8bc69.png",
+      "normal": "res://assets/models/_shared_tex/rusted_steel_normal_512_5a95e575.png",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/rusted_steel_roughness_512_3ee4c998.png"
+    }
+  },
+  "res://assets/models/props/quest_canister.glb": {
+    "CanisterBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "CanisterIron": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_b80a82c1.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_f045692d.jpg",
+      "normal_scale": 0.6499999761581421
+    },
+    "CanisterSteel": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_70e1db6b.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_14dfbb47.jpg",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/roughness_512_43460987.png"
+    }
+  },
+  "res://assets/models/props/quest_resonator.glb": {
+    "ResonatorBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "ResonatorIron": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_b80a82c1.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_f045692d.jpg",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/props/quest_terminal.glb": {
+    "QuestCRTMat": {
+      "albedo": "res://assets/models/_shared_tex/marquee_quest_512_efadc09f.png",
+      "emissive": "res://assets/models/_shared_tex/marquee_quest_512_efadc09f.png"
+    },
+    "QuestTermBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_512_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_512_972dcf65.png",
+      "normal_scale": 0.6499999761581421
+    },
+    "QuestTermEnamel": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_f4133337.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_e04a03fe.jpg",
+      "normal_scale": 0.6499999761581421,
+      "orm": "res://assets/models/_shared_tex/roughness_512_955dcd99.png"
+    },
+    "QuestTermSteel": {
+      "albedo": "res://assets/models/_shared_tex/albedo_512_70e1db6b.jpg",
+      "normal": "res://assets/models/_shared_tex/normal_512_14dfbb47.jpg",
+      "normal_scale": 0.550000011920929,
+      "orm": "res://assets/models/_shared_tex/roughness_512_43460987.png"
+    },
+    "retro_multimeter": {
+      "albedo": "res://assets/models/_shared_tex/img_7_512_1f67f434.jpg",
+      "normal": "res://assets/models/_shared_tex/img_9_512_fcc46a1b.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/img_8_512_09821338.jpg"
+    },
+    "retro_multimeter_glass": {
+      "albedo": "res://assets/models/_shared_tex/img_7_512_da31fff0.png",
+      "normal": "res://assets/models/_shared_tex/img_9_512_fcc46a1b.jpg",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/img_8_512_09821338.jpg"
+    }
+  },
+  "res://assets/models/props/teddy_bear.glb": {
+    "TeddyBurlap": {
+      "albedo": "res://assets/models/_shared_tex/burlap_albedo_512_c9996636.png",
+      "normal": "res://assets/models/_shared_tex/burlap_normal_512_21672be5.png",
+      "normal_scale": 0.75,
+      "orm": "res://assets/models/_shared_tex/burlap_roughness_512_ad83a16b.png"
+    },
+    "TeddyMuzzle": {
+      "albedo": "res://assets/models/_shared_tex/burlap_albedo_512_c9996636.png",
+      "normal": "res://assets/models/_shared_tex/burlap_normal_512_21672be5.png",
+      "normal_scale": 0.6499999761581421
+    }
+  },
+  "res://assets/models/weapons/combat_knife.glb": {
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "KnifeLeather": {
+      "albedo": "res://assets/models/_shared_tex/fp_leather_albedo_768_16616fa7.png",
+      "normal": "res://assets/models/_shared_tex/fp_leather_normal_768_5eff6d01.png",
+      "normal_scale": 0.2800000011920929,
+      "orm": "res://assets/models/_shared_tex/fp_leather_roughness_768_7440421c.png"
+    }
+  },
+  "res://assets/models/weapons/fp_left_hand.glb": {
+    "FPSkin": {
+      "albedo": "res://assets/models/_shared_tex/fp_skin_albedo_768_b5d3c044.jpg",
+      "normal": "res://assets/models/_shared_tex/fp_skin_normal_768_421eb8f1.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/fp_skin_roughness_768_3ea0085c.png"
+    },
+    "GloveReinforceLeather": {
+      "albedo": "res://assets/models/_shared_tex/fp_leather_albedo_768_16616fa7.png",
+      "normal": "res://assets/models/_shared_tex/fp_leather_normal_768_5eff6d01.png",
+      "normal_scale": 0.5199999809265137,
+      "orm": "res://assets/models/_shared_tex/fp_leather_roughness_768_7440421c.png"
+    },
+    "KnitCuff": {
+      "albedo": "res://assets/models/_shared_tex/fp_sleeve_albedo_768_1d3775d9.png",
+      "normal": "res://assets/models/_shared_tex/fp_sleeve_normal_768_50b9f48c.png",
+      "normal_scale": 0.5199999809265137
+    },
+    "SleeveWool": {
+      "albedo": "res://assets/models/_shared_tex/fp_sleeve_albedo_768_1d3775d9.png",
+      "normal": "res://assets/models/_shared_tex/fp_sleeve_normal_768_50b9f48c.png",
+      "normal_scale": 0.5799999833106995,
+      "orm": "res://assets/models/_shared_tex/fp_sleeve_roughness_768_54b74766.png"
+    },
+    "TacticalLeather": {
+      "albedo": "res://assets/models/_shared_tex/fp_leather_albedo_768_16616fa7.png",
+      "normal": "res://assets/models/_shared_tex/fp_leather_normal_768_5eff6d01.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/fp_leather_roughness_768_7440421c.png"
+    },
+    "WatchSteel": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.25
+    }
+  },
+  "res://assets/models/weapons/fp_right_hand.glb": {
+    "FPSkin": {
+      "albedo": "res://assets/models/_shared_tex/fp_skin_albedo_768_b5d3c044.jpg",
+      "normal": "res://assets/models/_shared_tex/fp_skin_normal_768_421eb8f1.jpg",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/fp_skin_roughness_768_3ea0085c.png"
+    },
+    "GloveBrass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png"
+    },
+    "GloveReinforceLeather": {
+      "albedo": "res://assets/models/_shared_tex/fp_leather_albedo_768_16616fa7.png",
+      "normal": "res://assets/models/_shared_tex/fp_leather_normal_768_5eff6d01.png",
+      "normal_scale": 0.5199999809265137,
+      "orm": "res://assets/models/_shared_tex/fp_leather_roughness_768_7440421c.png"
+    },
+    "KnitCuff": {
+      "albedo": "res://assets/models/_shared_tex/fp_sleeve_albedo_768_1d3775d9.png",
+      "normal": "res://assets/models/_shared_tex/fp_sleeve_normal_768_50b9f48c.png",
+      "normal_scale": 0.5199999809265137
+    },
+    "SleeveWool": {
+      "albedo": "res://assets/models/_shared_tex/fp_sleeve_albedo_768_1d3775d9.png",
+      "normal": "res://assets/models/_shared_tex/fp_sleeve_normal_768_50b9f48c.png",
+      "normal_scale": 0.5799999833106995,
+      "orm": "res://assets/models/_shared_tex/fp_sleeve_roughness_768_54b74766.png"
+    },
+    "TacticalLeather": {
+      "albedo": "res://assets/models/_shared_tex/fp_leather_albedo_768_16616fa7.png",
+      "normal": "res://assets/models/_shared_tex/fp_leather_normal_768_5eff6d01.png",
+      "normal_scale": 0.44999998807907104,
+      "orm": "res://assets/models/_shared_tex/fp_leather_roughness_768_7440421c.png"
+    }
+  },
+  "res://assets/models/weapons/frag_grenade.glb": {
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    }
+  },
+  "res://assets/models/weapons/kar98k.glb": {
+    "bolt_action_rifle_7_62": {
+      "albedo": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_diff_1k_768_81a7a977.jpg",
+      "normal": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_nor_gl_1k_768_cc0477d8.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_arm_1k_768_8206367b.jpg"
+    },
+    "bolt_action_rifle_7_62_accesories": {
+      "albedo": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_accesories_diff_1k_768_624908d9.jpg",
+      "normal": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_accesories_nor_gl_1k_768_a4371121.png",
+      "normal_scale": 1.0,
+      "orm": "res://assets/models/_shared_tex/bolt_action_rifle_7_62_accesories_arm_1k_768_d45228bc.jpg"
+    }
+  },
+  "res://assets/models/weapons/m14.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    },
+    "WalnutWood": {
+      "albedo": "res://assets/models/_shared_tex/walnut_albedo_768_52477d5f.png",
+      "normal": "res://assets/models/_shared_tex/walnut_normal_768_cfd152a8.png",
+      "normal_scale": 0.30000001192092896,
+      "orm": "res://assets/models/_shared_tex/walnut_roughness_768_631d1319.png"
+    }
+  },
+  "res://assets/models/weapons/m1911.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    }
+  },
+  "res://assets/models/weapons/mg42.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    },
+    "WalnutWood": {
+      "albedo": "res://assets/models/_shared_tex/walnut_albedo_768_52477d5f.png",
+      "normal": "res://assets/models/_shared_tex/walnut_normal_768_cfd152a8.png",
+      "normal_scale": 0.30000001192092896,
+      "orm": "res://assets/models/_shared_tex/walnut_roughness_768_631d1319.png"
+    }
+  },
+  "res://assets/models/weapons/mp40.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    }
+  },
+  "res://assets/models/weapons/raygun.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "Copper": {
+      "albedo": "res://assets/models/_shared_tex/copper_albedo_768_82717328.jpg",
+      "normal": "res://assets/models/_shared_tex/copper_normal_768_1fe1da74.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/copper_roughness_768_9e92ffe7.png"
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "RayGaugeDial": {
+      "albedo": "res://assets/models/_shared_tex/pap_gauge_768_f057e127.png"
+    },
+    "RayGunRed": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.1599999964237213
+    }
+  },
+  "res://assets/models/weapons/stg44.glb": {
+    "Bakelite": {
+      "albedo": "res://assets/models/_shared_tex/bakelite_albedo_768_a8f49f37.png",
+      "normal": "res://assets/models/_shared_tex/bakelite_normal_768_b95a60cc.png",
+      "normal_scale": 0.4000000059604645,
+      "orm": "res://assets/models/_shared_tex/bakelite_roughness_768_e4fbea8c.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    },
+    "WalnutWood": {
+      "albedo": "res://assets/models/_shared_tex/walnut_albedo_768_52477d5f.png",
+      "normal": "res://assets/models/_shared_tex/walnut_normal_768_cfd152a8.png",
+      "normal_scale": 0.30000001192092896,
+      "orm": "res://assets/models/_shared_tex/walnut_roughness_768_631d1319.png"
+    }
+  },
+  "res://assets/models/weapons/trench_shotgun.glb": {
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    },
+    "WalnutWood": {
+      "albedo": "res://assets/models/_shared_tex/walnut_albedo_768_52477d5f.png",
+      "normal": "res://assets/models/_shared_tex/walnut_normal_768_cfd152a8.png",
+      "normal_scale": 0.30000001192092896,
+      "orm": "res://assets/models/_shared_tex/walnut_roughness_768_631d1319.png"
+    }
+  },
+  "res://assets/models/weapons/wunderwaffe.glb": {
+    "Brass": {
+      "albedo": "res://assets/models/_shared_tex/brass_albedo_768_973ba82a.png",
+      "normal": "res://assets/models/_shared_tex/brass_normal_768_972dcf65.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/brass_roughness_768_1baedf60.png"
+    },
+    "Chrome": {
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.11999999731779099
+    },
+    "Copper": {
+      "albedo": "res://assets/models/_shared_tex/copper_albedo_768_82717328.jpg",
+      "normal": "res://assets/models/_shared_tex/copper_normal_768_1fe1da74.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/copper_roughness_768_9e92ffe7.png"
+    },
+    "DarkSteel": {
+      "albedo": "res://assets/models/_shared_tex/dark_steel_albedo_768_89486681.jpg",
+      "normal": "res://assets/models/_shared_tex/dark_steel_normal_768_4c346d07.jpg",
+      "normal_scale": 0.23999999463558197,
+      "orm": "res://assets/models/_shared_tex/dark_steel_roughness_768_3e6be6e4.png"
+    },
+    "Gunmetal": {
+      "albedo": "res://assets/models/_shared_tex/gun_steel_albedo_768_6b313d08.png",
+      "normal": "res://assets/models/_shared_tex/gun_steel_normal_768_4322faa3.png",
+      "normal_scale": 0.2199999988079071,
+      "orm": "res://assets/models/_shared_tex/gun_steel_roughness_768_b0fa20d8.png"
+    },
+    "WunderWalnut": {
+      "albedo": "res://assets/models/_shared_tex/wunderwaffe_wood_albedo_768_5181b870.jpg",
+      "normal": "res://assets/models/_shared_tex/wunderwaffe_wood_normal_768_82dfa5fd.jpg",
+      "normal_scale": 0.36000001430511475,
+      "orm": "res://assets/models/_shared_tex/wunderwaffe_wood_roughness_768_4b07c731.png"
+    }
+  }
+}

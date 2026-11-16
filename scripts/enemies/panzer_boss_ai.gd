@@ -39,6 +39,9 @@ var _flame_burst_timer: float = 0.0
 var _flame_cooldown: float = 1.8
 var _flame_tick_cd: float = 0.0
 var _is_flaming: bool = false
+var _player: Node3D = null
+var _head_sync_tick: int = 0
+var _head_synced_once: bool = false
 
 var _gib_scene: PackedScene = preload("res://scenes/fx/gib_chunk.tscn")
 var _sparks_scene: PackedScene = preload("res://scenes/fx/impact_sparks.tscn")
@@ -50,6 +53,7 @@ signal died(boss: PanzerBossAI, was_headshot: bool, death_pos: Vector3, force_dr
 func setup(p_round: int = 8, p_hp_override: float = -1.0) -> void:
 	max_hp = p_hp_override if p_hp_override > 0.0 else (1400.0 + float(maxi(0, p_round - 8)) * 280.0)
 	hp = max_hp
+	_head_synced_once = false
 	var scale_f := maxf(1.0, max_hp / 1400.0)
 	plate_hp = {
 		"chest": 320.0 * scale_f,
@@ -67,6 +71,7 @@ func _ready() -> void:
 	head_area.add_to_group("zombie_head")
 	head_area.set_meta("zombie_owner", self)
 	body_area.set_meta("zombie_owner", self)
+	_head_sync_tick = randi() & 3
 	if flame_particles != null and flame_particles.scale_amount_curve == null:
 		var sc := Curve.new()
 		sc.add_point(Vector2(0.0, 0.38))
@@ -78,6 +83,13 @@ func _ready() -> void:
 	_set_flamethrower_active(false)
 	AudioManager.play_3d("boss_roar", global_position, 0.06, 2.0, 48.0)
 	_play_anim("Walk")
+
+
+func _get_player() -> Node3D:
+	if _player != null and is_instance_valid(_player) and _player.is_inside_tree():
+		return _player
+	_player = get_tree().get_first_node_in_group("player") as Node3D
+	return _player
 
 
 func _load_model() -> void:
@@ -183,11 +195,15 @@ func _physics_process(delta: float) -> void:
 	_flame_cooldown = maxf(0.0, _flame_cooldown - delta)
 	_stomp_sfx_cd -= delta
 
+	var player := _get_player()
+	_head_sync_tick = (_head_sync_tick + 1) & 3
 	if _skeleton != null and _head_bone_idx >= 0:
-		var hpose := _skeleton.get_bone_global_pose(_head_bone_idx)
-		head_area.global_position = _skeleton.to_global(hpose.origin) + Vector3(0, 0.16, 0)
+		var need_sync := (not _head_synced_once) or player == null or (_head_sync_tick == 0) or global_position.distance_squared_to(player.global_position) <= 196.0
+		if need_sync:
+			_head_synced_once = true
+			var hpose := _skeleton.get_bone_global_pose(_head_bone_idx)
+			head_area.global_position = _skeleton.to_global(hpose.origin) + Vector3(0, 0.16, 0)
 
-	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
 		return
 

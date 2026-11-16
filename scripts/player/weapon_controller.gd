@@ -41,6 +41,7 @@ var _bob_weight: float = 0.0
 var _horiz_smooth: float = 0.0
 var _sprint_blend: float = 0.0
 var _initial_equip_done: bool = false
+var _hud: Node = null
 
 # Moving weapon sub-part animation state
 var _part_nodes: Dictionary = {}
@@ -97,6 +98,13 @@ func _ready() -> void:
 
 	weapons.append(WeaponDB.create_weapon_state("m1911", false))
 	_equip_weapon(0)
+
+
+func _get_hud() -> Node:
+	if _hud != null and is_instance_valid(_hud) and _hud.is_inside_tree():
+		return _hud
+	_hud = get_tree().get_first_node_in_group("hud")
+	return _hud
 
 
 func _on_perks_changed(_perks: Array[String]) -> void:
@@ -176,7 +184,7 @@ func _process(delta: float) -> void:
 	_handle_weapon_inputs(delta)
 	_animate_viewmodel(delta)
 
-	var hud := get_tree().get_first_node_in_group("hud")
+	var hud := _get_hud()
 	if hud and hud.has_method("set_crosshair_spread"):
 		hud.call("set_crosshair_spread", get_crosshair_spread_px(), is_aiming or is_reloading or is_meleeing)
 
@@ -1177,23 +1185,68 @@ func _spawn_fx(scene: PackedScene, pos: Vector3, normal: Vector3) -> void:
 	fx.global_position = pos + normal * 0.03
 
 
+const MAX_TRACERS := 16
+static var _active_tracers: Array[MeshInstance3D] = []
+static var _tracer_mesh: BoxMesh = null
+static var _tracer_mat_std: StandardMaterial3D = null
+static var _tracer_mat_pap: StandardMaterial3D = null
+
+
+static func clear_shared_caches() -> void:
+	for tr in _active_tracers:
+		if is_instance_valid(tr) and not tr.is_inside_tree() and not tr.is_queued_for_deletion():
+			tr.free()
+	_active_tracers.clear()
+	_tracer_mesh = null
+	_tracer_mat_std = null
+	_tracer_mat_pap = null
+
+
+static func _ensure_tracer_assets() -> void:
+	if _tracer_mesh == null:
+		_tracer_mesh = BoxMesh.new()
+		_tracer_mesh.size = Vector3(0.014, 0.014, 1.0)
+	if _tracer_mat_std == null:
+		_tracer_mat_std = StandardMaterial3D.new()
+		_tracer_mat_std.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_tracer_mat_std.albedo_color = Color(1.0, 0.85, 0.45, 0.75)
+		_tracer_mat_std.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	if _tracer_mat_pap == null:
+		_tracer_mat_pap = StandardMaterial3D.new()
+		_tracer_mat_pap.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_tracer_mat_pap.albedo_color = Color(0.25, 0.95, 1.0, 0.85)
+		_tracer_mat_pap.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+
 func _spawn_tracer(from_pos: Vector3, to_pos: Vector3, packed: bool) -> void:
 	var dist := from_pos.distance_to(to_pos)
 	if dist < 0.25:
 		return
+	_ensure_tracer_assets()
+	for i in range(_active_tracers.size() - 1, -1, -1):
+		if not is_instance_valid(_active_tracers[i]):
+			_active_tracers.remove_at(i)
+	while _active_tracers.size() >= MAX_TRACERS:
+		var old := _active_tracers.pop_front() as MeshInstance3D
+		if is_instance_valid(old):
+			old.queue_free()
+
 	var mi := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.014, 0.014, dist)
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(0.25, 0.95, 1.0, 0.85) if packed else Color(1.0, 0.85, 0.45, 0.75)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mat
-	mi.mesh = mesh
+	mi.mesh = _tracer_mesh
+	mi.material_override = _tracer_mat_pap if packed else _tracer_mat_std
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var target_parent: Node = get_tree().current_scene if get_tree().current_scene != null else get_tree().root
 	target_parent.add_child(mi)
+	_active_tracers.append(mi)
 	mi.global_position = (from_pos + to_pos) * 0.5
-	mi.look_at(to_pos, Vector3.UP)
+	var dir := (to_pos - from_pos) / dist
+	var up_ref := Vector3.RIGHT if absf(dir.dot(Vector3.UP)) > 0.99 else Vector3.UP
+	mi.look_at(to_pos, up_ref)
+	mi.scale = Vector3(1.0, 1.0, dist)
 	var tw := mi.create_tween()
-	tw.tween_property(mat, "albedo_color:a", 0.0, 0.07)
-	tw.tween_callback(mi.queue_free)
+	tw.tween_property(mi, "transparency", 1.0, 0.07)
+	tw.tween_callback(func() -> void:
+		_active_tracers.erase(mi)
+		if is_instance_valid(mi):
+			mi.queue_free()
+	)

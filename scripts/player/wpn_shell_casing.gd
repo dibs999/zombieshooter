@@ -1,4 +1,5 @@
 extends Node3D
+class_name WpnShellCasing
 
 @onready var mesh_inst: MeshInstance3D = $MeshInstance3D
 
@@ -11,6 +12,35 @@ var _is_shotgun: bool = false
 
 const GRAVITY := 12.5
 const MAX_LIFE := 1.6
+const MAX_SHELLS := 14
+
+static var _active_shells: Array[Node] = []
+static var _shotgun_hull_mesh: CylinderMesh = null
+
+
+static func clear_shared_caches() -> void:
+	for s in _active_shells:
+		if is_instance_valid(s) and not s.is_inside_tree() and not s.is_queued_for_deletion():
+			s.free()
+	_active_shells.clear()
+	_shotgun_hull_mesh = null
+
+
+static func _get_shotgun_hull_mesh() -> CylinderMesh:
+	if _shotgun_hull_mesh == null:
+		var hull := CylinderMesh.new()
+		hull.top_radius = 0.0095
+		hull.bottom_radius = 0.0095
+		hull.height = 0.056
+		hull.radial_segments = 8
+		hull.rings = 1
+		var red_mat := StandardMaterial3D.new()
+		red_mat.albedo_color = Color(0.68, 0.08, 0.08)
+		red_mat.roughness = 0.45
+		red_mat.metallic = 0.15
+		hull.material = red_mat
+		_shotgun_hull_mesh = hull
+	return _shotgun_hull_mesh
 
 
 func setup(eject_vel: Vector3, start_basis: Basis, shotgun_hull: bool = false) -> void:
@@ -18,20 +48,20 @@ func setup(eject_vel: Vector3, start_basis: Basis, shotgun_hull: bool = false) -
 	_is_shotgun = shotgun_hull
 	global_transform.basis = start_basis
 	_ang_vel = Vector3(randf_range(-18.0, 18.0), randf_range(-14.0, 14.0), randf_range(-24.0, 24.0))
-	if shotgun_hull and mesh_inst and mesh_inst.mesh is CylinderMesh:
-		var hull := mesh_inst.mesh.duplicate() as CylinderMesh
-		hull.top_radius = 0.0095
-		hull.bottom_radius = 0.0095
-		hull.height = 0.056
-		var red_mat := StandardMaterial3D.new()
-		red_mat.albedo_color = Color(0.68, 0.08, 0.08)
-		red_mat.roughness = 0.45
-		red_mat.metallic = 0.15
-		hull.material = red_mat
-		mesh_inst.mesh = hull
+	if shotgun_hull and mesh_inst:
+		mesh_inst.mesh = _get_shotgun_hull_mesh()
 
 
 func _ready() -> void:
+	for i in range(_active_shells.size() - 1, -1, -1):
+		if not is_instance_valid(_active_shells[i]):
+			_active_shells.remove_at(i)
+	_active_shells.append(self)
+	while _active_shells.size() > MAX_SHELLS:
+		var old := _active_shells.pop_front() as Node
+		if is_instance_valid(old) and old != self:
+			old.queue_free()
+
 	_floor_y = global_position.y - 1.55
 	var w3d := get_world_3d()
 	if w3d:
@@ -44,10 +74,17 @@ func _ready() -> void:
 				_floor_y = (hit["position"] as Vector3).y + 0.012
 
 
+func _exit_tree() -> void:
+	_active_shells.erase(self)
+
+
 func _process(delta: float) -> void:
 	_age += delta
 	if _age >= MAX_LIFE:
 		queue_free()
+		return
+
+	if _vel == Vector3.ZERO and _ang_vel == Vector3.ZERO:
 		return
 
 	_vel.y -= GRAVITY * delta

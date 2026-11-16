@@ -99,7 +99,7 @@ mesh = SubResource("4")
 [node name="FlameParticles" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.85, 0.14, 0)
 emitting = false
-amount = 96
+amount = 48
 lifetime = 0.72
 preprocess = 0.6
 visibility_aabb = AABB(-3.6, -0.4, -1.5, 7.2, 3.6, 3)
@@ -119,9 +119,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.85, 1.5, 0)
 light_color = Color(1, 0.45, 0.1, 1)
 light_energy = 0.0
 omni_range = 12.0
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0
 
 [node name="ConsoleLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.52, 0.28)
 light_color = Color(1, 0.25, 0.12, 1)
 light_energy = 0.8
 omni_range = 4.5
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0

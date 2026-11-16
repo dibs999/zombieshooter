@@ -19,7 +19,7 @@ material = SubResource("3")
 top_radius = 0.52
 bottom_radius = 0.34
 height = 28.0
-radial_segments = 16
+radial_segments = 12
 
 [node name="MysteryBox" type="Node3D" groups=["mystery_boxes"]]
 script = ExtResource("1")
@@ -55,3 +55,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0.25)
 light_color = Color(0.35, 0.9, 1, 1)
 light_energy = 3.0
 omni_range = 8.0
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0

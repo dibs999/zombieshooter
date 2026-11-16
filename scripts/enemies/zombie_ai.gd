@@ -51,6 +51,9 @@ var _stump_head: Node3D = null
 var _stump_arm_l: Node3D = null
 var _stump_arm_r: Node3D = null
 var _stump_legs: Node3D = null
+var _player: Node3D = null
+var _head_sync_tick: int = 0
+var _head_synced_once: bool = false
 
 var _gib_scene: PackedScene = preload("res://scenes/fx/gib_chunk.tscn")
 var _blood_decal_scene: PackedScene = preload("res://scenes/fx/blood_decal.tscn")
@@ -77,6 +80,7 @@ func setup(p_variant: String, p_hp: float, p_speed: float, p_window: Node = null
 	is_arm_r_severed = false
 	_leg_damage = 0.0
 	_stagger_timer = 0.0
+	_head_synced_once = false
 
 	if target_window != null:
 		state = State.APPROACHING_WINDOW
@@ -93,11 +97,19 @@ func _ready() -> void:
 	head_area.set_meta("zombie_owner", self)
 	body_area.set_meta("zombie_owner", self)
 	_groan_cd = randf_range(1.2, 6.0)
+	_head_sync_tick = randi() & 3
 
 	if model_root.get_child_count() == 0:
 		_load_variant_model()
 
 	_play_anim(_locomotion_anim())
+
+
+func _get_player() -> Node3D:
+	if _player != null and is_instance_valid(_player) and _player.is_inside_tree():
+		return _player
+	_player = get_tree().get_first_node_in_group("player") as Node3D
+	return _player
 
 
 func _locomotion_anim() -> String:
@@ -224,10 +236,15 @@ func _physics_process(delta: float) -> void:
 		_groan_cd = randf_range(4.5, 11.0)
 		AudioManager.play_3d("zombie_groan_1" if randi() % 2 == 0 else "zombie_groan_2", global_position, 0.14, -7.0)
 
-	# Track animated head bone for crisp headshot collision!
+	# Track animated head bone for crisp headshot collision (every tick within 14m or first tick; 1-in-4 beyond)
+	_head_sync_tick = (_head_sync_tick + 1) & 3
 	if not is_head_popped and _skeleton != null and _head_bone_idx >= 0:
-		var bone_pose := _skeleton.get_bone_global_pose(_head_bone_idx)
-		head_area.global_position = _skeleton.to_global(bone_pose.origin) + Vector3(0, 0.06 if is_crawler else 0.12, 0)
+		var p_node := _get_player()
+		var need_sync := (not _head_synced_once) or p_node == null or (_head_sync_tick == 0) or global_position.distance_squared_to(p_node.global_position) <= 196.0
+		if need_sync:
+			_head_synced_once = true
+			var bone_pose := _skeleton.get_bone_global_pose(_head_bone_idx)
+			head_area.global_position = _skeleton.to_global(bone_pose.origin) + Vector3(0, 0.06 if is_crawler else 0.12, 0)
 
 	match state:
 		State.APPROACHING_WINDOW:
@@ -302,7 +319,7 @@ func _process_vaulting(delta: float) -> void:
 
 
 func _process_chasing(delta: float) -> void:
-	var player := get_tree().get_first_node_in_group("player") as Node3D
+	var player := _get_player()
 	if player == null:
 		return
 

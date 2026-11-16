@@ -14,8 +14,8 @@ func _check(cond: bool, msg: String) -> void:
 
 
 func _ready() -> void:
-	get_tree().create_timer(180.0).timeout.connect(func():
-		printerr("TIMEOUT in test_runner.gd (exceeded 180s)!")
+	get_tree().create_timer(240.0).timeout.connect(func():
+		printerr("TIMEOUT in test_runner.gd (exceeded 240s)!")
 		get_tree().quit(1)
 	)
 	print("=== BUNKER 115 FULL HEADLESS VERIFICATION SUITE ===")
@@ -30,24 +30,28 @@ func _ready() -> void:
 	await _test_game_world_and_mechanics()
 	await _cleanup_between_suites()
 
-	print("[4/8] Running weapon/camera jitter & smoothing regression checks...")
+	print("[4/9] Running weapon/camera jitter & smoothing regression checks...")
 	TestsJitter.run_checks(self)
 	await _cleanup_between_suites()
 
-	print("[5/8] Running Stream A Environment & Zone 5 verification checks...")
+	print("[5/9] Running Stream A Environment & Zone 5 verification checks...")
 	await load("res://tools/verify/tests_env.gd").run_checks(self)
 	await _cleanup_between_suites()
 
-	print("[6/8] Running Stream B Zombie, Dismemberment, Hellhound & Panzer Boss checks...")
+	print("[6/9] Running Stream B Zombie, Dismemberment, Hellhound & Panzer Boss checks...")
 	await TestsChars.run_checks(self)
 	await _cleanup_between_suites()
 
-	print("[7/8] Running Stream C Weapons, Viewmodel, Wunderwaffe, Perks, HUD & Audio checks...")
+	print("[7/9] Running Stream C Weapons, Viewmodel, Wunderwaffe, Perks, HUD & Audio checks...")
 	await TestsWpn.run_checks(self)
 	await _cleanup_between_suites()
 
-	print("[8/8] Running Stream D Perks, Wunderfizz, Fire Trap, Easter Egg & Song Teddies checks...")
+	print("[8/9] Running Stream D Perks, Wunderfizz, Fire Trap, Easter Egg & Song Teddies checks...")
 	await TestsMach.run_checks(self)
+	await _cleanup_between_suites()
+
+	print("[9/9] Running Performance, Quality Preset, Texture Dedup & Cache regression checks...")
+	await TestsPerf.run_checks(self)
 	await _cleanup_between_suites()
 	await get_tree().create_timer(0.15).timeout
 	await get_tree().process_frame
@@ -83,7 +87,7 @@ func _cleanup_between_suites() -> void:
 
 
 func _test_game_manager_and_weapon_db() -> void:
-	print("[1/8] Testing GameManager & WeaponDB formulas...")
+	print("[1/9] Testing GameManager & WeaponDB formulas...")
 	GameManager.reset_match()
 	_check(is_equal_approx(GameManager.get_zombie_health_for_round(1), 150.0), "Round 1 HP == 150")
 	_check(is_equal_approx(GameManager.get_zombie_health_for_round(5), 550.0), "Round 5 HP == 550")
@@ -112,7 +116,7 @@ func _test_game_manager_and_weapon_db() -> void:
 
 
 func _test_main_menu() -> void:
-	print("[2/8] Testing MainMenu 3D scene & diorama...")
+	print("[2/9] Testing MainMenu 3D scene & diorama...")
 	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(menu)
 	await get_tree().process_frame
@@ -152,7 +156,7 @@ func _await_nav_increment(map_rid: RID, prev_iter: int) -> int:
 
 
 func _test_game_world_and_mechanics() -> void:
-	print("[3/8] Testing GameWorld navigation, doors, barricades, perks, mystery box, PaP & AI...")
+	print("[3/9] Testing GameWorld navigation, doors, barricades, perks, mystery box, PaP & AI...")
 	GameManager.reset_match()
 	var world := (load("res://scenes/game_world.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(world)

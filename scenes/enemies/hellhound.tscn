@@ -58,11 +58,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 light_color = Color(1, 0.38, 0.05, 1)
 light_energy = 2.0
 omni_range = 4.6
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0
 
 [node name="EmberTrail" type="CPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, 0)
 emitting = false
-amount = 22
+amount = 14
 lifetime = 0.65
 mesh = SubResource("4")
 emission_shape = 1

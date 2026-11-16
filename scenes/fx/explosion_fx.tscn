@@ -31,7 +31,7 @@ lifetime = 1.15
 
 [node name="Particles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 32
+amount = 18
 lifetime = 0.58
 one_shot = true
 explosiveness = 0.96
@@ -45,7 +45,7 @@ scale_amount_max = 1.85
 
 [node name="SmokeParticles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 18
+amount = 10
 lifetime = 1.05
 one_shot = true
 explosiveness = 0.85
@@ -62,3 +62,6 @@ scale_amount_max = 2.1
 light_color = Color(1, 0.6, 0.2, 1)
 light_energy = 14.0
 omni_range = 12.0
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0

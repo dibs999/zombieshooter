@@ -35,3 +35,6 @@ no_depth_test = false
 position = Vector3(0, 1.2, 0)
 light_energy = 0.35
 omni_range = 6.0
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0

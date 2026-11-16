@@ -13,10 +13,10 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 28.0
-content_margin_top = 24.0
-content_margin_right = 28.0
-content_margin_bottom = 24.0
+content_margin_left = 26.0
+content_margin_top = 18.0
+content_margin_right = 26.0
+content_margin_bottom = 18.0
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
@@ -47,17 +47,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -230.0
-offset_top = -260.0
-offset_right = 230.0
-offset_bottom = 260.0
+offset_left = -235.0
+offset_top = -345.0
+offset_right = 235.0
+offset_bottom = 345.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("1")
 
 [node name="VBox" type="VBoxContainer" parent="Root/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="Title" type="Label" parent="Root/Panel/VBox"]
@@ -107,7 +107,7 @@ text = "MAIN MENU"
 [node name="SettingsBox" type="VBoxContainer" parent="Root/Panel/VBox"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 5
 
 [node name="SensLabel" type="Label" parent="Root/Panel/VBox/SettingsBox"]
 layout_mode = 2
@@ -145,12 +145,35 @@ text = "Graphics Quality"
 [node name="GfxOption" type="OptionButton" parent="Root/Panel/VBox/SettingsBox"]
 layout_mode = 2
 
+[node name="ScaleLabel" type="Label" parent="Root/Panel/VBox/SettingsBox"]
+layout_mode = 2
+text = "Render Scale (FSR): 85%"
+
+[node name="ScaleSlider" type="HSlider" parent="Root/Panel/VBox/SettingsBox"]
+layout_mode = 2
+min_value = 0.6
+max_value = 1.0
+step = 0.05
+value = 0.85
+
+[node name="MSAALabel" type="Label" parent="Root/Panel/VBox/SettingsBox"]
+layout_mode = 2
+text = "Anti-Aliasing (MSAA)"
+
+[node name="MSAAOption" type="OptionButton" parent="Root/Panel/VBox/SettingsBox"]
+layout_mode = 2
+
 [node name="InvertCheck" type="CheckBox" parent="Root/Panel/VBox/SettingsBox"]
 layout_mode = 2
 text = "Invert Y Axis"
 
+[node name="VSyncCheck" type="CheckBox" parent="Root/Panel/VBox/SettingsBox"]
+layout_mode = 2
+button_pressed = true
+text = "VSync"
+
 [node name="BackBtn" type="Button" parent="Root/Panel/VBox/SettingsBox"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "BACK"
 
@@ -162,5 +185,8 @@ text = "BACK"
 [connection signal="value_changed" from="Root/Panel/VBox/SettingsBox/FOVSlider" to="." method="_on_fov_changed"]
 [connection signal="value_changed" from="Root/Panel/VBox/SettingsBox/VolSlider" to="." method="_on_vol_changed"]
 [connection signal="item_selected" from="Root/Panel/VBox/SettingsBox/GfxOption" to="." method="_on_gfx_selected"]
+[connection signal="value_changed" from="Root/Panel/VBox/SettingsBox/ScaleSlider" to="." method="_on_scale_changed"]
+[connection signal="item_selected" from="Root/Panel/VBox/SettingsBox/MSAAOption" to="." method="_on_msaa_selected"]
 [connection signal="toggled" from="Root/Panel/VBox/SettingsBox/InvertCheck" to="." method="_on_invert_toggled"]
+[connection signal="toggled" from="Root/Panel/VBox/SettingsBox/VSyncCheck" to="." method="_on_vsync_toggled"]
 [connection signal="pressed" from="Root/Panel/VBox/SettingsBox/BackBtn" to="." method="_on_back_settings_pressed"]

@@ -37,6 +37,9 @@ var _cur_spread_px: float = 10.0
 var _target_spread_px: float = 10.0
 var _hide_crosshair: bool = false
 var _last_round_seen: int = -1
+var _last_blood_a: float = -1.0
+var _last_ch_a: float = -1.0
+var _last_gap: float = -1.0
 
 const FALLBACK_PERK_COLORS := {
 	"quickrevive": Color(0.2, 0.65, 1.0),
@@ -97,28 +100,48 @@ func _process(delta: float) -> void:
 	if reload_hint.visible:
 		reload_hint.modulate.a = 0.55 + 0.45 * sin(_pulse_t * 8.0)
 
-	var base_blood := clampf((1.0 - _hp_ratio) * 1.15, 0.0, 0.92)
+	var target_blood := clampf((1.0 - _hp_ratio) * 1.15, 0.0, 0.92)
 	if _hp_ratio < 0.45:
-		base_blood += 0.14 * (0.5 + 0.5 * sin(_pulse_t * 7.5))
+		target_blood = clampf(target_blood + 0.14 * (0.5 + 0.5 * sin(_pulse_t * 7.5)), 0.0, 0.95)
 	var dt := maxf(delta, 0.0)
-	var blood_alpha := clampf(1.0 - exp(-8.0 * dt), 0.0, 1.0)
-	blood_vignette.modulate.a = lerpf(blood_vignette.modulate.a, clampf(base_blood, 0.0, 0.95), blood_alpha)
+	var cur_blood := blood_vignette.modulate.a
+	if absf(cur_blood - target_blood) > 0.002 or _last_blood_a < 0.0:
+		var blood_alpha := clampf(1.0 - exp(-8.0 * dt), 0.0, 1.0)
+		var next_blood := lerpf(cur_blood, target_blood, blood_alpha)
+		if absf(next_blood - target_blood) <= 0.002:
+			next_blood = target_blood
+		if absf(next_blood - _last_blood_a) > 0.001:
+			_last_blood_a = next_blood
+			blood_vignette.modulate.a = next_blood
 
 	# Smooth reactive crosshair tick spacing & ADS fade
 	var ch_lerp := clampf(1.0 - exp(-18.0 * dt), 0.0, 1.0)
-	_cur_spread_px = lerpf(_cur_spread_px, _target_spread_px, ch_lerp)
+	if absf(_cur_spread_px - _target_spread_px) > 0.02 or _last_gap < 0.0:
+		_cur_spread_px = lerpf(_cur_spread_px, _target_spread_px, ch_lerp)
+		if absf(_cur_spread_px - _target_spread_px) <= 0.02:
+			_cur_spread_px = _target_spread_px
+		var gap := clampf(_cur_spread_px, 4.0, 56.0)
+		if absf(gap - _last_gap) > 0.02:
+			_last_gap = gap
+			var tick_len := 8.0
+			top_tick.offset_top = 20.0 - gap - tick_len
+			top_tick.offset_bottom = 20.0 - gap
+			bot_tick.offset_top = 20.0 + gap
+			bot_tick.offset_bottom = 20.0 + gap + tick_len
+			left_tick.offset_left = 20.0 - gap - tick_len
+			left_tick.offset_right = 20.0 - gap
+			right_tick.offset_left = 20.0 + gap
+			right_tick.offset_right = 20.0 + gap + tick_len
+
 	var ch_alpha := 0.0 if _hide_crosshair else 1.0
-	crosshair.modulate.a = lerpf(crosshair.modulate.a, ch_alpha, ch_lerp)
-	var gap := clampf(_cur_spread_px, 4.0, 56.0)
-	var tick_len := 8.0
-	top_tick.offset_top = 20.0 - gap - tick_len
-	top_tick.offset_bottom = 20.0 - gap
-	bot_tick.offset_top = 20.0 + gap
-	bot_tick.offset_bottom = 20.0 + gap + tick_len
-	left_tick.offset_left = 20.0 - gap - tick_len
-	left_tick.offset_right = 20.0 - gap
-	right_tick.offset_left = 20.0 + gap
-	right_tick.offset_right = 20.0 + gap + tick_len
+	var cur_ch_a := crosshair.modulate.a
+	if absf(cur_ch_a - ch_alpha) > 0.002 or _last_ch_a < 0.0:
+		var next_ch_a := lerpf(cur_ch_a, ch_alpha, ch_lerp)
+		if absf(next_ch_a - ch_alpha) <= 0.002:
+			next_ch_a = ch_alpha
+		if absf(next_ch_a - _last_ch_a) > 0.001:
+			_last_ch_a = next_ch_a
+			crosshair.modulate.a = next_ch_a
 
 
 func set_crosshair_spread(spread_px: float, hide_crosshair: bool) -> void:

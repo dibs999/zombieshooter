@@ -31,6 +31,14 @@ var _mat_wood: ShaderMaterial
 var _mat_asphalt: ShaderMaterial
 var _mat_earth: ShaderMaterial
 var _light_shaft_mat: ShaderMaterial
+var _street_bulb_mat: StandardMaterial3D
+var _street_bulb_mesh: SphereMesh
+var _env_fx_particles: Array[GPUParticles3D] = []
+var _arch_batching: bool = false
+var _arch_batches: Dictionary = {}
+var _unit_box_mesh: BoxMesh
+var _shaft_sts: Dictionary = {}
+var _prewarmed_resources: Array[Resource] = []
 
 
 func _enter_tree() -> void:
@@ -44,6 +52,7 @@ func _ready() -> void:
 	GameManager.power_activated.connect(_on_power_activated)
 	GameManager.round_changed.connect(_on_round_changed)
 
+	_prewarm_resources()
 	_init_materials()
 	_build_facility_architecture()
 	_build_props_and_atmosphere()
@@ -357,6 +366,7 @@ func _build_facility_architecture() -> void:
 	_add_static_box("Roof_Reactor", Vector3(48.5, 0.3, 14.5), Vector3(0.0, 5.35, -15.0), _mat_roof_concrete)
 	_add_static_box("Roof_Spawn_S", Vector3(20.5, 0.3, 4.4), Vector3(0.0, 4.75, 8.0), _mat_roof_concrete)
 	_add_static_box("Roof_Spawn_N", Vector3(20.5, 0.3, 3.0), Vector3(0.0, 4.75, -6.5), _mat_roof_concrete)
+	_arch_batching = true
 	_add_visual_box("Rafter_StubL", Vector3(6.2, 0.24, 0.32), Vector3(-6.9, 4.62, 3.2), _mat_wood)
 	_add_visual_box("Rafter_StubR", Vector3(5.6, 0.24, 0.32), Vector3(7.2, 4.62, 3.2), _mat_wood)
 	_add_static_box("Roof_East_S", Vector3(14.5, 0.3, 9.0), Vector3(17.0, 4.75, 3.5), _mat_roof_corrugated)
@@ -401,6 +411,8 @@ func _build_facility_architecture() -> void:
 	_add_visual_box("Skirt_SpawnN2", Vector3(4.8, 0.22, 0.14), Vector3(7.4, 0.11, -7.72), _mat_concrete)
 	_add_visual_box("Skirt_NorthYardS", Vector3(23.6, 0.22, 0.14), Vector3(0.0, 0.11, -28.28), _mat_concrete)
 	_add_visual_box("Skirt_NorthYardE", Vector3(0.14, 0.22, 19.6), Vector3(23.72, 0.11, -32.0), _mat_steel)
+	_arch_batching = false
+	_flush_arch_batches()
 
 
 func _build_props_and_atmosphere() -> void:
@@ -547,6 +559,7 @@ func _build_props_and_atmosphere() -> void:
 	_add_light_shaft(Vector3(4.2, 5.0, -5.2), Vector3(-22, 0, 10), 1.5, 8.0)
 	_add_light_shaft(Vector3(1.5, 3.8, -34.5), Vector3(16, 0, -10), 2.5, 9.5)
 	_add_light_shaft(Vector3(-6.2, 4.0, -34.8), Vector3(18, 0, 8), 1.9, 8.5)
+	_flush_light_shafts()
 
 	# Practical Cage/Industrial Wall & Ceiling Lights (omit light_cage mesh where CC0 hanging lamp sits)
 	_add_cage_light(Vector3(0.0, 3.3, 9.68), 180.0, Color(1.0, 0.62, 0.24), 2.3, false, false, false, true)
@@ -571,6 +584,7 @@ func _build_props_and_atmosphere() -> void:
 	lab_task.light_color = Color(0.96, 0.90, 0.78)
 	lab_task.light_energy = 1.45
 	lab_task.omni_range = 6.5
+	_setup_light_fade(lab_task, 22.0, 8.0)
 	geo_root.add_child(lab_task)
 
 	var spawn_sky_fill := OmniLight3D.new()
@@ -578,6 +592,7 @@ func _build_props_and_atmosphere() -> void:
 	spawn_sky_fill.light_color = Color(0.44, 0.62, 0.90)
 	spawn_sky_fill.light_energy = 0.72
 	spawn_sky_fill.omni_range = 16.0
+	_setup_light_fade(spawn_sky_fill, 28.0, 8.0)
 	geo_root.add_child(spawn_sky_fill)
 
 	# CC0 Industrial Wall Sconces framing main courtyard, foundry & north yard (each with warm downward bulb glow)
@@ -593,6 +608,7 @@ func _build_props_and_atmosphere() -> void:
 		wl.light_color = Color(1.0, 0.66, 0.28)
 		wl.light_energy = 1.35
 		wl.omni_range = 7.5
+		_setup_light_fade(wl, 22.0, 8.0)
 		geo_root.add_child(wl)
 
 	# North Yard Floodlight SpotLight illuminating the Covered Car & crater
@@ -605,6 +621,7 @@ func _build_props_and_atmosphere() -> void:
 	flood.spot_range = 16.0
 	flood.spot_angle = 36.0
 	flood.spot_attenuation = 1.2
+	_setup_light_fade(flood, 28.0, 8.0)
 	geo_root.add_child(flood)
 
 	# Alarm Red Lights active before Power Switch is pulled
@@ -688,6 +705,8 @@ func _build_reflection_probes_and_decals() -> void:
 		rp.interior = pspec[3]
 		rp.intensity = pspec[4]
 		rp.box_projection = true
+		rp.max_distance = 42.0
+		rp.mesh_lod_threshold = 2.0
 		rp.update_mode = ReflectionProbe.UPDATE_ONCE
 		probe_root.add_child(rp)
 		_probes.append(rp)
@@ -764,6 +783,7 @@ func _build_env_fx() -> void:
 	var fx_root := Node3D.new()
 	fx_root.name = "EnvFX"
 	geo_root.add_child(fx_root)
+	_env_fx_particles.clear()
 
 	if ResourceLoader.exists("res://scenes/fx/env_embers.tscn"):
 		var s_emb := load("res://scenes/fx/env_embers.tscn") as PackedScene
@@ -771,6 +791,7 @@ func _build_env_fx() -> void:
 			var inst := s_emb.instantiate() as Node3D
 			inst.position = ep
 			fx_root.add_child(inst)
+			_register_fx_particles(inst)
 
 	if ResourceLoader.exists("res://scenes/fx/env_dust_motes.tscn"):
 		var s_dust := load("res://scenes/fx/env_dust_motes.tscn") as PackedScene
@@ -778,6 +799,7 @@ func _build_env_fx() -> void:
 			var inst := s_dust.instantiate() as Node3D
 			inst.position = dp
 			fx_root.add_child(inst)
+			_register_fx_particles(inst)
 
 	if ResourceLoader.exists("res://scenes/fx/env_electric_sparks.tscn"):
 		var s_spk := load("res://scenes/fx/env_electric_sparks.tscn") as PackedScene
@@ -785,6 +807,7 @@ func _build_env_fx() -> void:
 			var inst := s_spk.instantiate() as Node3D
 			inst.position = sp
 			fx_root.add_child(inst)
+			_register_fx_particles(inst)
 
 	if ResourceLoader.exists("res://scenes/fx/env_ground_fog.tscn"):
 		var s_fog := load("res://scenes/fx/env_ground_fog.tscn") as PackedScene
@@ -792,6 +815,22 @@ func _build_env_fx() -> void:
 			var inst := s_fog.instantiate() as Node3D
 			inst.position = fp
 			fx_root.add_child(inst)
+			_register_fx_particles(inst)
+
+
+func _register_fx_particles(node: Node) -> void:
+	if node is GPUParticles3D:
+		_env_fx_particles.append(node as GPUParticles3D)
+	for gp in node.find_children("", "GPUParticles3D", true, false):
+		if gp is GPUParticles3D and not _env_fx_particles.has(gp):
+			_env_fx_particles.append(gp as GPUParticles3D)
+
+
+func _setup_light_fade(light: Light3D, begin: float = 26.0, length: float = 8.0) -> void:
+	light.distance_fade_enabled = true
+	light.distance_fade_begin = begin
+	light.distance_fade_shadow = begin
+	light.distance_fade_length = length
 
 
 func _add_decal(
@@ -821,25 +860,32 @@ func _add_decal(
 	d.normal_fade = 0.55
 	d.upper_fade = 0.25
 	d.lower_fade = 0.25
+	d.distance_fade_enabled = true
+	d.distance_fade_begin = 24.0
+	d.distance_fade_length = 8.0
 	parent.add_child(d)
 	_decals.append(d)
 
 
 func _add_street_lamp(pos: Vector3, rot_y_deg: float) -> void:
 	_place_prop("res://assets/models/env_cc0/street_lamp_01.glb", pos, rot_y_deg, Vector3(0.45, 3.85, 0.45), Vector3(0, 1.92, 0))
+	if _street_bulb_mat == null:
+		_street_bulb_mat = StandardMaterial3D.new()
+		_street_bulb_mat.albedo_color = Color(1.0, 0.78, 0.40)
+		_street_bulb_mat.emission_enabled = true
+		_street_bulb_mat.emission = Color(1.0, 0.68, 0.28)
+		_street_bulb_mat.emission_energy_multiplier = 4.2
+	if _street_bulb_mesh == null:
+		_street_bulb_mesh = SphereMesh.new()
+		_street_bulb_mesh.radius = 0.085
+		_street_bulb_mesh.height = 0.22
+		_street_bulb_mesh.radial_segments = 12
+		_street_bulb_mesh.rings = 6
+		_street_bulb_mesh.material = _street_bulb_mat
 	var bulb := MeshInstance3D.new()
 	bulb.position = pos + Vector3(0, 3.36, 0)
 	bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var sm := SphereMesh.new()
-	sm.radius = 0.085
-	sm.height = 0.22
-	var bmat := StandardMaterial3D.new()
-	bmat.albedo_color = Color(1.0, 0.78, 0.40)
-	bmat.emission_enabled = true
-	bmat.emission = Color(1.0, 0.68, 0.28)
-	bmat.emission_energy_multiplier = 4.2
-	sm.material = bmat
-	bulb.mesh = sm
+	bulb.mesh = _street_bulb_mesh
 	geo_root.add_child(bulb)
 
 	var l := OmniLight3D.new()
@@ -848,10 +894,59 @@ func _add_street_lamp(pos: Vector3, rot_y_deg: float) -> void:
 	l.light_energy = 3.0
 	l.omni_range = 15.0
 	l.omni_attenuation = 1.25
+	_setup_light_fade(l, 28.0, 8.0)
 	geo_root.add_child(l)
 
 
+func _zone_bucket(pos: Vector3) -> String:
+	if pos.z > -8.2:
+		if pos.x < -9.8:
+			return "lab"
+		if pos.x > 9.8:
+			return "east"
+		return "spawn"
+	if pos.z > -22.2:
+		return "reactor_w" if pos.x < 0.0 else "reactor_e"
+	return "north_w" if pos.x < 6.0 else "north_e"
+
+
+func _queue_batch_box(size: Vector3, xform: Transform3D, mat: Material, bucket_override: String = "") -> void:
+	if _unit_box_mesh == null:
+		_unit_box_mesh = BoxMesh.new()
+		_unit_box_mesh.size = Vector3.ONE
+	var bucket := bucket_override if bucket_override != "" else _zone_bucket(xform.origin)
+	var key := "%s_%d" % [bucket, mat.get_instance_id()]
+	var batch: Dictionary = _arch_batches.get(key, {})
+	var st: SurfaceTool
+	if batch.is_empty():
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		_arch_batches[key] = {"mat": mat, "st": st}
+	else:
+		st = batch["st"] as SurfaceTool
+	var scaled_xf := Transform3D(xform.basis * Basis.from_scale(size), xform.origin)
+	st.append_from(_unit_box_mesh, 0, scaled_xf)
+
+
+func _flush_arch_batches() -> void:
+	for key in _arch_batches.keys():
+		var batch: Dictionary = _arch_batches[key]
+		var st := batch["st"] as SurfaceTool
+		var am := st.commit()
+		if am == null or am.get_surface_count() == 0:
+			continue
+		var mi := MeshInstance3D.new()
+		mi.name = "ArchBatch_" + str(key)
+		mi.mesh = am
+		mi.material_override = batch["mat"] as Material
+		geo_root.add_child(mi)
+	_arch_batches.clear()
+
+
 func _add_visual_box(nname: String, size: Vector3, pos: Vector3, mat: Material) -> void:
+	if _arch_batching and mat != null:
+		_queue_batch_box(size, Transform3D(Basis.IDENTITY, pos), mat)
+		return
 	var mi := MeshInstance3D.new()
 	mi.name = nname
 	var mesh := BoxMesh.new()
@@ -875,6 +970,12 @@ func _add_static_box(nname: String, size: Vector3, pos: Vector3, mat: Material, 
 	bs.size = size
 	col.shape = bs
 	sb.add_child(col)
+	if nname.begins_with("Roof_") and size.x > 1.2 and size.z > 1.2:
+		var occ := OccluderInstance3D.new()
+		var bo := BoxOccluder3D.new()
+		bo.size = Vector3(size.x - 0.6, 0.22, size.z - 0.6)
+		occ.occluder = bo
+		sb.add_child(occ)
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size
@@ -902,6 +1003,12 @@ func _add_wall(p1: Vector2, p2: Vector2, height: float, thick: float, mat: Mater
 	bs.size = Vector3(length, height, thick)
 	col.shape = bs
 	sb.add_child(col)
+	if length >= 2.2 and height >= 3.5:
+		var occ := OccluderInstance3D.new()
+		var bo := BoxOccluder3D.new()
+		bo.size = Vector3(length - 0.70, height - 0.30, clampf(thick - 0.12, 0.14, 0.40))
+		occ.occluder = bo
+		sb.add_child(occ)
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = Vector3(length, height, thick)
@@ -964,6 +1071,7 @@ func _place_prop(model_path: String, pos: Vector3, rot_y_deg: float, col_size: V
 		l.light_color = glow_color
 		l.light_energy = glow_energy
 		l.omni_range = 9.5
+		_setup_light_fade(l, 22.0, 8.0)
 		holder.add_child(l)
 
 
@@ -1011,13 +1119,22 @@ func _build_ruined_story(p1: Vector2, p2: Vector2, base_y: float, thick: float, 
 	var total_len := delta.length()
 	if total_len < 1.0:
 		return
-	var root := Node3D.new()
 	var mid := (p1 + p2) * 0.5
-	root.position = Vector3(mid.x, base_y, mid.y)
-	root.rotation.y = -delta.angle()
-	geo_root.add_child(root)
+	var wall_yaw := -delta.angle()
+	var root_xf := Transform3D(Basis.from_euler(Vector3(0.0, wall_yaw, 0.0)), Vector3(mid.x, base_y, mid.y))
+	var wall_bucket := "ruin_spawn" if mid.y > -15.0 else "ruin_north"
+	var root: Node3D = null
+	if not _arch_batching:
+		root = Node3D.new()
+		root.position = Vector3(mid.x, base_y, mid.y)
+		root.rotation.y = wall_yaw
+		geo_root.add_child(root)
 
 	var add_local := func(sz: Vector3, lpos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> void:
+		if _arch_batching and mat != null:
+			var local_xf := Transform3D(Basis.from_euler(Vector3(deg_to_rad(rot_deg.x), deg_to_rad(rot_deg.y), deg_to_rad(rot_deg.z))), lpos)
+			_queue_batch_box(sz, root_xf * local_xf, mat, wall_bucket)
+			return
 		var mi := MeshInstance3D.new()
 		var bm := BoxMesh.new()
 		bm.size = sz
@@ -1082,17 +1199,35 @@ func _add_ruined_pier_span(add_local: Callable, x0: float, x1: float, total_len:
 
 
 func _add_light_shaft(pos: Vector3, rot_deg: Vector3, radius: float, height: float) -> void:
-	var mi := MeshInstance3D.new()
-	mi.position = pos
-	mi.rotation_degrees = rot_deg
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var bucket := "spawn" if pos.z > -15.0 else "north"
+	var st := _shaft_sts.get(bucket, null) as SurfaceTool
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		_shaft_sts[bucket] = st
 	var cyl := CylinderMesh.new()
 	cyl.top_radius = radius * 0.45
 	cyl.bottom_radius = radius
 	cyl.height = height
-	cyl.material = _light_shaft_mat
-	mi.mesh = cyl
-	geo_root.add_child(mi)
+	cyl.radial_segments = 16
+	cyl.rings = 1
+	var xf := Transform3D(Basis.from_euler(Vector3(deg_to_rad(rot_deg.x), deg_to_rad(rot_deg.y), deg_to_rad(rot_deg.z))), pos)
+	st.append_from(cyl, 0, xf)
+
+
+func _flush_light_shafts() -> void:
+	for bucket in _shaft_sts.keys():
+		var st := _shaft_sts[bucket] as SurfaceTool
+		var am := st.commit()
+		if am == null or am.get_surface_count() == 0:
+			continue
+		var mi := MeshInstance3D.new()
+		mi.name = "MoonLightShafts_" + str(bucket)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.mesh = am
+		mi.material_override = _light_shaft_mat
+		geo_root.add_child(mi)
+	_shaft_sts.clear()
 
 
 func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, power_controlled: bool, ceiling_mount: bool = false, flicker: bool = false, spawn_mesh: bool = true, drop_y: float = -0.35) -> void:
@@ -1111,6 +1246,7 @@ func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, 
 	omni.omni_range = 16.0
 	omni.light_energy = 0.0 if (power_controlled and not GameManager.power_on) else energy
 	omni.set_meta("target_energy", energy)
+	_setup_light_fade(omni, 28.0, 8.0)
 	n.add_child(omni)
 	if power_controlled:
 		_power_lights.append(omni)
@@ -1129,6 +1265,7 @@ func _add_alarm_light(pos: Vector3) -> void:
 	l.light_color = Color(1.0, 0.14, 0.08)
 	l.omni_range = 12.0
 	l.light_energy = 1.2
+	_setup_light_fade(l, 22.0, 8.0)
 	geo_root.add_child(l)
 	_alarm_lights.append(l)
 
@@ -1206,6 +1343,7 @@ func _on_round_changed(_r: int, is_dog: bool) -> void:
 
 
 func _apply_graphics_settings() -> void:
+	SettingsManager.apply_viewport_settings(get_viewport())
 	if not world_env or not world_env.environment:
 		return
 	var env := world_env.environment
@@ -1214,5 +1352,75 @@ func _apply_graphics_settings() -> void:
 	env.ssil_enabled = (q == "High")
 	env.glow_enabled = (q != "Low")
 	env.volumetric_fog_enabled = (q == "High")
+	var fx_ratio := 1.0 if q == "High" else (0.55 if q == "Medium" else 0.25)
+	for gp in _env_fx_particles:
+		if is_instance_valid(gp):
+			gp.amount_ratio = fx_ratio
 	if moon_light:
 		moon_light.shadow_enabled = (q != "Low")
+		moon_light.directional_shadow_mode = (
+			DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS if q == "High"
+			else (DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q == "Medium" else DirectionalLight3D.SHADOW_ORTHOGONAL)
+		)
+		moon_light.directional_shadow_max_distance = 65.0 if q == "High" else (45.0 if q == "Medium" else 32.0)
+
+
+func _prewarm_resources() -> void:
+	var paths := [
+		"res://scenes/enemies/zombie.tscn",
+		"res://scenes/enemies/hellhound.tscn",
+		"res://scenes/enemies/panzer_boss.tscn",
+		"res://scenes/interactables/power_up.tscn",
+		"res://scenes/fx/blood_burst.tscn",
+		"res://scenes/fx/impact_sparks.tscn",
+		"res://scenes/fx/gib_chunk.tscn",
+		"res://scenes/fx/blood_decal.tscn",
+		"res://scenes/fx/wpn_shell_casing.tscn",
+		"res://scenes/fx/wpn_bullet_decal.tscn",
+		"res://assets/models/characters/zombie_soldier.glb",
+		"res://assets/models/characters/zombie_scientist.glb",
+		"res://assets/models/characters/zombie_worker.glb",
+		"res://assets/models/characters/zombie_brute.glb",
+		"res://assets/models/characters/zombie_crawler.glb",
+		"res://assets/models/characters/hellhound.glb",
+		"res://assets/models/characters/panzer_boss.glb",
+	]
+	for p in paths:
+		if ResourceLoader.exists(p):
+			var r := load(p)
+			if r != null:
+				_prewarmed_resources.append(r)
+	GibChunk._ensure_shared_assets()
+	BloodDecal._get_shared_mat()
+	WeaponController._ensure_tracer_assets()
+
+
+func _exit_tree() -> void:
+	_prewarmed_resources.clear()
+	_power_lights.clear()
+	_alarm_lights.clear()
+	_flicker_lights.clear()
+	_vent_fans.clear()
+	_probes.clear()
+	_decals.clear()
+	_env_fx_particles.clear()
+	_arch_batches.clear()
+	_shaft_sts.clear()
+	_mat_cobble = null
+	_mat_concrete = null
+	_mat_roof_concrete = null
+	_mat_concrete_floor = null
+	_mat_brick = null
+	_mat_tile = null
+	_mat_steel = null
+	_mat_metal_floor = null
+	_mat_corrugated = null
+	_mat_roof_corrugated = null
+	_mat_wood = null
+	_mat_asphalt = null
+	_mat_earth = null
+	_light_shaft_mat = null
+	_street_bulb_mat = null
+	_street_bulb_mesh = null
+	_unit_box_mesh = null
+	_env_pbr_shader = null

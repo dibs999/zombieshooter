@@ -80,10 +80,10 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 28.0
-content_margin_top = 26.0
-content_margin_right = 28.0
-content_margin_bottom = 26.0
+content_margin_left = 26.0
+content_margin_top = 18.0
+content_margin_right = 26.0
+content_margin_bottom = 18.0
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -166,18 +166,27 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 0, -0.9)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 1.7, 2.2)
 light_color = Color(0.18, 0.92, 1, 1)
 light_energy = 1.8
+distance_fade_enabled = true
+distance_fade_begin = 20.0
+distance_fade_length = 6.0
 omni_range = 10.0
 
 [node name="AmberGlow" type="OmniLight3D" parent="Backdrop3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, 2.2, 3.0)
 light_color = Color(1, 0.68, 0.28, 1)
 light_energy = 2.0
+distance_fade_enabled = true
+distance_fade_begin = 20.0
+distance_fade_length = 6.0
 omni_range = 10.0
 
 [node name="RedPerkGlow" type="OmniLight3D" parent="Backdrop3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.55, 1.0)
 light_color = Color(1, 0.24, 0.2, 1)
 light_energy = 0.85
+distance_fade_enabled = true
+distance_fade_begin = 20.0
+distance_fade_length = 6.0
 omni_range = 8.0
 
 [node name="UI" type="MarginContainer" parent="."]
@@ -188,9 +197,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 56
-theme_override_constants/margin_top = 48
+theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 56
-theme_override_constants/margin_bottom = 48
+theme_override_constants/margin_bottom = 32
 
 [node name="Card" type="PanelContainer" parent="UI"]
 custom_minimum_size = Vector2(460, 0)
@@ -201,7 +210,7 @@ theme_override_styles/panel = SubResource("6")
 
 [node name="VBox" type="VBoxContainer" parent="UI/Card"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="UI/Card/VBox"]
 layout_mode = 2
@@ -272,7 +281,7 @@ text = "ZURÜCK"
 [node name="SettingsBox" type="VBoxContainer" parent="UI/Card/VBox"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 5
 
 [node name="SensLabel" type="Label" parent="UI/Card/VBox/SettingsBox"]
 layout_mode = 2
@@ -310,8 +319,31 @@ text = "Grafikqualität"
 [node name="GfxOption" type="OptionButton" parent="UI/Card/VBox/SettingsBox"]
 layout_mode = 2
 
+[node name="ScaleLabel" type="Label" parent="UI/Card/VBox/SettingsBox"]
+layout_mode = 2
+text = "Render-Skalierung (FSR): 85%"
+
+[node name="ScaleSlider" type="HSlider" parent="UI/Card/VBox/SettingsBox"]
+layout_mode = 2
+min_value = 0.6
+max_value = 1.0
+step = 0.05
+value = 0.85
+
+[node name="MSAALabel" type="Label" parent="UI/Card/VBox/SettingsBox"]
+layout_mode = 2
+text = "Kantenglättung (MSAA)"
+
+[node name="MSAAOption" type="OptionButton" parent="UI/Card/VBox/SettingsBox"]
+layout_mode = 2
+
+[node name="VSyncCheck" type="CheckBox" parent="UI/Card/VBox/SettingsBox"]
+layout_mode = 2
+button_pressed = true
+text = "VSync aktivieren"
+
 [node name="SettingsBackBtn" type="Button" parent="UI/Card/VBox/SettingsBox"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "ZURÜCK"
 
@@ -324,4 +356,7 @@ text = "ZURÜCK"
 [connection signal="value_changed" from="UI/Card/VBox/SettingsBox/FOVSlider" to="." method="_on_fov_changed"]
 [connection signal="value_changed" from="UI/Card/VBox/SettingsBox/VolSlider" to="." method="_on_vol_changed"]
 [connection signal="item_selected" from="UI/Card/VBox/SettingsBox/GfxOption" to="." method="_on_gfx_selected"]
+[connection signal="value_changed" from="UI/Card/VBox/SettingsBox/ScaleSlider" to="." method="_on_scale_changed"]
+[connection signal="item_selected" from="UI/Card/VBox/SettingsBox/MSAAOption" to="." method="_on_msaa_selected"]
+[connection signal="toggled" from="UI/Card/VBox/SettingsBox/VSyncCheck" to="." method="_on_vsync_toggled"]
 [connection signal="pressed" from="UI/Card/VBox/SettingsBox/SettingsBackBtn" to="." method="_on_back_pressed"]

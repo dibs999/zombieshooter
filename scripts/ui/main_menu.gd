@@ -8,6 +8,10 @@ extends Control
 @onready var fov_slider: HSlider = $UI/Card/VBox/SettingsBox/FOVSlider
 @onready var vol_slider: HSlider = $UI/Card/VBox/SettingsBox/VolSlider
 @onready var gfx_btn: OptionButton = $UI/Card/VBox/SettingsBox/GfxOption
+@onready var scale_label: Label = $UI/Card/VBox/SettingsBox/ScaleLabel
+@onready var scale_slider: HSlider = $UI/Card/VBox/SettingsBox/ScaleSlider
+@onready var msaa_btn: OptionButton = $UI/Card/VBox/SettingsBox/MSAAOption
+@onready var vsync_chk: CheckBox = $UI/Card/VBox/SettingsBox/VSyncCheck
 
 
 func _ready() -> void:
@@ -18,7 +22,12 @@ func _ready() -> void:
 	gfx_btn.add_item("High")
 	gfx_btn.add_item("Medium")
 	gfx_btn.add_item("Low")
+	msaa_btn.clear()
+	msaa_btn.add_item("Off")
+	msaa_btn.add_item("2x")
+	msaa_btn.add_item("4x")
 	_sync_settings()
+	SettingsManager.settings_changed.connect(_apply_graphics_settings)
 
 	# Load real Blender models into the 3D menu diorama!
 	_spawn_model("Backdrop3D/Props/TankSlot", "res://assets/models/env/ruined_tank.glb")
@@ -32,6 +41,7 @@ func _ready() -> void:
 	_spawn_model("Backdrop3D/Props/Barrel1", "res://assets/models/env/barrel_rusted.glb")
 
 	_build_menu_ruins()
+	_apply_graphics_settings()
 
 
 var _t: float = 0.0
@@ -119,19 +129,24 @@ func _build_menu_ruins() -> void:
 	rp.position = Vector3(1.5, 2.8, -1.5)
 	rp.size = Vector3(24.0, 8.0, 20.0)
 	rp.box_projection = true
+	rp.max_distance = 36.0
 	rp.intensity = 0.85
+	rp.mesh_lod_threshold = 2.0
 	rp.update_mode = ReflectionProbe.UPDATE_ONCE
 	backdrop.add_child(rp)
 
+	var menu_batches: Dictionary = {}
 	var add_box := func(sz: Vector3, pos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> void:
-		var mi := MeshInstance3D.new()
+		var mid := mat.get_instance_id() if mat != null else 0
+		if not menu_batches.has(mid):
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			menu_batches[mid] = {"mat": mat, "st": st}
 		var bm := BoxMesh.new()
 		bm.size = sz
-		bm.material = mat
-		mi.mesh = bm
-		mi.position = pos
-		mi.rotation_degrees = rot_deg
-		backdrop.add_child(mi)
+		var euler := Vector3(deg_to_rad(rot_deg.x), deg_to_rad(rot_deg.y), deg_to_rad(rot_deg.z))
+		var xform := Transform3D(Basis.from_euler(euler, EULER_ORDER_YXZ), pos)
+		(menu_batches[mid]["st"] as SurfaceTool).append_from(bm, 0, xform)
 
 	# Concrete cornice belt at Y=3.2m + broken brick piers & upper boarded windows along BackWall & SideWallR
 	add_box.call(Vector3(28.4, 0.24, 1.04), Vector3(0, 3.22, -9.2), conc_mat)
@@ -161,6 +176,16 @@ func _build_menu_ruins() -> void:
 	add_box.call(Vector3(0.08, 0.16, 2.4), Vector3(11.45, 4.25, -2.0), wood_mat, Vector3(14, 0, 0))
 	add_box.call(Vector3(0.08, 0.16, 2.4), Vector3(11.45, 4.75, -2.0), wood_mat, Vector3(-12, 0, 0))
 
+	var b_idx := 0
+	for key in menu_batches.keys():
+		var entry: Dictionary = menu_batches[key]
+		var bmi := MeshInstance3D.new()
+		bmi.name = "MenuBatch_%d" % b_idx
+		bmi.mesh = (entry["st"] as SurfaceTool).commit()
+		bmi.material_override = entry["mat"]
+		backdrop.add_child(bmi)
+		b_idx += 1
+
 	# Full Moon + Atmospheric Halo in upper-right sky framed cleanly above the gantry truss
 	var moon_pos := Vector3(5.8, 7.6, -24.0)
 	var moon := MeshInstance3D.new()
@@ -169,6 +194,8 @@ func _build_menu_ruins() -> void:
 	var sm := SphereMesh.new()
 	sm.radius = 1.05
 	sm.height = 2.10
+	sm.radial_segments = 24
+	sm.rings = 12
 	var mmat := ShaderMaterial.new()
 	mmat.shader = preload("res://assets/shaders/moon_disc.gdshader")
 	sm.material = mmat
@@ -181,6 +208,8 @@ func _build_menu_ruins() -> void:
 	var hm := SphereMesh.new()
 	hm.radius = 3.1
 	hm.height = 6.2
+	hm.radial_segments = 24
+	hm.rings = 12
 	var hmat := ShaderMaterial.new()
 	hmat.shader = preload("res://assets/shaders/moon_halo.gdshader")
 	hm.material = hmat
@@ -196,6 +225,8 @@ func _build_menu_ruins() -> void:
 	cyl.top_radius = 1.1
 	cyl.bottom_radius = 2.6
 	cyl.height = 8.5
+	cyl.radial_segments = 16
+	cyl.rings = 1
 	var smat := ShaderMaterial.new()
 	smat.shader = preload("res://assets/shaders/light_shaft.gdshader")
 	smat.set_shader_parameter("shaft_color", Color(0.56, 0.76, 0.98, 0.055))
@@ -246,6 +277,8 @@ func _build_menu_ruins() -> void:
 	var bsm := SphereMesh.new()
 	bsm.radius = 0.09
 	bsm.height = 0.22
+	bsm.radial_segments = 12
+	bsm.rings = 6
 	var bmat := StandardMaterial3D.new()
 	bmat.albedo_color = Color(1.0, 0.78, 0.40)
 	bmat.emission_enabled = true
@@ -261,6 +294,9 @@ func _build_menu_ruins() -> void:
 	lamp_l.light_color = Color(1.0, 0.68, 0.28)
 	lamp_l.light_energy = 3.1
 	lamp_l.omni_range = 14.0
+	lamp_l.distance_fade_enabled = true
+	lamp_l.distance_fade_begin = 20.0
+	lamp_l.distance_fade_length = 6.0
 	backdrop.add_child(lamp_l)
 
 	var stove_l := OmniLight3D.new()
@@ -268,6 +304,9 @@ func _build_menu_ruins() -> void:
 	stove_l.light_color = Color(1.0, 0.45, 0.14)
 	stove_l.light_energy = 1.65
 	stove_l.omni_range = 7.5
+	stove_l.distance_fade_enabled = true
+	stove_l.distance_fade_begin = 20.0
+	stove_l.distance_fade_length = 6.0
 	backdrop.add_child(stove_l)
 
 	var sconce := OmniLight3D.new()
@@ -275,6 +314,9 @@ func _build_menu_ruins() -> void:
 	sconce.light_color = Color(1.0, 0.62, 0.25)
 	sconce.light_energy = 2.2
 	sconce.omni_range = 8.0
+	sconce.distance_fade_enabled = true
+	sconce.distance_fade_begin = 20.0
+	sconce.distance_fade_length = 6.0
 	backdrop.add_child(sconce)
 
 	var wall_sconce := OmniLight3D.new()
@@ -282,6 +324,9 @@ func _build_menu_ruins() -> void:
 	wall_sconce.light_color = Color(1.0, 0.65, 0.28)
 	wall_sconce.light_energy = 1.15
 	wall_sconce.omni_range = 6.5
+	wall_sconce.distance_fade_enabled = true
+	wall_sconce.distance_fade_begin = 20.0
+	wall_sconce.distance_fade_length = 6.0
 	backdrop.add_child(wall_sconce)
 
 	# Decals on menu cobble ground & SideWallR (oil slicks, blood, puddles, wall crack)
@@ -298,6 +343,9 @@ func _build_menu_ruins() -> void:
 			dec.size = dspec[2]
 			dec.texture_albedo = load(dspec[3])
 			dec.albedo_mix = 0.85
+			dec.distance_fade_enabled = true
+			dec.distance_fade_begin = 18.0
+			dec.distance_fade_length = 6.0
 			backdrop.add_child(dec)
 
 	# GPU Particles: Embers from barrel stove + low mist across cobbles
@@ -329,11 +377,40 @@ func _process(delta: float) -> void:
 
 
 func _sync_settings() -> void:
-	sens_slider.value = SettingsManager.mouse_sensitivity * 1000.0
-	fov_slider.value = SettingsManager.fov
-	vol_slider.value = SettingsManager.master_volume * 100.0
+	sens_slider.set_value_no_signal(SettingsManager.mouse_sensitivity * 1000.0)
+	fov_slider.set_value_no_signal(SettingsManager.fov)
+	vol_slider.set_value_no_signal(SettingsManager.master_volume * 100.0)
+	scale_slider.set_value_no_signal(SettingsManager.render_scale)
+	scale_label.text = "Render-Skalierung (FSR): %d%%" % int(round(SettingsManager.render_scale * 100.0))
+	vsync_chk.set_pressed_no_signal(SettingsManager.vsync_enabled)
 	var idx := ["High", "Medium", "Low"].find(SettingsManager.graphics_quality)
 	gfx_btn.selected = maxi(0, idx)
+	var msaa_idx := ["Off", "2x", "4x"].find(SettingsManager.msaa_mode)
+	msaa_btn.selected = maxi(0, msaa_idx)
+
+
+func _apply_graphics_settings() -> void:
+	SettingsManager.apply_viewport_settings(get_viewport())
+	var q := SettingsManager.graphics_quality
+	var we := get_node_or_null("Backdrop3D/WorldEnvironment") as WorldEnvironment
+	if we and we.environment:
+		we.environment.ssao_enabled = (q == "High")
+		we.environment.glow_enabled = (q != "Low")
+	var moon := get_node_or_null("Backdrop3D/MoonLight") as DirectionalLight3D
+	if moon:
+		moon.shadow_enabled = (q != "Low")
+		moon.directional_shadow_mode = (
+			DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS if q == "High"
+			else DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+		)
+		moon.directional_shadow_max_distance = 55.0 if q == "High" else 36.0
+	var p_ratio := 1.0 if q == "High" else (0.6 if q == "Medium" else 0.3)
+	var backdrop := get_node_or_null("Backdrop3D")
+	if backdrop:
+		for node in backdrop.find_children("", "GPUParticles3D", true, false):
+			var gp := node as GPUParticles3D
+			if gp:
+				gp.amount_ratio = p_ratio
 
 
 func _on_play_pressed() -> void:
@@ -376,3 +453,16 @@ func _on_vol_changed(val: float) -> void:
 
 func _on_gfx_selected(idx: int) -> void:
 	SettingsManager.set_graphics_quality(["High", "Medium", "Low"][idx])
+
+
+func _on_scale_changed(val: float) -> void:
+	SettingsManager.set_render_scale(val)
+	scale_label.text = "Render-Skalierung (FSR): %d%%" % int(round(SettingsManager.render_scale * 100.0))
+
+
+func _on_msaa_selected(idx: int) -> void:
+	SettingsManager.set_msaa_mode(["Off", "2x", "4x"][idx])
+
+
+func _on_vsync_toggled(on: bool) -> void:
+	SettingsManager.set_vsync_enabled(on)

@@ -1,8 +1,14 @@
 extends Node3D
 class_name GibChunk
 
-const MAX_ACTIVE_GIBS := 28
+const MAX_ACTIVE_GIBS := 18
 static var _active_gibs: Array[Node] = []
+static var _mesh_armor: BoxMesh = null
+static var _mesh_skull: SphereMesh = null
+static var _mesh_flesh: SphereMesh = null
+static var _mat_armor: StandardMaterial3D = null
+static var _mat_skull: StandardMaterial3D = null
+static var _mat_flesh: StandardMaterial3D = null
 
 @onready var mesh_inst: MeshInstance3D = $MeshInstance3D
 
@@ -12,6 +18,49 @@ var _age: float = 0.0
 var _lifetime: float = 3.8
 var _settled: bool = false
 var _bounces: int = 0
+
+
+static func _ensure_shared_assets() -> void:
+	if _mesh_armor == null:
+		_mesh_armor = BoxMesh.new()
+		_mesh_armor.size = Vector3(0.18, 0.04, 0.18)
+	if _mesh_skull == null:
+		_mesh_skull = SphereMesh.new()
+		_mesh_skull.radius = 0.075
+		_mesh_skull.height = 0.12
+		_mesh_skull.radial_segments = 8
+		_mesh_skull.rings = 5
+	if _mesh_flesh == null:
+		_mesh_flesh = SphereMesh.new()
+		_mesh_flesh.radius = 0.072
+		_mesh_flesh.height = 0.125
+		_mesh_flesh.radial_segments = 7
+		_mesh_flesh.rings = 4
+	if _mat_armor == null:
+		_mat_armor = StandardMaterial3D.new()
+		var arm_tex := _load_char_tex("panzer_armor_albedo")
+		if arm_tex != null:
+			_mat_armor.albedo_texture = arm_tex
+		else:
+			_mat_armor.albedo_color = Color(0.28, 0.26, 0.24)
+		_mat_armor.metallic = 0.82
+		_mat_armor.roughness = 0.42
+	if _mat_skull == null:
+		_mat_skull = StandardMaterial3D.new()
+		_mat_skull.albedo_color = Color(0.68, 0.52, 0.42)
+		_mat_skull.roughness = 0.48
+	if _mat_flesh == null:
+		_mat_flesh = StandardMaterial3D.new()
+		var gore_alb := _load_char_tex("gore_flesh_albedo")
+		if gore_alb != null:
+			_mat_flesh.albedo_texture = gore_alb
+		else:
+			_mat_flesh.albedo_color = Color(0.45, 0.04, 0.04)
+		var gore_nor := _load_char_tex("gore_flesh_normal")
+		if gore_nor != null:
+			_mat_flesh.normal_enabled = true
+			_mat_flesh.normal_texture = gore_nor
+		_mat_flesh.roughness = 0.22
 
 
 func setup(kind: String, impulse: Vector3) -> void:
@@ -26,49 +75,25 @@ func setup(kind: String, impulse: Vector3) -> void:
 	if mesh_inst == null:
 		return
 
-	var mat := StandardMaterial3D.new()
+	_ensure_shared_assets()
 	match kind:
 		"armor":
-			var box := BoxMesh.new()
-			box.size = Vector3(randf_range(0.14, 0.24), randf_range(0.03, 0.05), randf_range(0.14, 0.24))
-			mesh_inst.mesh = box
-			var arm_tex := _load_char_tex("panzer_armor_albedo")
-			if arm_tex != null:
-				mat.albedo_texture = arm_tex
-			else:
-				mat.albedo_color = Color(0.28, 0.26, 0.24)
-			mat.metallic = 0.82
-			mat.roughness = 0.42
+			mesh_inst.mesh = _mesh_armor
+			mesh_inst.material_override = _mat_armor
+			mesh_inst.scale = Vector3(randf_range(0.78, 1.32), randf_range(0.75, 1.25), randf_range(0.78, 1.32))
 		"skull":
-			var sph := SphereMesh.new()
-			sph.radius = randf_range(0.06, 0.095)
-			sph.height = sph.radius * randf_range(1.4, 1.9)
-			sph.radial_segments = 8
-			sph.rings = 5
-			mesh_inst.mesh = sph
-			mat.albedo_color = Color(0.68, 0.52, 0.42)
-			mat.roughness = 0.48
+			mesh_inst.mesh = _mesh_skull
+			mesh_inst.material_override = _mat_skull
+			var s := randf_range(0.80, 1.26)
+			mesh_inst.scale = Vector3(s, s * randf_range(0.88, 1.22), s)
 		_:
-			var chunk := SphereMesh.new()
-			chunk.radius = randf_range(0.055, 0.095)
-			chunk.height = chunk.radius * randf_range(1.5, 2.2)
-			chunk.radial_segments = 7
-			chunk.rings = 4
-			mesh_inst.mesh = chunk
-			var gore_alb := _load_char_tex("gore_flesh_albedo")
-			if gore_alb != null:
-				mat.albedo_texture = gore_alb
-			else:
-				mat.albedo_color = Color(0.45, 0.04, 0.04)
-			var gore_nor := _load_char_tex("gore_flesh_normal")
-			if gore_nor != null:
-				mat.normal_enabled = true
-				mat.normal_texture = gore_nor
-			mat.roughness = 0.22
-	mesh_inst.material_override = mat
+			mesh_inst.mesh = _mesh_flesh
+			mesh_inst.material_override = _mat_flesh
+			var sf := randf_range(0.76, 1.32)
+			mesh_inst.scale = Vector3(sf, sf * randf_range(0.9, 1.3), sf)
 
 
-func _load_char_tex(stem: String) -> Texture2D:
+static func _load_char_tex(stem: String) -> Texture2D:
 	for ext in [".jpg", ".png"]:
 		var p := "res://assets/textures/characters/%s%s" % [stem, ext]
 		if ResourceLoader.exists(p):
@@ -77,12 +102,31 @@ func _load_char_tex(stem: String) -> Texture2D:
 
 
 func _ready() -> void:
-	_active_gibs = _active_gibs.filter(func(n): return is_instance_valid(n))
+	for i in range(_active_gibs.size() - 1, -1, -1):
+		if not is_instance_valid(_active_gibs[i]):
+			_active_gibs.remove_at(i)
 	_active_gibs.append(self)
 	while _active_gibs.size() > MAX_ACTIVE_GIBS:
 		var old: Node = _active_gibs.pop_front()
 		if is_instance_valid(old) and old != self:
 			old.queue_free()
+
+
+func _exit_tree() -> void:
+	_active_gibs.erase(self)
+
+
+static func clear_shared_caches() -> void:
+	for g in _active_gibs:
+		if is_instance_valid(g) and not g.is_inside_tree() and not g.is_queued_for_deletion():
+			g.free()
+	_active_gibs.clear()
+	_mesh_armor = null
+	_mesh_skull = null
+	_mesh_flesh = null
+	_mat_armor = null
+	_mat_skull = null
+	_mat_flesh = null
 
 
 func _process(delta: float) -> void:

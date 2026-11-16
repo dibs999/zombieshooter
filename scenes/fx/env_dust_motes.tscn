@@ -42,7 +42,7 @@ material = SubResource("4")
 size = Vector2(0.032, 0.032)
 
 [node name="EnvDustMotes" type="GPUParticles3D"]
-amount = 36
+amount = 20
 lifetime = 4.6
 preprocess = 3.0
 visibility_aabb = AABB(-4, -2, -4, 8, 4, 8)

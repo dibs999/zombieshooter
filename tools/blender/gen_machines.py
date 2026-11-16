@@ -208,7 +208,7 @@ def build_perk_machine(key, body_rgb, bottle_rgb, topper_fn=None, use_cc0_tex=Fa
     parts.append(C.add_box("BasePlinth", (0.94, 0.74, 0.11), (0, 0, 0.055), mat=dark_mat, bevel=0.015, uv_scale=1.8))
     for cx in (-0.42, 0.42):
         for cy in (-0.31, 0.31):
-            parts.append(C.add_cyl(f"Foot_{cx}_{cy}", 0.055, 0.06, (cx, cy, 0.03), vertices=12, mat=chrome_mat))
+            parts.append(C.add_cyl(f"Foot_{cx}_{cy}", 0.055, 0.06, (cx, cy, 0.03), vertices=8, mat=chrome_mat, bevel=0.0))
 
     # Lower Enameled Body (Z=0.10 .. 1.32)
     parts.append(C.add_box("CabinetLower", (0.90, 0.68, 1.22), (0, 0.01, 0.71), mat=body_mat, bevel=0.045, uv_scale=1.6))
@@ -228,10 +228,10 @@ def build_perk_machine(key, body_rgb, bottle_rgb, topper_fn=None, use_cc0_tex=Fa
     parts.append(C.add_ring_loft("CabinetHood", hood_rings, mat=cream_mat, smooth_angle=35.0, uv_scale=1.6))
 
     # Chrome Wrap-Around Belt & Side Bumpers
-    parts.append(C.add_box("ChromeBelt", (0.94, 0.73, 0.055), (0, 0.01, 1.33), mat=chrome_mat, bevel=0.014))
-    parts.append(C.add_box("ChromeCrown", (0.86, 0.66, 0.045), (0, 0.01, 1.94), mat=chrome_mat, bevel=0.012))
+    parts.append(C.add_box("ChromeBelt", (0.94, 0.73, 0.055), (0, 0.01, 1.33), mat=chrome_mat, bevel=0.012))
+    parts.append(C.add_box("ChromeCrown", (0.86, 0.66, 0.045), (0, 0.01, 1.94), mat=chrome_mat, bevel=0.010))
     for sx in (-0.46, 0.46):
-        parts.append(C.add_box(f"SideRib_{sx}", (0.045, 0.72, 1.80), (sx, 0.01, 1.00), mat=chrome_mat, bevel=0.012))
+        parts.append(C.add_box(f"SideRib_{sx}", (0.045, 0.72, 1.80), (sx, 0.01, 1.00), mat=chrome_mat, bevel=0.010))
         for lz in range(6):
             parts.append(C.add_box(
                 f"SideLouver_{sx}_{lz}",
@@ -239,69 +239,69 @@ def build_perk_machine(key, body_rgb, bottle_rgb, topper_fn=None, use_cc0_tex=Fa
                 (sx * 0.99, 0.02, 0.32 + lz * 0.055),
                 (0, math.radians(-22 if sx > 0 else 22), 0),
                 mat=dark_mat,
-                bevel=0.003,
+                bevel=0.0,
             ))
 
     # 2. Front Embossed Vending Door, Recessed Selector Panel & Chute
-    parts.append(C.add_box("FrontDoorFrame", (0.64, 0.045, 0.98), (0, -0.34, 0.71), mat=chrome_mat, bevel=0.014))
-    parts.append(C.add_box("FrontDoorInset", (0.58, 0.045, 0.92), (0, -0.35, 0.71), mat=body_mat, bevel=0.012, uv_scale=1.8))
+    parts.append(C.add_box("FrontDoorFrame", (0.64, 0.045, 0.98), (0, -0.34, 0.71), mat=chrome_mat, bevel=0.012))
+    parts.append(C.add_box("FrontDoorInset", (0.58, 0.045, 0.92), (0, -0.35, 0.71), mat=body_mat, bevel=0.010, uv_scale=1.8))
 
-    parts.append(C.add_box("CoinBezel", (0.40, 0.055, 0.38), (0, -0.375, 0.93), mat=chrome_mat, bevel=0.01))
-    parts.append(C.add_box("CoinFace", (0.34, 0.03, 0.32), (0, -0.395, 0.93), mat=dark_mat, bevel=0.005))
-    parts.append(C.add_box("CoinSlot", (0.04, 0.035, 0.09), (-0.09, -0.41, 1.00), mat=chrome_mat, bevel=0.004))
-    parts.append(C.add_box("CoinReturn", (0.06, 0.035, 0.07), (-0.09, -0.41, 0.87), mat=chrome_mat, bevel=0.005))
-    parts.append(C.add_cyl("LatchLever", 0.016, 0.07, (-0.18, -0.395, 0.93), (0, 0, math.radians(20)), mat=chrome_mat))
+    parts.append(C.add_box("CoinBezel", (0.40, 0.055, 0.38), (0, -0.375, 0.93), mat=chrome_mat, bevel=0.008))
+    parts.append(C.add_box("CoinFace", (0.34, 0.03, 0.32), (0, -0.395, 0.93), mat=dark_mat, bevel=0.0))
+    parts.append(C.add_box("CoinSlot", (0.04, 0.035, 0.09), (-0.09, -0.41, 1.00), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("CoinReturn", (0.06, 0.035, 0.07), (-0.09, -0.41, 0.87), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_cyl("LatchLever", 0.016, 0.07, (-0.18, -0.395, 0.93), (0, 0, math.radians(20)), vertices=8, mat=chrome_mat, bevel=0.0))
     for b_idx in range(3):
-        parts.append(C.add_box(f"SelBtn_{b_idx}", (0.14, 0.035, 0.045), (0.06, -0.405, 1.01 - b_idx * 0.075), mat=dome_mat, bevel=0.006))
+        parts.append(C.add_box(f"SelBtn_{b_idx}", (0.14, 0.035, 0.045), (0.06, -0.405, 1.01 - b_idx * 0.075), mat=dome_mat, bevel=0.0))
 
-    parts.append(C.add_box("ChuteHousing", (0.38, 0.06, 0.23), (0, -0.375, 0.49), mat=chrome_mat, bevel=0.01))
-    parts.append(C.add_box("ChuteCavity", (0.32, 0.05, 0.17), (0, -0.39, 0.49), mat=bay_dark, bevel=0.005))
-    parts.append(C.add_box("ChuteFlap", (0.30, 0.018, 0.14), (0, -0.398, 0.50), (math.radians(-10), 0, 0), mat=chrome_mat, bevel=0.004))
+    parts.append(C.add_box("ChuteHousing", (0.38, 0.06, 0.23), (0, -0.375, 0.49), mat=chrome_mat, bevel=0.008))
+    parts.append(C.add_box("ChuteCavity", (0.32, 0.05, 0.17), (0, -0.39, 0.49), mat=bay_dark, bevel=0.0))
+    parts.append(C.add_box("ChuteFlap", (0.30, 0.018, 0.14), (0, -0.398, 0.50), (math.radians(-10), 0, 0), mat=chrome_mat, bevel=0.0))
 
     for gz in range(4):
-        parts.append(C.add_box(f"FrontGrill_{gz}", (0.48, 0.03, 0.02), (0, -0.37, 0.25 + gz * 0.035), (math.radians(28), 0, 0), mat=dark_mat, bevel=0.002))
+        parts.append(C.add_box(f"FrontGrill_{gz}", (0.48, 0.03, 0.02), (0, -0.37, 0.25 + gz * 0.035), (math.radians(28), 0, 0), mat=dark_mat, bevel=0.0))
 
     # 3. Proud Illuminated Bottle Showcase Bay (fully in front of CabinetHood Y=-0.34!)
-    parts.append(C.add_box("ShowcaseBack", (0.72, 0.018, 0.21), (0, -0.342, 1.49), mat=bay_dark, bevel=0.004))
-    parts.append(C.add_box("ShowcaseRimT", (0.76, 0.10, 0.03), (0, -0.382, 1.60), mat=chrome_mat, bevel=0.008))
-    parts.append(C.add_box("ShowcaseRimB", (0.76, 0.10, 0.03), (0, -0.382, 1.38), mat=chrome_mat, bevel=0.008))
-    parts.append(C.add_box("ShowcaseRimL", (0.035, 0.10, 0.25), (-0.365, -0.382, 1.49), mat=chrome_mat, bevel=0.008))
-    parts.append(C.add_box("ShowcaseRimR", (0.035, 0.10, 0.25), (0.365, -0.382, 1.49), mat=chrome_mat, bevel=0.008))
+    parts.append(C.add_box("ShowcaseBack", (0.72, 0.018, 0.21), (0, -0.342, 1.49), mat=bay_dark, bevel=0.0))
+    parts.append(C.add_box("ShowcaseRimT", (0.76, 0.10, 0.03), (0, -0.382, 1.60), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("ShowcaseRimB", (0.76, 0.10, 0.03), (0, -0.382, 1.38), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("ShowcaseRimL", (0.035, 0.10, 0.25), (-0.365, -0.382, 1.49), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("ShowcaseRimR", (0.035, 0.10, 0.25), (0.365, -0.382, 1.49), mat=chrome_mat, bevel=0.0))
 
     bottle_prof = [
         (0.002, 0.0), (0.034, 0.004), (0.036, 0.075), (0.030, 0.095),
         (0.014, 0.120), (0.013, 0.155), (0.016, 0.162), (0.013, 0.168), (0.002, 0.169)
     ]
     for bx in (-0.18, 0.0, 0.18):
-        parts.append(C.add_lathe(f"Bottle_{bx}", bottle_prof, segments=14, loc=(bx, -0.380, 1.402), mat=bottle_mat))
-        parts.append(C.add_cyl(f"BottleCap_{bx}", 0.015, 0.012, (bx, -0.380, 1.573), mat=brass_mat))
+        parts.append(C.add_lathe(f"Bottle_{bx}", bottle_prof, segments=10, loc=(bx, -0.380, 1.402), mat=bottle_mat))
+        parts.append(C.add_cyl(f"BottleCap_{bx}", 0.015, 0.012, (bx, -0.380, 1.573), vertices=8, mat=brass_mat, bevel=0.0))
 
     # 4. Hollow Chrome Frame Trim around Marquee & Top Caged Siren Beacon
-    parts.append(C.add_box("MarqueeBarT", (0.78, 0.04, 0.025), (0, -0.352, 1.945), mat=chrome_mat, bevel=0.006))
-    parts.append(C.add_box("MarqueeBarB", (0.78, 0.04, 0.025), (0, -0.352, 1.625), mat=chrome_mat, bevel=0.006))
-    parts.append(C.add_box("MarqueeBarL", (0.03, 0.04, 0.34), (-0.375, -0.352, 1.785), mat=chrome_mat, bevel=0.006))
-    parts.append(C.add_box("MarqueeBarR", (0.03, 0.04, 0.34), (0.375, -0.352, 1.785), mat=chrome_mat, bevel=0.006))
+    parts.append(C.add_box("MarqueeBarT", (0.78, 0.04, 0.025), (0, -0.352, 1.945), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("MarqueeBarB", (0.78, 0.04, 0.025), (0, -0.352, 1.625), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("MarqueeBarL", (0.03, 0.04, 0.34), (-0.375, -0.352, 1.785), mat=chrome_mat, bevel=0.0))
+    parts.append(C.add_box("MarqueeBarR", (0.03, 0.04, 0.34), (0.375, -0.352, 1.785), mat=chrome_mat, bevel=0.0))
 
     # Beacon Base + Dome + Protective Wire Cage
     parts.append(C.add_lathe(
         "DomeCollar",
         [(0.20, 2.02), (0.19, 2.08), (0.165, 2.11), (0.02, 2.11)],
-        segments=20,
+        segments=12,
         loc=(0, -0.02, 0.0),
         mat=chrome_mat,
     ))
     parts.append(C.add_lathe(
         "GlowDome",
         [(0.145, 2.10), (0.15, 2.18), (0.14, 2.27), (0.105, 2.34), (0.055, 2.38), (0.005, 2.39)],
-        segments=20,
+        segments=12,
         loc=(0, -0.02, 0.0),
         mat=dome_mat,
     ))
-    parts.append(C.add_cyl("FinialCap", 0.042, 0.03, (0, -0.02, 2.39), mat=brass_mat))
+    parts.append(C.add_cyl("FinialCap", 0.042, 0.03, (0, -0.02, 2.39), vertices=10, mat=brass_mat, bevel=0.0))
 
     # Crossed protective wireframe cage rings & vertical ribs around Beacon
     for rz in (2.17, 2.28):
-        parts.append(C.add_torus(f"CageBand_{rz}", 0.168 if rz < 2.22 else 0.152, 0.007, (0, -0.02, rz), major_segments=20, mat=chrome_mat))
+        parts.append(C.add_torus(f"CageBand_{rz}", 0.168 if rz < 2.22 else 0.152, 0.007, (0, -0.02, rz), major_segments=14, minor_segments=6, mat=chrome_mat))
     for rib in range(6):
         ang = (rib / 6.0) * 2.0 * math.pi
         cx = math.cos(ang)
@@ -312,11 +312,11 @@ def build_perk_machine(key, body_rgb, bottle_rgb, topper_fn=None, use_cc0_tex=Fa
             (cx * 0.148, -0.02 + cy * 0.148, 2.33),
             (cx * 0.050, -0.02 + cy * 0.050, 2.405),
         ]
-        parts.append(C.add_tube_pipe(f"CageRib_{rib}", pts, radius=0.0065, segments=6, mat=chrome_mat))
+        parts.append(C.add_tube_pipe(f"CageRib_{rib}", pts, radius=0.0065, segments=5, mat=chrome_mat))
 
     # Rear Junction Box & Power Conduit
-    parts.append(C.add_box("RearBreaker", (0.28, 0.08, 0.34), (0.20, 0.36, 0.65), mat=dark_mat, bevel=0.01))
-    parts.append(C.add_tube_pipe("RearCable", [(0.20, 0.36, 0.48), (0.20, 0.39, 0.25), (0.24, 0.38, 0.03)], radius=0.018, segments=8, mat=dark_mat))
+    parts.append(C.add_box("RearBreaker", (0.28, 0.08, 0.34), (0.20, 0.36, 0.65), mat=dark_mat, bevel=0.0))
+    parts.append(C.add_tube_pipe("RearCable", [(0.20, 0.36, 0.48), (0.20, 0.39, 0.25), (0.24, 0.38, 0.03)], radius=0.018, segments=6, mat=dark_mat))
 
     if topper_fn is not None:
         topper_fn(parts, body_mat, cream_mat, chrome_mat, brass_mat, dark_mat, dome_mat, bottle_mat)
@@ -362,47 +362,47 @@ def build_mystery_box():
 
     body_parts = []
     # Base floor & 4 horizontal timber courses along walls (individual slightly beveled plank strips)
-    body_parts.append(C.add_box("ChestFloor", (1.78, 0.76, 0.08), (0, 0, 0.04), mat=wood_mat, bevel=0.01, uv_scale=1.6))
-    body_parts.append(C.add_box("InnerCavern", (1.66, 0.64, 0.44), (0, 0, 0.30), mat=dark_mat, bevel=0.005))
-    body_parts.append(C.add_box("InnerGoldGlow", (1.58, 0.56, 0.05), (0, 0, 0.52), mat=gold_glow, bevel=0.006))
+    body_parts.append(C.add_box("ChestFloor", (1.78, 0.76, 0.08), (0, 0, 0.04), mat=wood_mat, bevel=0.0, uv_scale=1.6))
+    body_parts.append(C.add_box("InnerCavern", (1.66, 0.64, 0.44), (0, 0, 0.30), mat=dark_mat, bevel=0.0))
+    body_parts.append(C.add_box("InnerGoldGlow", (1.58, 0.56, 0.05), (0, 0, 0.52), mat=gold_glow, bevel=0.0))
 
     for pz_idx, zc in enumerate((0.12, 0.27, 0.42, 0.56)):
         bow = math.sin(pz_idx * 1.4) * 0.008
         # Front & Back Planks
         for sy in (-0.37, 0.37):
-            body_parts.append(C.add_box(f"PlankFB_{pz_idx}_{sy}", (1.82, 0.065, 0.132), (0, sy + bow * (-1 if sy < 0 else 1), zc), mat=wood_mat, bevel=0.012, uv_scale=1.6))
+            body_parts.append(C.add_box(f"PlankFB_{pz_idx}_{sy}", (1.82, 0.065, 0.132), (0, sy + bow * (-1 if sy < 0 else 1), zc), mat=wood_mat, bevel=0.0, uv_scale=1.6))
         # Side Planks
         for sx in (-0.88, 0.88):
-            body_parts.append(C.add_box(f"PlankLR_{pz_idx}_{sx}", (0.065, 0.76, 0.132), (sx, 0, zc), mat=wood_mat, bevel=0.012, uv_scale=1.6))
+            body_parts.append(C.add_box(f"PlankLR_{pz_idx}_{sx}", (0.065, 0.76, 0.132), (sx, 0, zc), mat=wood_mat, bevel=0.0, uv_scale=1.6))
 
     # Iron Corner Straps, Mid Straps, Rivets & Rim Trim
     for sx in (-0.90, 0.90):
         for sy in (-0.39, 0.39):
-            body_parts.append(C.add_box(f"CornerPost_{sx}_{sy}", (0.09, 0.09, 0.64), (sx, sy, 0.31), mat=iron_mat, bevel=0.01))
+            body_parts.append(C.add_box(f"CornerPost_{sx}_{sy}", (0.09, 0.09, 0.64), (sx, sy, 0.31), mat=iron_mat, bevel=0.0))
     for rx in (-0.64, 0.0, 0.64):
-        body_parts.append(C.add_box(f"BandWrap_{rx}", (0.09, 0.84, 0.61), (rx, 0, 0.305), mat=iron_mat, bevel=0.008))
-    body_parts.append(C.add_box("BaseIronSkirt", (1.86, 0.84, 0.08), (0, 0, 0.045), mat=iron_mat, bevel=0.01))
+        body_parts.append(C.add_box(f"BandWrap_{rx}", (0.09, 0.84, 0.61), (rx, 0, 0.305), mat=iron_mat, bevel=0.0))
+    body_parts.append(C.add_box("BaseIronSkirt", (1.86, 0.84, 0.08), (0, 0, 0.045), mat=iron_mat, bevel=0.0))
 
     # Side Carry Ring Handles & Rear Brass Hinges
     for sx in (-0.93, 0.93):
-        body_parts.append(C.add_box(f"HandlePlate_{sx}", (0.04, 0.22, 0.18), (sx, 0, 0.34), mat=iron_mat, bevel=0.006))
-        body_parts.append(C.add_torus(f"HandleRing_{sx}", 0.075, 0.015, (sx * 1.03, 0, 0.28), (0, math.radians(90), 0), mat=iron_mat))
+        body_parts.append(C.add_box(f"HandlePlate_{sx}", (0.04, 0.22, 0.18), (sx, 0, 0.34), mat=iron_mat, bevel=0.0))
+        body_parts.append(C.add_torus(f"HandleRing_{sx}", 0.075, 0.015, (sx * 1.03, 0, 0.28), (0, math.radians(90), 0), major_segments=14, minor_segments=6, mat=iron_mat))
     for hx in (-0.64, 0.64):
-        body_parts.append(C.add_cyl(f"HingePin_{hx}", 0.026, 0.16, (hx, 0.40, 0.62), (0, math.radians(90), 0), mat=brass_mat))
+        body_parts.append(C.add_cyl(f"HingePin_{hx}", 0.026, 0.16, (hx, 0.40, 0.62), (0, math.radians(90), 0), vertices=10, mat=brass_mat, bevel=0.0))
 
     # Front Heavy Lock Hasp & Glowing Cyan Group 935 Diamond Rune
-    body_parts.append(C.add_box("FrontHaspPlate", (0.28, 0.07, 0.28), (0, -0.415, 0.42), mat=iron_mat, bevel=0.01))
-    body_parts.append(C.add_cyl("PadlockLoop", 0.042, 0.04, (0, -0.455, 0.34), (math.radians(90), 0, 0), mat=brass_mat))
-    body_parts.append(C.add_box("RuneDiamond", (0.14, 0.03, 0.14), (0, -0.45, 0.44), (0, math.radians(45), 0), mat=rune_mat, bevel=0.004))
-    body_parts.append(C.add_torus("RuneFrame", 0.10, 0.012, (0, -0.442, 0.44), (math.radians(90), 0, 0), mat=brass_mat))
+    body_parts.append(C.add_box("FrontHaspPlate", (0.28, 0.07, 0.28), (0, -0.415, 0.42), mat=iron_mat, bevel=0.008))
+    body_parts.append(C.add_cyl("PadlockLoop", 0.042, 0.04, (0, -0.455, 0.34), (math.radians(90), 0, 0), vertices=10, mat=brass_mat, bevel=0.0))
+    body_parts.append(C.add_box("RuneDiamond", (0.14, 0.03, 0.14), (0, -0.45, 0.44), (0, math.radians(45), 0), mat=rune_mat, bevel=0.0))
+    body_parts.append(C.add_torus("RuneFrame", 0.10, 0.012, (0, -0.442, 0.44), (math.radians(90), 0, 0), major_segments=14, minor_segments=6, mat=brass_mat))
 
-    # Interlocking 3D Metal Chains draped around corners of the chest (iconically CoD Zombies!)
+    # Interlocking 3D Metal Chains draped around corners of the chest (chunkier links for laptop budget)
     chain_pts_front = [(-0.89, -0.42, 0.54), (-0.42, -0.43, 0.32), (0.0, -0.44, 0.24), (0.42, -0.43, 0.32), (0.89, -0.42, 0.54)]
     chain_l = [(-0.92, -0.39, 0.54), (-0.93, 0.0, 0.26), (-0.92, 0.39, 0.54)]
     chain_r = [(0.92, -0.39, 0.54), (0.93, 0.0, 0.26), (0.92, 0.39, 0.54)]
-    body_parts.append(C.add_chain("FrontChain", chain_pts_front, link_len=0.072, link_w=0.038, wire_r=0.008, mat=iron_mat))
-    body_parts.append(C.add_chain("SideChainL", chain_l, link_len=0.072, link_w=0.038, wire_r=0.008, mat=iron_mat))
-    body_parts.append(C.add_chain("SideChainR", chain_r, link_len=0.072, link_w=0.038, wire_r=0.008, mat=iron_mat))
+    body_parts.append(C.add_chain("FrontChain", chain_pts_front, link_len=0.095, link_w=0.044, wire_r=0.009, mat=iron_mat, major_segments=9, minor_segments=5))
+    body_parts.append(C.add_chain("SideChainL", chain_l, link_len=0.095, link_w=0.044, wire_r=0.009, mat=iron_mat, major_segments=9, minor_segments=5))
+    body_parts.append(C.add_chain("SideChainR", chain_r, link_len=0.095, link_w=0.044, wire_r=0.009, mat=iron_mat, major_segments=9, minor_segments=5))
 
     C.join_objects(body_parts, "BoxBody")
 
@@ -411,11 +411,11 @@ def build_mystery_box():
     # Arch-crowned planks spanning Y in [-0.79 .. 0.01] relative to hinge
     for ly_idx, yc in enumerate((-0.72, -0.52, -0.32, -0.12)):
         z_arch = 0.08 + (0.045 if ly_idx in (1, 2) else 0.0)
-        lid_parts.append(C.add_box(f"LidPlank_{ly_idx}", (1.84, 0.19, 0.11), (0, yc, z_arch), mat=wood_mat, bevel=0.012, uv_scale=1.6))
+        lid_parts.append(C.add_box(f"LidPlank_{ly_idx}", (1.84, 0.19, 0.11), (0, yc, z_arch), mat=wood_mat, bevel=0.0, uv_scale=1.6))
     for rx in (-0.74, 0.0, 0.74):
-        lid_parts.append(C.add_box(f"LidIron_{rx}", (0.10, 0.84, 0.155), (rx, -0.39, 0.095), mat=iron_mat, bevel=0.01))
-    lid_parts.append(C.add_box("LidRimF", (1.88, 0.07, 0.14), (0, -0.80, 0.07), mat=iron_mat, bevel=0.008))
-    lid_parts.append(C.add_box("LidRimB", (1.88, 0.07, 0.14), (0, 0.01, 0.07), mat=iron_mat, bevel=0.008))
+        lid_parts.append(C.add_box(f"LidIron_{rx}", (0.10, 0.84, 0.155), (rx, -0.39, 0.095), mat=iron_mat, bevel=0.0))
+    lid_parts.append(C.add_box("LidRimF", (1.88, 0.07, 0.14), (0, -0.80, 0.07), mat=iron_mat, bevel=0.0))
+    lid_parts.append(C.add_box("LidRimB", (1.88, 0.07, 0.14), (0, 0.01, 0.07), mat=iron_mat, bevel=0.0))
 
     # Sculpted 3D Golden Question Marks (?) protruding on top of lid
     for qx in (-0.40, 0.40):
@@ -428,8 +428,8 @@ def build_mystery_box():
             (qx + 0.005, -0.39, 0.172),
             (qx + 0.000, -0.45, 0.170),
         ]
-        lid_parts.append(C.add_tube_pipe(f"QuestionHook_{qx}", q_curve, radius=0.022, segments=10, mat=gold_glow))
-        lid_parts.append(C.add_sphere(f"QuestionDot_{qx}", 0.026, (1.0, 1.0, 0.7), (qx + 0.000, -0.525, 0.165), mat=gold_glow))
+        lid_parts.append(C.add_tube_pipe(f"QuestionHook_{qx}", q_curve, radius=0.022, segments=7, mat=gold_glow))
+        lid_parts.append(C.add_sphere(f"QuestionDot_{qx}", 0.026, (1.0, 1.0, 0.7), (qx + 0.000, -0.525, 0.165), segments=10, rings=6, mat=gold_glow))
 
     lid = C.join_objects(lid_parts, "BoxLid")
     lid.location = (0, 0.39, 0.62)
@@ -551,14 +551,14 @@ def build_pack_a_punch():
         for fy in (-0.42, 0.42):
             sx_s = 1.0 if fx > 0 else -1.0
             sy_s = 1.0 if fy > 0 else -1.0
-            parts.append(C.add_box(f"FootPad_{fx}_{fy}", (0.18, 0.18, 0.045), (fx + sx_s * 0.09, fy + sy_s * 0.06, 0.022), mat=iron, bevel=0.01))
+            parts.append(C.add_box(f"FootPad_{fx}_{fy}", (0.18, 0.18, 0.045), (fx + sx_s * 0.09, fy + sy_s * 0.06, 0.022), mat=iron, bevel=0.0))
             parts.append(C.add_box(
                 f"FootStrut_{fx}_{fy}",
                 (0.14, 0.14, 0.24),
                 (fx + sx_s * 0.05, fy + sy_s * 0.03, 0.12),
                 (math.radians(-18 * sy_s), math.radians(18 * sx_s), 0),
                 mat=armor,
-                bevel=0.012,
+                bevel=0.0,
             ))
 
     # 2. Tapered Lower Boiler Chassis & Brass Trim Belt (Z=0.18 .. 0.96)
@@ -571,14 +571,14 @@ def build_pack_a_punch():
     parts.append(C.add_box("UpperDeckTrim", (1.54, 0.92, 0.055), (0, 0, 0.96), mat=brass, bevel=0.012))
 
     # 3. Recessed Weapon Intake Forge Bay + Helical Orange Coils + Feed Rollers
-    parts.append(C.add_box("ForgeCavity", (1.06, 0.42, 0.40), (0, -0.31, 0.65), mat=dark, bevel=0.015))
-    parts.append(C.add_box("ForgeBezelTop", (1.16, 0.12, 0.06), (0, -0.47, 0.85), mat=brass, bevel=0.012))
-    parts.append(C.add_box("ForgeBezelBot", (1.16, 0.14, 0.06), (0, -0.47, 0.43), mat=brass, bevel=0.012))
+    parts.append(C.add_box("ForgeCavity", (1.06, 0.42, 0.40), (0, -0.31, 0.65), mat=dark, bevel=0.0))
+    parts.append(C.add_box("ForgeBezelTop", (1.16, 0.12, 0.06), (0, -0.47, 0.85), mat=brass, bevel=0.0))
+    parts.append(C.add_box("ForgeBezelBot", (1.16, 0.14, 0.06), (0, -0.47, 0.43), mat=brass, bevel=0.0))
     for rx in (-0.54, 0.54):
-        parts.append(C.add_box(f"ForgeBezelSide_{rx}", (0.07, 0.12, 0.44), (rx, -0.47, 0.64), mat=brass, bevel=0.01))
+        parts.append(C.add_box(f"ForgeBezelSide_{rx}", (0.07, 0.12, 0.44), (rx, -0.47, 0.64), mat=brass, bevel=0.0))
     # Feed Rollers
     for rz in (0.48, 0.80):
-        parts.append(C.add_cyl(f"FeedRoller_{rz}", 0.042, 0.98, (0, -0.46, rz), (0, math.radians(90), 0), vertices=16, mat=brass))
+        parts.append(C.add_cyl(f"FeedRoller_{rz}", 0.042, 0.98, (0, -0.46, rz), (0, math.radians(90), 0), vertices=10, mat=brass, bevel=0.0))
     # 3 Vertical Helical Orange Heating Elements glowing inside intake bay!
     for hx in (-0.28, 0.0, 0.28):
         parts.append(C.add_coil_spring(
@@ -587,41 +587,42 @@ def build_pack_a_punch():
             wire_r=0.016,
             length=0.25,
             turns=4.5,
-            steps_per_turn=14,
+            steps_per_turn=9,
             loc=(hx, -0.41, 0.64),
             rot=(math.radians(90), 0, 0),
             mat=orange_coil,
+            wire_segments=6,
         ))
-        parts.append(C.add_cyl(f"HeatCore_{hx}", 0.025, 0.29, (hx, -0.41, 0.64), mat=iron))
+        parts.append(C.add_cyl(f"HeatCore_{hx}", 0.025, 0.29, (hx, -0.41, 0.64), vertices=10, mat=iron, bevel=0.0))
 
     # Lower Control Apron (toggles + brass indicators)
-    parts.append(C.add_box("ControlApron", (0.96, 0.06, 0.14), (0, -0.48, 0.31), mat=iron, bevel=0.01))
+    parts.append(C.add_box("ControlApron", (0.96, 0.06, 0.14), (0, -0.48, 0.31), mat=iron, bevel=0.0))
     for i, tx in enumerate((-0.30, -0.12, 0.12, 0.30)):
-        parts.append(C.add_cyl(f"Switch_{i}", 0.014, 0.06, (tx, -0.52, 0.31), (math.radians(70), 0, 0), mat=brass))
-    parts.append(C.add_sphere("PilotGreen", 0.022, (1, 1, 1), (-0.40, -0.51, 0.31), mat=led_grn))
-    parts.append(C.add_sphere("PilotRed", 0.022, (1, 1, 1), (0.40, -0.51, 0.31), mat=led_red))
+        parts.append(C.add_cyl(f"Switch_{i}", 0.014, 0.06, (tx, -0.52, 0.31), (math.radians(70), 0, 0), vertices=8, mat=brass, bevel=0.0))
+    parts.append(C.add_sphere("PilotGreen", 0.022, (1, 1, 1), (-0.40, -0.51, 0.31), segments=10, rings=6, mat=led_grn))
+    parts.append(C.add_sphere("PilotRed", 0.022, (1, 1, 1), (0.40, -0.51, 0.31), segments=10, rings=6, mat=led_red))
 
     # 4. External Side Copper Conduits, Crank Flywheel & Cleanout Doors
-    parts.append(C.add_tube_pipe("PipeLeft", [(-0.82, -0.18, 0.42), (-0.94, -0.18, 0.48), (-0.94, 0.12, 1.04), (-0.64, 0.12, 1.15)], radius=0.036, segments=10, mat=copper))
-    parts.append(C.add_tube_pipe("PipeRight", [(0.82, -0.18, 0.42), (0.94, -0.18, 0.48), (0.94, 0.12, 1.04), (0.64, 0.12, 1.15)], radius=0.036, segments=10, mat=copper))
+    parts.append(C.add_tube_pipe("PipeLeft", [(-0.82, -0.18, 0.42), (-0.94, -0.18, 0.48), (-0.94, 0.12, 1.04), (-0.64, 0.12, 1.15)], radius=0.036, segments=7, mat=copper))
+    parts.append(C.add_tube_pipe("PipeRight", [(0.82, -0.18, 0.42), (0.94, -0.18, 0.48), (0.94, 0.12, 1.04), (0.64, 0.12, 1.15)], radius=0.036, segments=7, mat=copper))
     # Right Flywheel Hand-Crank
-    parts.append(C.add_torus("FlywheelRim", 0.16, 0.024, (0.88, -0.05, 0.62), (0, math.radians(90), 0), mat=brass))
-    parts.append(C.add_cyl("FlywheelHub", 0.045, 0.08, (0.85, -0.05, 0.62), (0, math.radians(90), 0), mat=iron))
+    parts.append(C.add_torus("FlywheelRim", 0.16, 0.024, (0.88, -0.05, 0.62), (0, math.radians(90), 0), major_segments=14, minor_segments=6, mat=brass))
+    parts.append(C.add_cyl("FlywheelHub", 0.045, 0.08, (0.85, -0.05, 0.62), (0, math.radians(90), 0), vertices=10, mat=iron, bevel=0.0))
     for s in range(4):
         ang = s * math.pi * 0.5
-        parts.append(C.add_cyl(f"WheelSpoke_{s}", 0.014, 0.30, (0.88, -0.05, 0.62), (ang, 0, 0), mat=brass))
-    parts.append(C.add_cyl("CrankGrip", 0.022, 0.12, (0.95, -0.05, 0.76), (0, math.radians(90), 0), mat=copper))
+        parts.append(C.add_cyl(f"WheelSpoke_{s}", 0.014, 0.30, (0.88, -0.05, 0.62), (ang, 0, 0), vertices=8, mat=brass, bevel=0.0))
+    parts.append(C.add_cyl("CrankGrip", 0.022, 0.12, (0.95, -0.05, 0.76), (0, math.radians(90), 0), vertices=8, mat=copper, bevel=0.0))
 
     # 5. Upper Support Stanchions, Marquee Frame & 3 Analog Gauges
     for cx in (-0.64, 0.64):
-        parts.append(C.add_cyl(f"UpperCol_{cx}", 0.075, 0.82, (cx, -0.16, 1.37), mat=iron))
-        parts.append(C.add_torus(f"ColCollarB_{cx}", 0.095, 0.02, (cx, -0.16, 1.02), mat=brass))
-        parts.append(C.add_torus(f"ColCollarT_{cx}", 0.095, 0.02, (cx, -0.16, 1.72), mat=brass))
+        parts.append(C.add_cyl(f"UpperCol_{cx}", 0.075, 0.82, (cx, -0.16, 1.37), vertices=12, mat=iron, bevel=0.0))
+        parts.append(C.add_torus(f"ColCollarB_{cx}", 0.095, 0.02, (cx, -0.16, 1.02), major_segments=14, minor_segments=6, mat=brass))
+        parts.append(C.add_torus(f"ColCollarT_{cx}", 0.095, 0.02, (cx, -0.16, 1.72), major_segments=14, minor_segments=6, mat=brass))
 
     # Marquee Lightbox Housing
-    parts.append(C.add_box("MarqueeBox", (1.20, 0.24, 0.40), (0, -0.26, 1.32), mat=iron, bevel=0.016))
-    parts.append(C.add_box("MarqueeTrimTop", (1.26, 0.28, 0.05), (0, -0.26, 1.52), mat=brass, bevel=0.01))
-    parts.append(C.add_box("MarqueeTrimBot", (1.26, 0.28, 0.05), (0, -0.26, 1.12), mat=brass, bevel=0.01))
+    parts.append(C.add_box("MarqueeBox", (1.20, 0.24, 0.40), (0, -0.26, 1.32), mat=iron, bevel=0.014))
+    parts.append(C.add_box("MarqueeTrimTop", (1.26, 0.28, 0.05), (0, -0.26, 1.52), mat=brass, bevel=0.0))
+    parts.append(C.add_box("MarqueeTrimBot", (1.26, 0.28, 0.05), (0, -0.26, 1.12), mat=brass, bevel=0.0))
 
     # 3 Brass Gauge Bezels at Z=1.06 front & side
     gauge_specs = [
@@ -630,26 +631,26 @@ def build_pack_a_punch():
         (0.34, -0.39, 1.02, 0.078),
     ]
     for idx, (gx, gy, gz, gr) in enumerate(gauge_specs):
-        parts.append(C.add_cyl(f"GaugeCup_{idx}", gr * 1.12, 0.07, (gx, gy, gz), (math.radians(90), 0, 0), vertices=24, mat=brass))
-        parts.append(C.add_torus(f"GaugeRim_{idx}", gr * 1.06, 0.014, (gx, gy - 0.032, gz), (math.radians(90), 0, 0), mat=brass))
+        parts.append(C.add_cyl(f"GaugeCup_{idx}", gr * 1.12, 0.07, (gx, gy, gz), (math.radians(90), 0, 0), vertices=14, mat=brass, bevel=0.0))
+        parts.append(C.add_torus(f"GaugeRim_{idx}", gr * 1.06, 0.014, (gx, gy - 0.032, gz), (math.radians(90), 0, 0), major_segments=14, minor_segments=6, mat=brass))
 
     # 6. 4 Interlocking Toothed 3D Brass Gears along upper mechanism rear
-    parts.append(C.add_gear("GearMainR", teeth=16, r_outer=0.26, r_root=0.22, r_bore=0.04, thickness=0.04, spokes=5, loc=(0.48, 0.12, 1.44), mat=brass))
+    parts.append(C.add_gear("GearMainR", teeth=14, r_outer=0.26, r_root=0.22, r_bore=0.04, thickness=0.04, spokes=5, loc=(0.48, 0.12, 1.44), mat=brass))
     parts.append(C.add_gear("GearMidL", teeth=12, r_outer=0.18, r_root=0.15, r_bore=0.03, thickness=0.04, spokes=4, loc=(-0.44, 0.14, 1.48), mat=brass))
-    parts.append(C.add_gear("GearTopC", teeth=14, r_outer=0.21, r_root=0.175, r_bore=0.035, thickness=0.04, spokes=5, loc=(0.12, 0.16, 1.62), mat=copper))
+    parts.append(C.add_gear("GearTopC", teeth=12, r_outer=0.21, r_root=0.175, r_bore=0.035, thickness=0.04, spokes=4, loc=(0.12, 0.16, 1.62), mat=copper))
     parts.append(C.add_gear("GearSmall", teeth=10, r_outer=0.13, r_root=0.105, r_bore=0.025, thickness=0.04, spokes=4, loc=(-0.18, 0.16, 1.62), mat=brass))
 
     # 7. Crown Gyroscope Dynamo Dome + Twin Helical Glowing Cyan Tesla Coils
-    parts.append(C.add_cyl("TurretColumn", 0.20, 0.44, (0, 0.0, 1.68), mat=iron))
-    parts.append(C.add_sphere("GyroCore", 0.21, (1.0, 1.0, 1.0), (0, 0.0, 1.94), mat=iron))
-    parts.append(C.add_torus("GyroGimbalA", 0.26, 0.022, (0, 0.0, 1.94), (math.radians(25), 0, math.radians(15)), mat=brass))
-    parts.append(C.add_torus("GyroGimbalB", 0.26, 0.022, (0, 0.0, 1.94), (math.radians(-65), math.radians(30), 0), mat=brass))
+    parts.append(C.add_cyl("TurretColumn", 0.20, 0.44, (0, 0.0, 1.68), vertices=12, mat=iron, bevel=0.0))
+    parts.append(C.add_sphere("GyroCore", 0.21, (1.0, 1.0, 1.0), (0, 0.0, 1.94), segments=12, rings=8, mat=iron))
+    parts.append(C.add_torus("GyroGimbalA", 0.26, 0.022, (0, 0.0, 1.94), (math.radians(25), 0, math.radians(15)), major_segments=14, minor_segments=6, mat=brass))
+    parts.append(C.add_torus("GyroGimbalB", 0.26, 0.022, (0, 0.0, 1.94), (math.radians(-65), math.radians(30), 0), major_segments=14, minor_segments=6, mat=brass))
     # Front Emitter Eye Lens
-    parts.append(C.add_cyl("EmitterHood", 0.13, 0.16, (0, -0.18, 1.94), (math.radians(90), 0, 0), mat=brass))
-    parts.append(C.add_sphere("EmitterCore", 0.095, (1.0, 0.7, 1.0), (0, -0.24, 1.94), mat=cyan_coil))
+    parts.append(C.add_cyl("EmitterHood", 0.13, 0.16, (0, -0.18, 1.94), (math.radians(90), 0, 0), vertices=12, mat=brass, bevel=0.0))
+    parts.append(C.add_sphere("EmitterCore", 0.095, (1.0, 0.7, 1.0), (0, -0.24, 1.94), segments=12, rings=8, mat=cyan_coil))
 
     # Crossarm & Twin Helical Cyan Tesla Coils
-    parts.append(C.add_cyl("TeslaBar", 0.068, 1.48, (0, 0.0, 1.94), (0, math.radians(90), 0), mat=copper))
+    parts.append(C.add_cyl("TeslaBar", 0.068, 1.48, (0, 0.0, 1.94), (0, math.radians(90), 0), vertices=10, mat=copper, bevel=0.0))
     for sx in (-1.0, 1.0):
         parts.append(C.add_coil_spring(
             f"TeslaHelix_{sx}",
@@ -657,21 +658,22 @@ def build_pack_a_punch():
             wire_r=0.022,
             length=0.42,
             turns=4.5,
-            steps_per_turn=14,
+            steps_per_turn=9,
             loc=(sx * 0.48, 0.0, 1.94),
             rot=(0, 0, math.radians(90)),
             mat=cyan_coil,
+            wire_segments=6,
         ))
         # Finned End Insulator + Corona Cap
-        parts.append(C.add_cyl(f"InsulatorRod_{sx}", 0.09, 0.14, (sx * 0.74, 0.0, 1.94), (0, math.radians(90), 0), mat=brass))
-        parts.append(C.add_sphere(f"CoronaBall_{sx}", 0.085, (1.0, 1.0, 1.0), (sx * 0.84, 0.0, 1.94), mat=cyan_coil))
+        parts.append(C.add_cyl(f"InsulatorRod_{sx}", 0.09, 0.14, (sx * 0.74, 0.0, 1.94), (0, math.radians(90), 0), vertices=12, mat=brass, bevel=0.0))
+        parts.append(C.add_sphere(f"CoronaBall_{sx}", 0.085, (1.0, 1.0, 1.0), (sx * 0.84, 0.0, 1.94), segments=12, rings=8, mat=cyan_coil))
 
     C.join_objects(parts, "PackAPunch")
 
     # Separate textured plane & round analog dials so their [0..1] planar UVs stay crisp
     C.add_textured_plane("PaPMarqueePlane", 1.12, 0.34, loc=(0, -0.388, 1.32), mat=marquee_mat)
     for idx, (gx, gy, gz, gr) in enumerate(gauge_specs):
-        C.add_textured_disc(f"PaPGaugeDial_{idx}", gr, vertices=24, loc=(gx, gy - 0.036, gz), mat=gauge_mat)
+        C.add_textured_disc(f"PaPGaugeDial_{idx}", gr, vertices=14, loc=(gx, gy - 0.036, gz), mat=gauge_mat)
 
     C.export_asset("props", "pack_a_punch")
 
@@ -1001,44 +1003,44 @@ def build_powerups():
 def _topper_mulekick(parts, body_mat, _cream_mat, _chrome_mat, brass_mat, dark_mat, _dome_mat, bottle_mat):
     copper = C.make_pbr_mat("MuleCopper", (0.80, 0.44, 0.18, 1.0), metallic=0.88, roughness=0.28)
     # Crest backplate mounted prominently above the marquee
-    parts.append(C.add_box("MuleCrestPlate", (0.54, 0.045, 0.22), (0, -0.32, 2.08), (math.radians(-8), 0, 0), mat=body_mat, bevel=0.01))
+    parts.append(C.add_box("MuleCrestPlate", (0.54, 0.045, 0.22), (0, -0.32, 2.08), (math.radians(-8), 0, 0), mat=body_mat, bevel=0.0))
     # Horseshoe collar frame around crest
-    parts.append(C.add_torus("MuleShoeRing", 0.21, 0.024, (0, -0.335, 2.12), (math.radians(82), 0, 0), major_segments=20, mat=brass_mat))
+    parts.append(C.add_torus("MuleShoeRing", 0.21, 0.024, (0, -0.335, 2.12), (math.radians(82), 0, 0), major_segments=14, minor_segments=6, mat=brass_mat))
     # Triple Bandolier Rifle Cartridges flanking the crest front
     for bx in (-0.11, 0.0, 0.11):
-        parts.append(C.add_cyl(f"MuleShellCase_{bx}", 0.026, 0.16, (bx, -0.365, 2.13), (math.radians(-6), 0, 0), vertices=14, mat=brass_mat))
-        parts.append(C.add_cone(f"MuleShellTip_{bx}", 0.026, 0.002, 0.075, (bx, -0.372, 2.245), (math.radians(-6), 0, 0), vertices=14, mat=copper))
-        parts.append(C.add_box(f"MuleBeltLoop_{bx}", (0.068, 0.036, 0.036), (bx, -0.355, 2.09), mat=dark_mat, bevel=0.004))
-    parts.append(C.add_box("MuleBandolierStrap", (0.42, 0.03, 0.055), (0, -0.345, 2.09), mat=bottle_mat, bevel=0.006))
+        parts.append(C.add_cyl(f"MuleShellCase_{bx}", 0.026, 0.16, (bx, -0.365, 2.13), (math.radians(-6), 0, 0), vertices=10, mat=brass_mat, bevel=0.0))
+        parts.append(C.add_cone(f"MuleShellTip_{bx}", 0.026, 0.002, 0.075, (bx, -0.372, 2.245), (math.radians(-6), 0, 0), vertices=10, mat=copper))
+        parts.append(C.add_box(f"MuleBeltLoop_{bx}", (0.068, 0.036, 0.036), (bx, -0.355, 2.09), mat=dark_mat, bevel=0.0))
+    parts.append(C.add_box("MuleBandolierStrap", (0.42, 0.03, 0.055), (0, -0.345, 2.09), mat=bottle_mat, bevel=0.0))
 
 
 def _topper_deadshot(parts, _body_mat, _cream_mat, chrome_mat, brass_mat, dark_mat, dome_mat, _bottle_mat):
     crimson = C.make_pbr_mat("DeadshotTarget", (0.98, 0.16, 0.10, 1.0), roughness=0.18, emission=(1.0, 0.14, 0.08), emission_strength=2.1)
     # Optical brass scope reticle crest mounted in front of the top dome
-    parts.append(C.add_cyl("DeadshotTube", 0.165, 0.14, (0, -0.29, 2.16), (math.radians(90), 0, 0), vertices=24, mat=dark_mat))
-    parts.append(C.add_torus("DeadshotScopeRimF", 0.175, 0.022, (0, -0.36, 2.16), (math.radians(90), 0, 0), major_segments=24, mat=brass_mat))
-    parts.append(C.add_torus("DeadshotScopeRimR", 0.168, 0.018, (0, -0.22, 2.16), (math.radians(90), 0, 0), major_segments=24, mat=chrome_mat))
+    parts.append(C.add_cyl("DeadshotTube", 0.165, 0.14, (0, -0.29, 2.16), (math.radians(90), 0, 0), vertices=14, mat=dark_mat, bevel=0.0))
+    parts.append(C.add_torus("DeadshotScopeRimF", 0.175, 0.022, (0, -0.36, 2.16), (math.radians(90), 0, 0), major_segments=14, minor_segments=6, mat=brass_mat))
+    parts.append(C.add_torus("DeadshotScopeRimR", 0.168, 0.018, (0, -0.22, 2.16), (math.radians(90), 0, 0), major_segments=14, minor_segments=6, mat=chrome_mat))
     # Inner reticle crosshairs & crimson bullseye target
-    parts.append(C.add_box("DeadshotCrossH", (0.31, 0.018, 0.022), (0, -0.355, 2.16), mat=dome_mat, bevel=0.003))
-    parts.append(C.add_box("DeadshotCrossV", (0.022, 0.018, 0.31), (0, -0.355, 2.16), mat=dome_mat, bevel=0.003))
-    parts.append(C.add_torus("DeadshotInnerRing", 0.088, 0.011, (0, -0.356, 2.16), (math.radians(90), 0, 0), major_segments=20, mat=brass_mat))
-    parts.append(C.add_sphere("DeadshotBullseye", 0.038, (1.0, 0.55, 1.0), (0, -0.358, 2.16), mat=crimson))
+    parts.append(C.add_box("DeadshotCrossH", (0.31, 0.018, 0.022), (0, -0.355, 2.16), mat=dome_mat, bevel=0.0))
+    parts.append(C.add_box("DeadshotCrossV", (0.022, 0.018, 0.31), (0, -0.355, 2.16), mat=dome_mat, bevel=0.0))
+    parts.append(C.add_torus("DeadshotInnerRing", 0.088, 0.011, (0, -0.356, 2.16), (math.radians(90), 0, 0), major_segments=14, minor_segments=6, mat=brass_mat))
+    parts.append(C.add_sphere("DeadshotBullseye", 0.038, (1.0, 0.55, 1.0), (0, -0.358, 2.16), segments=10, rings=8, mat=crimson))
     for sx in (-1.0, 1.0):
-        parts.append(C.add_box(f"DeadshotWing_{sx}", (0.16, 0.04, 0.075), (sx * 0.24, -0.30, 2.14), (0, math.radians(sx * -18), 0), mat=brass_mat, bevel=0.008))
+        parts.append(C.add_box(f"DeadshotWing_{sx}", (0.16, 0.04, 0.075), (sx * 0.24, -0.30, 2.14), (0, math.radians(sx * -18), 0), mat=brass_mat, bevel=0.0))
 
 
 def _topper_phdflopper(parts, body_mat, _cream_mat, _chrome_mat, brass_mat, dark_mat, dome_mat, bottle_mat):
     amber = C.make_pbr_mat("PhDPlumeGlow", (0.98, 0.52, 0.14, 1.0), roughness=0.22, emission=(0.95, 0.42, 0.12), emission_strength=1.45)
     # Sculpted Mushroom Cloud & Orbital Atom Finial centered above hood
-    parts.append(C.add_cyl("PhDBasePlinth", 0.24, 0.06, (0, -0.02, 2.05), vertices=20, mat=dark_mat))
+    parts.append(C.add_cyl("PhDBasePlinth", 0.24, 0.06, (0, -0.02, 2.05), vertices=12, mat=dark_mat, bevel=0.0))
     stem_prof = [(0.11, 2.08), (0.075, 2.18), (0.068, 2.30), (0.095, 2.40), (0.02, 2.42)]
-    parts.append(C.add_lathe("PhDMushroomStem", stem_prof, segments=18, loc=(0, -0.02, 0.0), mat=body_mat))
+    parts.append(C.add_lathe("PhDMushroomStem", stem_prof, segments=12, loc=(0, -0.02, 0.0), mat=body_mat))
     cap_prof = [(0.02, 2.38), (0.24, 2.42), (0.26, 2.49), (0.21, 2.57), (0.12, 2.62), (0.008, 2.64)]
-    parts.append(C.add_lathe("PhDMushroomCap", cap_prof, segments=22, loc=(0, -0.02, 0.0), mat=dome_mat))
-    parts.append(C.add_torus("PhDShockRing", 0.245, 0.018, (0, -0.02, 2.24), major_segments=22, mat=amber))
+    parts.append(C.add_lathe("PhDMushroomCap", cap_prof, segments=14, loc=(0, -0.02, 0.0), mat=dome_mat))
+    parts.append(C.add_torus("PhDShockRing", 0.245, 0.018, (0, -0.02, 2.24), major_segments=14, minor_segments=6, mat=amber))
     # Dual crossed atomic orbital rings around topper
-    parts.append(C.add_torus("PhDOrbitA", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(28), math.radians(18), 0), major_segments=26, mat=brass_mat))
-    parts.append(C.add_torus("PhDOrbitB", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(-28), math.radians(-18), 0), major_segments=26, mat=bottle_mat))
+    parts.append(C.add_torus("PhDOrbitA", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(28), math.radians(18), 0), major_segments=16, minor_segments=6, mat=brass_mat))
+    parts.append(C.add_torus("PhDOrbitB", 0.30, 0.012, (0, -0.02, 2.46), (math.radians(-28), math.radians(-18), 0), major_segments=16, minor_segments=6, mat=bottle_mat))
 
 
 def _topper_electriccherry(parts, _body_mat, _cream_mat, chrome_mat, brass_mat, _dark_mat, dome_mat, _bottle_mat):
@@ -1049,13 +1051,13 @@ def _topper_electriccherry(parts, _body_mat, _cream_mat, chrome_mat, brass_mat, 
         (-0.02, 2.54), (0.09, 2.54), (0.01, 2.38), (0.10, 2.38),
         (-0.05, 2.14), (0.00, 2.31), (-0.09, 2.31),
     ]
-    parts.append(C.add_extruded_poly("CherryBoltTop", bolt_poly, depth=0.042, plane="XZ", loc=(0, -0.10, 0.0), mat=dome_mat, bevel=0.004))
-    parts.append(C.add_torus("CherryTeslaRingA", 0.22, 0.014, (0, -0.02, 2.24), major_segments=22, mat=brass_mat))
-    parts.append(C.add_torus("CherryTeslaRingB", 0.19, 0.012, (0, -0.02, 2.38), major_segments=22, mat=chrome_mat))
+    parts.append(C.add_extruded_poly("CherryBoltTop", bolt_poly, depth=0.042, plane="XZ", loc=(0, -0.10, 0.0), mat=dome_mat, bevel=0.0))
+    parts.append(C.add_torus("CherryTeslaRingA", 0.22, 0.014, (0, -0.02, 2.24), major_segments=14, minor_segments=6, mat=brass_mat))
+    parts.append(C.add_torus("CherryTeslaRingB", 0.19, 0.012, (0, -0.02, 2.38), major_segments=14, minor_segments=6, mat=chrome_mat))
     for sx in (-1.0, 1.0):
         cx = sx * 0.21
-        parts.append(C.add_sphere(f"CherryFruit_{sx}", 0.072, (1.0, 1.0, 0.94), (cx, -0.28, 2.12), mat=cherry_red))
-        parts.append(C.add_tube_pipe(f"CherryStem_{sx}", [(cx, -0.28, 2.18), (cx * 0.65, -0.24, 2.29), (0.0, -0.18, 2.36)], radius=0.011, segments=8, mat=stem_green))
+        parts.append(C.add_sphere(f"CherryFruit_{sx}", 0.072, (1.0, 1.0, 0.94), (cx, -0.28, 2.12), segments=12, rings=8, mat=cherry_red))
+        parts.append(C.add_tube_pipe(f"CherryStem_{sx}", [(cx, -0.28, 2.18), (cx * 0.65, -0.24, 2.29), (0.0, -0.18, 2.36)], radius=0.011, segments=6, mat=stem_green))
 
 
 def build_der_wunderfizz():

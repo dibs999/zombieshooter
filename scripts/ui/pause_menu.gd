@@ -8,7 +8,11 @@ extends CanvasLayer
 @onready var fov_slider: HSlider = $Root/Panel/VBox/SettingsBox/FOVSlider
 @onready var vol_slider: HSlider = $Root/Panel/VBox/SettingsBox/VolSlider
 @onready var gfx_btn: OptionButton = $Root/Panel/VBox/SettingsBox/GfxOption
+@onready var scale_label: Label = $Root/Panel/VBox/SettingsBox/ScaleLabel
+@onready var scale_slider: HSlider = $Root/Panel/VBox/SettingsBox/ScaleSlider
+@onready var msaa_btn: OptionButton = $Root/Panel/VBox/SettingsBox/MSAAOption
 @onready var invert_chk: CheckBox = $Root/Panel/VBox/SettingsBox/InvertCheck
+@onready var vsync_chk: CheckBox = $Root/Panel/VBox/SettingsBox/VSyncCheck
 
 
 func _ready() -> void:
@@ -18,16 +22,25 @@ func _ready() -> void:
 	gfx_btn.add_item("High")
 	gfx_btn.add_item("Medium")
 	gfx_btn.add_item("Low")
+	msaa_btn.clear()
+	msaa_btn.add_item("Off")
+	msaa_btn.add_item("2x")
+	msaa_btn.add_item("4x")
 	_sync_ui()
 
 
 func _sync_ui() -> void:
-	sens_slider.value = SettingsManager.mouse_sensitivity * 1000.0
-	fov_slider.value = SettingsManager.fov
-	vol_slider.value = SettingsManager.master_volume * 100.0
-	invert_chk.button_pressed = SettingsManager.invert_y
+	sens_slider.set_value_no_signal(SettingsManager.mouse_sensitivity * 1000.0)
+	fov_slider.set_value_no_signal(SettingsManager.fov)
+	vol_slider.set_value_no_signal(SettingsManager.master_volume * 100.0)
+	scale_slider.set_value_no_signal(SettingsManager.render_scale)
+	scale_label.text = "Render Scale (FSR): %d%%" % int(round(SettingsManager.render_scale * 100.0))
+	invert_chk.set_pressed_no_signal(SettingsManager.invert_y)
+	vsync_chk.set_pressed_no_signal(SettingsManager.vsync_enabled)
 	var idx := ["High", "Medium", "Low"].find(SettingsManager.graphics_quality)
 	gfx_btn.selected = maxi(0, idx)
+	var msaa_idx := ["Off", "2x", "4x"].find(SettingsManager.msaa_mode)
+	msaa_btn.selected = maxi(0, msaa_idx)
 	_refresh_status()
 
 
@@ -107,5 +120,18 @@ func _on_gfx_selected(idx: int) -> void:
 	SettingsManager.set_graphics_quality(["High", "Medium", "Low"][idx])
 
 
+func _on_scale_changed(val: float) -> void:
+	SettingsManager.set_render_scale(val)
+	scale_label.text = "Render Scale (FSR): %d%%" % int(round(SettingsManager.render_scale * 100.0))
+
+
+func _on_msaa_selected(idx: int) -> void:
+	SettingsManager.set_msaa_mode(["Off", "2x", "4x"][idx])
+
+
 func _on_invert_toggled(on: bool) -> void:
 	SettingsManager.set_invert_y(on)
+
+
+func _on_vsync_toggled(on: bool) -> void:
+	SettingsManager.set_vsync_enabled(on)

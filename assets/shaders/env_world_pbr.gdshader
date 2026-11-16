@@ -55,40 +55,48 @@ float vnoise2(vec2 p) {
 
 float fbm2(vec2 p) {
 	float v = 0.0;
-	float amp = 0.55;
+	float amp = 0.62;
 	mat2 rot = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8));
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		v += amp * vnoise2(p);
 		p = rot * p * 2.07 + vec2(17.1, 31.7);
-		amp *= 0.48;
+		amp *= 0.613;
 	}
 	return clamp(v, 0.0, 1.0);
 }
 
-vec4 triplanar_tex(sampler2D tex, vec3 wp, vec3 w_blend, float scale) {
-	vec2 uv_x = vec2(wp.z, -wp.y) * scale;
-	vec2 uv_y = vec2(wp.x, -wp.z) * scale;
-	vec2 uv_z = vec2(wp.x, -wp.y) * scale;
-	return texture(tex, uv_x) * w_blend.x + texture(tex, uv_y) * w_blend.y + texture(tex, uv_z) * w_blend.z;
+void compute_planar_axis(vec3 wp, vec3 wn, vec3 dpdx, vec3 dpdy, float scale, out int axis, out vec2 uv, out vec2 duvx, out vec2 duvy, out float axis_sign) {
+	vec3 an = abs(wn);
+	if (an.y >= an.x && an.y >= an.z) {
+		axis = 1;
+		uv = vec2(wp.x, -wp.z) * scale;
+		duvx = vec2(dpdx.x, -dpdx.z) * scale;
+		duvy = vec2(dpdy.x, -dpdy.z) * scale;
+		axis_sign = (wn.y >= 0.0) ? 1.0 : -1.0;
+	} else if (an.x >= an.z) {
+		axis = 0;
+		uv = vec2(wp.z, -wp.y) * scale;
+		duvx = vec2(dpdx.z, -dpdx.y) * scale;
+		duvy = vec2(dpdy.z, -dpdy.y) * scale;
+		axis_sign = (wn.x >= 0.0) ? 1.0 : -1.0;
+	} else {
+		axis = 2;
+		uv = vec2(wp.x, -wp.y) * scale;
+		duvx = vec2(dpdx.x, -dpdx.y) * scale;
+		duvy = vec2(dpdy.x, -dpdy.y) * scale;
+		axis_sign = (wn.z >= 0.0) ? 1.0 : -1.0;
+	}
 }
 
-vec3 triplanar_udn_normal(sampler2D ntex, vec3 wp, vec3 wn, vec3 w_blend, float scale, float strength) {
-	vec2 uv_x = vec2(wp.z, -wp.y) * scale;
-	vec2 uv_y = vec2(wp.x, -wp.z) * scale;
-	vec2 uv_z = vec2(wp.x, -wp.y) * scale;
-	vec3 tx = texture(ntex, uv_x).xyz * 2.0 - 1.0;
-	vec3 ty = texture(ntex, uv_y).xyz * 2.0 - 1.0;
-	vec3 tz = texture(ntex, uv_z).xyz * 2.0 - 1.0;
-	tx.xy *= strength;
-	ty.xy *= strength;
-	tz.xy *= strength;
-	tx.x *= sign(wn.x >= 0.0 ? 1.0 : -1.0);
-	ty.x *= sign(wn.y >= 0.0 ? 1.0 : -1.0);
-	tz.x *= sign(wn.z >= 0.0 ? 1.0 : -1.0);
-	vec3 nx = vec3(wn.x, tx.y + wn.y, tx.x + wn.z);
-	vec3 ny = vec3(ty.x + wn.x, wn.y, ty.y + wn.z);
-	vec3 nz = vec3(tz.x + wn.x, tz.y + wn.y, wn.z);
-	return normalize(nx * w_blend.x + ny * w_blend.y + nz * w_blend.z);
+vec3 decode_planar_normal(vec3 sample_rgb, vec3 wn, int axis, float axis_sign, float strength) {
+	vec2 t = (sample_rgb.xy * 2.0 - 1.0) * strength;
+	t.x *= axis_sign;
+	if (axis == 1) {
+		return normalize(vec3(t.x + wn.x, wn.y, t.y + wn.z));
+	} else if (axis == 0) {
+		return normalize(vec3(wn.x, t.y + wn.y, t.x + wn.z));
+	}
+	return normalize(vec3(t.x + wn.x, t.y + wn.y, wn.z));
 }
 
 void vertex() {
@@ -98,22 +106,34 @@ void vertex() {
 
 void fragment() {
 	vec3 wn = normalize(v_world_nrm);
-	vec3 w_blend = pow(max(abs(wn), vec3(0.0001)), vec3(4.0));
-	w_blend /= max(dot(w_blend, vec3(1.0)), 0.0001);
+	vec3 dpdx = dFdx(v_world_pos);
+	vec3 dpdy = dFdy(v_world_pos);
 
-	vec3 alb = triplanar_tex(albedo_tex, v_world_pos, w_blend, uv_scale).rgb * albedo_tint.rgb;
-	float rgh = triplanar_tex(roughness_tex, v_world_pos, w_blend, uv_scale).r * roughness_scale;
-	vec3 world_n = triplanar_udn_normal(normal_tex, v_world_pos, wn, w_blend, uv_scale, normal_strength);
+	int p_axis;
+	vec2 p_uv;
+	vec2 p_duvx;
+	vec2 p_duvy;
+	float p_sign;
+	compute_planar_axis(v_world_pos, wn, dpdx, dpdy, uv_scale, p_axis, p_uv, p_duvx, p_duvy, p_sign);
+
+	vec3 alb = textureGrad(albedo_tex, p_uv, p_duvx, p_duvy).rgb * albedo_tint.rgb;
+	float rgh = textureGrad(roughness_tex, p_uv, p_duvx, p_duvy).r * roughness_scale;
+	vec3 world_n = decode_planar_normal(textureGrad(normal_tex, p_uv, p_duvx, p_duvy).rgb, wn, p_axis, p_sign, normal_strength);
 
 	if (use_alt_layer && alt_blend_amount > 0.001) {
 		float n_alt = fbm2(v_world_pos.xz * alt_noise_scale + vec2(3.7, -8.2));
 		float mask = smoothstep(0.55 - alt_blend_amount * 0.45, 0.85 - alt_blend_amount * 0.35, n_alt);
-		vec3 alb2 = triplanar_tex(alt_albedo_tex, v_world_pos, w_blend, uv_scale * 0.95).rgb * alt_tint.rgb;
-		float rgh2 = triplanar_tex(alt_roughness_tex, v_world_pos, w_blend, uv_scale * 0.95).r * roughness_scale;
-		vec3 world_n2 = triplanar_udn_normal(alt_normal_tex, v_world_pos, wn, w_blend, uv_scale * 0.95, normal_strength);
-		alb = mix(alb, alb2, mask);
-		rgh = mix(rgh, rgh2, mask);
-		world_n = normalize(mix(world_n, world_n2, mask));
+		if (mask > 0.001) {
+			vec2 alt_uv = p_uv * 0.95;
+			vec2 alt_duvx = p_duvx * 0.95;
+			vec2 alt_duvy = p_duvy * 0.95;
+			vec3 alb2 = textureGrad(alt_albedo_tex, alt_uv, alt_duvx, alt_duvy).rgb * alt_tint.rgb;
+			float rgh2 = textureGrad(alt_roughness_tex, alt_uv, alt_duvx, alt_duvy).r * roughness_scale;
+			vec3 world_n2 = decode_planar_normal(textureGrad(alt_normal_tex, alt_uv, alt_duvx, alt_duvy).rgb, wn, p_axis, p_sign, normal_strength);
+			alb = mix(alb, alb2, mask);
+			rgh = mix(rgh, rgh2, mask);
+			world_n = normalize(mix(world_n, world_n2, mask));
+		}
 	}
 
 	// Macro non-repeating breakup across meters
@@ -126,10 +146,10 @@ void fragment() {
 	float spec = specular_val;
 	float met = metallic_val;
 
-	if (is_floor && puddle_amount > 0.001) {
+	if (is_floor && puddle_amount > 0.001 && wn.y > 0.5) {
 		float p_noise = fbm2(v_world_pos.xz * puddle_scale + vec2(11.4, -4.9));
 		float p_thresh = 0.78 - puddle_amount * 0.36;
-		float puddle = smoothstep(p_thresh, p_thresh + 0.08, p_noise) * step(0.5, wn.y);
+		float puddle = smoothstep(p_thresh, p_thresh + 0.08, p_noise);
 		if (puddle > 0.001) {
 			alb = mix(alb, alb * 0.42 + vec3(0.015, 0.02, 0.025), puddle * 0.72);
 			rgh = mix(rgh, 0.07, puddle);
@@ -138,16 +158,24 @@ void fragment() {
 			world_n = normalize(mix(world_n, wn, puddle * 0.92));
 		}
 	} else if (!is_floor && wall_damp_strength > 0.001) {
-		// Base damp rising from floor + top cornice leakage streaks
+		// Base damp rising from floor + top cornice leakage streaks (height-gated)
 		float wall_coord = v_world_pos.x + v_world_pos.z;
-		float streak = fbm2(vec2(wall_coord * 0.65, v_world_pos.y * 0.25));
-		float base_h = wall_damp_height * (0.55 + 0.75 * streak);
-		float base_mask = clamp(1.0 - v_world_pos.y / max(0.1, base_h), 0.0, 1.0);
-		float top_streak = fbm2(vec2(wall_coord * 1.15, v_world_pos.y * 0.12));
-		float top_mask = smoothstep(wall_top_grime_y - 1.4, wall_top_grime_y, v_world_pos.y) * smoothstep(0.35, 0.78, top_streak);
+		float base_mask = 0.0;
+		if (v_world_pos.y < wall_damp_height * 1.35) {
+			float streak = fbm2(vec2(wall_coord * 0.65, v_world_pos.y * 0.25));
+			float base_h = wall_damp_height * (0.55 + 0.75 * streak);
+			base_mask = clamp(1.0 - v_world_pos.y / max(0.1, base_h), 0.0, 1.0);
+		}
+		float top_mask = 0.0;
+		if (v_world_pos.y > wall_top_grime_y - 1.45) {
+			float top_streak = fbm2(vec2(wall_coord * 1.15, v_world_pos.y * 0.12));
+			top_mask = smoothstep(wall_top_grime_y - 1.4, wall_top_grime_y, v_world_pos.y) * smoothstep(0.35, 0.78, top_streak);
+		}
 		float damp = clamp(base_mask * 0.85 + top_mask * 0.55, 0.0, 1.0) * wall_damp_strength;
-		alb = mix(alb, alb * 0.45 + grime_tint * 0.35, damp);
-		rgh = mix(rgh, 0.38, base_mask * wall_damp_strength * 0.65);
+		if (damp > 0.001) {
+			alb = mix(alb, alb * 0.45 + grime_tint * 0.35, damp);
+			rgh = mix(rgh, 0.38, base_mask * wall_damp_strength * 0.65);
+		}
 	}
 
 	ALBEDO = alb;

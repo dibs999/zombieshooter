@@ -200,14 +200,14 @@ def build_ruined_tank():
     parts.append(C.add_sphere("HullMGBall", 0.14, (1, 1, 1), (0.46, 2.02, 1.10), mat=dark_steel))
     parts.append(C.add_hollow_barrel("HullMGBbl", r_outer=0.022, r_inner=0.012, length=0.45, loc=(0.46, 2.25, 1.10), rot=(0, 0, math.radians(-8)), mat=dark_steel))
     for st_i in range(4):
-        parts.append(C.add_box(f"SpareTrack_{st_i}", (0.36, 0.08, 0.22), (-0.42 + st_i * 0.38, 2.38, 0.72), (math.radians(24), tilt_y, 0), mat=treads, bevel=0.008))
+        parts.append(C.add_box(f"SpareTrack_{st_i}", (0.36, 0.08, 0.22), (-0.42 + st_i * 0.38, 2.38, 0.72), (math.radians(24), tilt_y, 0), mat=treads, bevel=0.0))
 
     parts.append(C.add_box("EngineDeck", (2.06, 1.38, 0.14), (0, -1.52, 1.24), (0, tilt_y, 0), mat=armor_scorch, bevel=0.02, uv_scale=0.75))
     for li in range(7):
-        parts.append(C.add_box(f"Louver_{li}", (1.56, 0.08, 0.05), (0, -2.02 + li * 0.16, 1.32), (math.radians(22), tilt_y, 0), mat=dark_steel, bevel=0.006))
-    parts.append(C.add_cyl("ExhaustMuffler", 0.13, 1.02, (0, -2.52, 0.68), (0, math.radians(90), 0), mat=armor_scorch))
-    parts.append(C.add_cyl("FuelDrumL", 0.22, 0.78, (-0.58, -1.96, 1.46), (0, math.radians(90), 0), mat=treads))
-    parts.append(C.add_cyl("FuelDrumR", 0.22, 0.78, (0.58, -1.96, 1.46), (0, math.radians(90), 0), mat=treads))
+        parts.append(C.add_box(f"Louver_{li}", (1.56, 0.08, 0.05), (0, -2.02 + li * 0.16, 1.32), (math.radians(22), tilt_y, 0), mat=dark_steel, bevel=0.0))
+    parts.append(C.add_cyl("ExhaustMuffler", 0.13, 1.02, (0, -2.52, 0.68), (0, math.radians(90), 0), vertices=12, mat=armor_scorch, bevel=0.0))
+    parts.append(C.add_cyl("FuelDrumL", 0.22, 0.78, (-0.58, -1.96, 1.46), (0, math.radians(90), 0), vertices=12, mat=treads, bevel=0.0))
+    parts.append(C.add_cyl("FuelDrumR", 0.22, 0.78, (0.58, -1.96, 1.46), (0, math.radians(90), 0), vertices=12, mat=treads, bevel=0.0))
 
     # 2. Track Running Gear (16 Dished Roadwheels + Drive Sprockets + Idlers + Return Rollers + Wrapped Track Cleat Belt)
     wheel_prof = [
@@ -218,12 +218,12 @@ def build_ruined_tank():
         parts.append(C.add_box(f"Fender_{side_idx}", (0.54, 4.95, 0.07), (sx, 0.02, 0.96), (0, tilt_y, 0), mat=armor, bevel=0.015, uv_scale=0.65))
         for wi in range(8):
             wy = -1.78 + wi * 0.51
-            parts.append(C.add_lathe(f"RoadWheel_{side_idx}_{wi}", wheel_prof, segments=14, loc=(sx, wy, 0.30), rot=(0, math.radians(90 if sx > 0 else -90), 0), mat=armor))
-            parts.append(C.add_cyl(f"Tire_{side_idx}_{wi}", 0.295, 0.14, (sx, wy, 0.30), (0, math.radians(90), 0), vertices=14, mat=rubber))
-        parts.append(C.add_gear(f"Sprocket_{side_idx}", teeth=12, r_outer=0.38, r_root=0.31, r_bore=0.08, thickness=0.22, spokes=5, loc=(sx, 2.24, 0.56), rot=(0, 0, math.radians(90)), mat=dark_steel))
-        parts.append(C.add_cyl(f"Idler_{side_idx}", 0.31, 0.22, (sx, -2.26, 0.54), (0, math.radians(90), 0), vertices=16, mat=dark_steel))
+            parts.append(C.add_lathe(f"RoadWheel_{side_idx}_{wi}", wheel_prof, segments=10, loc=(sx, wy, 0.30), rot=(0, math.radians(90 if sx > 0 else -90), 0), mat=armor))
+            parts.append(C.add_cyl(f"Tire_{side_idx}_{wi}", 0.295, 0.14, (sx, wy, 0.30), (0, math.radians(90), 0), vertices=10, mat=rubber, bevel=0.0))
+        parts.append(C.add_gear(f"Sprocket_{side_idx}", teeth=10, r_outer=0.38, r_root=0.31, r_bore=0.08, thickness=0.22, spokes=4, loc=(sx, 2.24, 0.56), rot=(0, 0, math.radians(90)), mat=dark_steel))
+        parts.append(C.add_cyl(f"Idler_{side_idx}", 0.31, 0.22, (sx, -2.26, 0.54), (0, math.radians(90), 0), vertices=10, mat=dark_steel, bevel=0.0))
         for ri in range(4):
-            parts.append(C.add_cyl(f"Return_{side_idx}_{ri}", 0.095, 0.18, (sx, -1.5 + ri * 1.0, 0.78), (0, math.radians(90), 0), mat=treads))
+            parts.append(C.add_cyl(f"Return_{side_idx}_{ri}", 0.095, 0.18, (sx, -1.5 + ri * 1.0, 0.78), (0, math.radians(90), 0), vertices=10, mat=treads, bevel=0.0))
 
         track_loop = [
             (sx, -1.85, 0.03), (sx, 0.0, 0.03), (sx, 1.85, 0.03),
@@ -240,8 +240,8 @@ def build_ruined_tank():
             mid_y = (p0[1] + p1[1]) * 0.5
             mid_z = (p0[2] + p1[2]) * 0.5
             ang = math.atan2(dz, dy)
-            parts.append(C.add_box(f"TrackSeg_{side_idx}_{ti}", (0.44, seg_len + 0.06, 0.06), (sx, mid_y, mid_z), (ang, 0, 0), mat=treads, bevel=0.01))
-            steps = max(1, int(seg_len / 0.22))
+            parts.append(C.add_box(f"TrackSeg_{side_idx}_{ti}", (0.44, seg_len + 0.06, 0.06), (sx, mid_y, mid_z), (ang, 0, 0), mat=treads, bevel=0.0))
+            steps = max(1, int(seg_len / 0.34))
             for gi in range(steps):
                 t = (gi + 0.5) / steps
                 parts.append(C.add_box(
@@ -250,7 +250,7 @@ def build_ruined_tank():
                     (sx, p0[1] + dy * t, p0[2] + dz * t),
                     (ang, 0, 0),
                     mat=dark_steel,
-                    bevel=0.005,
+                    bevel=0.0,
                 ))
 
     skirt_cfg = [
@@ -306,7 +306,7 @@ def build_ruined_tank():
 
     mantlet_pos = _tur_pt(0, 1.06, 1.54)
     parts.append(C.add_box("SaukopfMantlet", (0.74, 0.42, 0.44), mantlet_pos, (math.radians(-6), 0, t_yaw), mat=armor_scorch, bevel=0.06))
-    parts.append(C.add_cyl("RecoilSleeve", 0.15, 0.72, _tur_pt(0, 1.38, 1.56), (math.radians(84), 0, t_yaw), mat=dark_steel))
+    parts.append(C.add_cyl("RecoilSleeve", 0.15, 0.72, _tur_pt(0, 1.38, 1.56), (math.radians(84), 0, t_yaw), vertices=12, mat=dark_steel, bevel=0.0))
     parts.append(C.add_hollow_barrel(
         "MainCannon75mm",
         r_outer=0.095,
@@ -314,14 +314,14 @@ def build_ruined_tank():
         length=2.85,
         loc=_tur_pt(0, 2.75, 1.70),
         rot=(math.radians(-6), 0, t_yaw),
-        segments=18,
+        segments=12,
         mat=dark_steel,
     ))
     mb_prof = [
         (0.11, -0.18), (0.165, -0.14), (0.165, -0.04), (0.125, -0.02),
         (0.125,  0.04), (0.165,  0.06), (0.165,  0.16), (0.105,  0.20), (0.062, 0.20),
     ]
-    parts.append(C.add_lathe("MuzzleBrake", mb_prof, segments=16, loc=_tur_pt(0, 4.24, 1.86), rot=(math.radians(-84), 0, t_yaw), mat=armor_scorch))
+    parts.append(C.add_lathe("MuzzleBrake", mb_prof, segments=12, loc=_tur_pt(0, 4.24, 1.86), rot=(math.radians(-84), 0, t_yaw), mat=armor_scorch))
 
     C.join_objects(parts, "RuinedTank")
     C.export_asset("env", "ruined_tank")

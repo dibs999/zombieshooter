@@ -31,7 +31,7 @@ lifetime = 0.75
 
 [node name="Particles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 22
+amount = 14
 lifetime = 0.48
 one_shot = true
 explosiveness = 0.96
@@ -46,7 +46,7 @@ scale_amount_max = 1.25
 
 [node name="MistParticles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 14
+amount = 8
 lifetime = 0.42
 one_shot = true
 explosiveness = 0.9

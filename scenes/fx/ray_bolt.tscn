@@ -5,8 +5,8 @@
 [sub_resource type="SphereMesh" id="1"]
 radius = 0.085
 height = 0.17
-radial_segments = 10
-rings = 6
+radial_segments = 8
+rings = 5
 
 [sub_resource type="StandardMaterial3D" id="2"]
 transparency = 1
@@ -31,10 +31,13 @@ mesh = SubResource("1")
 light_color = Color(0.2, 1, 0.45, 1)
 light_energy = 5.5
 omni_range = 5.5
+distance_fade_enabled = true
+distance_fade_begin = 22.0
+distance_fade_length = 8.0
 
 [node name="TrailParticles" type="CPUParticles3D" parent="."]
 emitting = false
-amount = 20
+amount = 12
 lifetime = 0.22
 local_coords = false
 mesh = SubResource("3")
