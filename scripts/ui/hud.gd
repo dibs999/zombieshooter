@@ -70,6 +70,11 @@ func _apply_cod_style() -> void:
 	weapon_name_label.add_theme_font_size_override("font_size", 15)
 	weapon_name_label.modulate = Color(0.85, 0.82, 0.72, 0.85)
 	secondary_label.add_theme_font_size_override("font_size", 13)
+	var tw := load("res://assets/fonts/SpecialElite.ttf") as Font
+	if tw:
+		for lb in [points_label, ammo_label, weapon_name_label, secondary_label, grenade_count_label]:
+			if lb:
+				lb.add_theme_font_override("font", tw)
 	grenade_count_label.add_theme_font_size_override("font_size", 20)
 
 
