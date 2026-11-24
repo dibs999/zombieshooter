@@ -42,7 +42,96 @@ func _ready() -> void:
 
 	_build_menu_ruins()
 	_apply_graphics_settings()
+	_apply_cod_style()
 
+
+
+# WaW/BO1 zombies menu look: distressed stencil typography floating over the
+# scene — no sci-fi card, no cyan chrome. Bone-white typewriter text, amber hover.
+func _apply_cod_style() -> void:
+	var stencil := load("res://assets/fonts/BlackOpsOne.ttf") as Font
+	var typewriter := load("res://assets/fonts/SpecialElite.ttf") as Font
+	var bone := Color(0.93, 0.90, 0.82)
+	var dim := Color(0.66, 0.62, 0.54)
+	var amber := Color(1.0, 0.72, 0.32)
+	var blood := Color(0.72, 0.16, 0.12)
+
+	# Kill the boxed panel — text floats over the diorama
+	var card := get_node_or_null("UI/Card") as PanelContainer
+	if card:
+		var bg := StyleBoxFlat.new()
+		bg.bg_color = Color(0.0, 0.0, 0.0, 0.42)
+		bg.corner_radius_top_left = 2
+		bg.corner_radius_top_right = 2
+		bg.corner_radius_bottom_right = 2
+		bg.corner_radius_bottom_left = 2
+		bg.content_margin_left = 34.0
+		bg.content_margin_top = 26.0
+		bg.content_margin_right = 34.0
+		bg.content_margin_bottom = 26.0
+		card.add_theme_stylebox_override("panel", bg)
+
+	var title := get_node_or_null("UI/Card/VBox/Title") as Label
+	if title and stencil:
+		title.add_theme_font_override("font", stencil)
+		title.add_theme_font_size_override("font_size", 56)
+		title.add_theme_color_override("font_color", bone)
+		title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		title.add_theme_constant_override("outline_size", 10)
+
+	var subtitle := get_node_or_null("UI/Card/VBox/Subtitle") as Label
+	if subtitle and typewriter:
+		subtitle.add_theme_font_override("font", typewriter)
+		subtitle.add_theme_font_size_override("font_size", 17)
+		subtitle.add_theme_color_override("font_color", Color(0.80, 0.62, 0.40))
+
+	# Flat bone-white buttons, amber on hover — like the WaW menu list
+	var empty := StyleBoxEmpty.new()
+	var hover_box := StyleBoxFlat.new()
+	hover_box.bg_color = Color(0.55, 0.42, 0.16, 0.22)
+	hover_box.border_width_left = 3
+	hover_box.border_color = amber
+	hover_box.content_margin_left = 8.0
+	var vbox := get_node_or_null("UI/Card/VBox")
+	if vbox:
+		for node in vbox.find_children("", "Button", true, false):
+			var btn := node as Button
+			if btn == null:
+				continue
+			for state in ["normal", "pressed", "disabled", "focus"]:
+				btn.add_theme_stylebox_override(state, empty)
+			btn.add_theme_stylebox_override("hover", hover_box)
+			if typewriter:
+				btn.add_theme_font_override("font", typewriter)
+			btn.add_theme_color_override("font_color", bone)
+			btn.add_theme_color_override("font_hover_color", amber)
+			btn.add_theme_color_override("font_pressed_color", blood)
+			btn.add_theme_color_override("font_focus_color", bone)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		for node in vbox.find_children("", "Label", true, false):
+			var lb := node as Label
+			if lb == title or lb == subtitle:
+				continue
+			if typewriter:
+				lb.add_theme_font_override("font", typewriter)
+			if not lb.has_theme_color_override("font_color"):
+				lb.add_theme_color_override("font_color", dim)
+
+	# Dim the cyan 115 glow toward teal-green so it stops reading sci-fi menu chrome
+	var cyan := get_node_or_null("Backdrop3D/CyanGlow1") as OmniLight3D
+	if cyan:
+		cyan.light_color = Color(0.30, 0.78, 0.62)
+		cyan.light_energy = 1.1
+
+	# Same cinematic grade as in-game: vignette + grain over the whole menu
+	var rect := ColorRect.new()
+	rect.name = "FilmGrade"
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/film_grade.gdshader") as Shader
+	rect.material = sm
+	add_child(rect)
 
 var _t: float = 0.0
 
