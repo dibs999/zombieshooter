@@ -35,6 +35,13 @@ var _repath_cd: float = 0.0
 var _stagger_timer: float = 0.0
 var _leg_damage: float = 0.0
 
+# Organic lurching: per-zombie randomized gait so hordes never move in sync
+var _lurch_t: float = 0.0
+var _lurch_rate: float = 3.0
+var _lurch_amount: float = 0.20
+var _sway_phase: float = 0.0
+var _pending_hit_timer: float = -1.0
+
 var _anim_player: AnimationPlayer = null
 var _skeleton: Skeleton3D = null
 var _head_bone_idx: int = -1
@@ -98,11 +105,25 @@ func _ready() -> void:
 	body_area.set_meta("zombie_owner", self)
 	_groan_cd = randf_range(1.2, 6.0)
 	_head_sync_tick = randi() & 3
+	_lurch_rate = randf_range(2.3, 3.9)
+	_lurch_t = randf() * TAU
+	_sway_phase = randf() * TAU
+	_lurch_amount = randf_range(0.14, 0.26)
+	move_speed *= randf_range(0.90, 1.10)
 
 	if model_root.get_child_count() == 0:
 		_load_variant_model()
 
 	_play_anim(_locomotion_anim())
+	_desync_anim_phase()
+
+
+func _desync_anim_phase() -> void:
+	# Freshly spawned zombies must never cycle their walk in lockstep
+	if _anim_player != null and _anim_player.is_playing():
+		var len := _anim_player.current_animation_length
+		if len > 0.05:
+			_anim_player.seek(randf() * len, true)
 
 
 func _get_player() -> Node3D:
@@ -257,6 +278,24 @@ func _physics_process(delta: float) -> void:
 	if state == State.DEAD or GameManager.is_game_over:
 		return
 
+	# Delayed attack windup: damage lands mid-swing, not on frame 1 (dodgeable, CoD-like)
+	if _pending_hit_timer > 0.0:
+		_pending_hit_timer -= delta
+		if _pending_hit_timer <= 0.0:
+			var p_hit := _get_player()
+			if p_hit != null and global_position.distance_to(p_hit.global_position) <= 2.2 and p_hit.has_method("take_damage"):
+				p_hit.take_damage(attack_damage)
+
+	# Advance per-zombie gait phase & organic upper-body sway
+	var gait_scale := 0.55 if is_crawler else 1.0
+	_lurch_t += delta * _lurch_rate * gait_scale
+	_sway_phase += delta * _lurch_rate * 0.5 * gait_scale
+	var moving := state == State.CHASING or state == State.APPROACHING_WINDOW
+	var target_roll := sin(_lurch_t) * (0.048 if moving and not is_crawler else 0.015)
+	var target_pitch := sin(_lurch_t * 0.5 + 0.7) * (0.028 if moving and not is_crawler else 0.010)
+	model_root.rotation.z = lerpf(model_root.rotation.z, target_roll, _exp_alpha(6.0, delta))
+	model_root.rotation.x = lerpf(model_root.rotation.x, target_pitch, _exp_alpha(6.0, delta))
+
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	_stagger_timer = maxf(0.0, _stagger_timer - delta)
 	_groan_cd -= delta
@@ -297,7 +336,7 @@ func _process_approaching_window(delta: float) -> void:
 		_tear_cd = 0.4
 		return
 	var dir := to_goal.normalized()
-	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
+	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0) * (1.0 + sin(_lurch_t) * _lurch_amount)
 	var accel := _exp_alpha(7.5, delta)
 	velocity.x = lerpf(velocity.x, dir.x * spd, accel)
 	velocity.z = lerpf(velocity.z, dir.z * spd, accel)
@@ -360,8 +399,7 @@ func _process_chasing(delta: float) -> void:
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.15
 			_play_anim("Crawl" if is_crawler else "Attack", true)
-			if player.has_method("take_damage"):
-				player.take_damage(attack_damage)
+			_pending_hit_timer = 0.38
 		return
 
 	_repath_cd -= delta
@@ -380,10 +418,13 @@ func _process_chasing(delta: float) -> void:
 	if move_dir.length_squared() > 0.001:
 		move_dir = move_dir.normalized()
 
-	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
+	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0) * (1.0 + sin(_lurch_t) * _lurch_amount)
+	# Shambling lateral drift perpendicular to the path — zombies weave, never glide in straight lines
+	var perp := Vector3(move_dir.z, 0.0, -move_dir.x)
+	var lateral := sin(_sway_phase) * 0.30 * (0.4 if is_crawler else 1.0)
 	var accel := _exp_alpha(7.5, delta)
-	velocity.x = lerpf(velocity.x, move_dir.x * spd, accel)
-	velocity.z = lerpf(velocity.z, move_dir.z * spd, accel)
+	velocity.x = lerpf(velocity.x, move_dir.x * spd + perp.x * lateral, accel)
+	velocity.z = lerpf(velocity.z, move_dir.z * spd + perp.z * lateral, accel)
 	if not is_on_floor():
 		velocity.y -= 15.0 * delta
 	else:

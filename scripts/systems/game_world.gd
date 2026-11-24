@@ -240,7 +240,7 @@ func _make_world_mat(
 	mat.set_shader_parameter("is_floor", is_floor)
 	mat.set_shader_parameter("puddle_amount", puddle)
 	mat.set_shader_parameter("wall_damp_strength", damp)
-	mat.set_shader_parameter("macro_variation", 0.22)
+	mat.set_shader_parameter("macro_variation", 0.34)
 	if alt_blend > 0.001 and ResourceLoader.exists(alt_alb):
 		mat.set_shader_parameter("use_alt_layer", true)
 		mat.set_shader_parameter("alt_albedo_tex", load(alt_alb))
@@ -629,6 +629,56 @@ func _build_props_and_atmosphere() -> void:
 	_add_alarm_light(Vector3(-17.0, 3.8, -5.0))
 	_add_alarm_light(Vector3(17.0, 3.8, -5.0))
 	_add_alarm_light(Vector3(18.0, 3.6, -25.0))
+
+	# Trashed window entries: broken planks & debris scattered inside every barricaded window
+	for wspec in [
+		[Vector3(-5.2, 0.02, 9.1), 0.0],
+		[Vector3(5.2, 0.02, 9.1), 0.0],
+		[Vector3(-23.1, 0.02, 0.0), 90.0],
+		[Vector3(-17.0, 0.02, 7.1), 0.0],
+		[Vector3(17.0, 0.02, 7.1), 0.0],
+		[Vector3(23.1, 0.02, 1.5), 90.0],
+		[Vector3(-9.5, 0.02, -21.1), 180.0],
+		[Vector3(9.5, 0.02, -21.1), 180.0],
+		[Vector3(-11.1, 0.02, -35.0), 90.0],
+		[Vector3(4.0, 0.02, -41.1), 180.0],
+	]:
+		_scatter_plank_debris(wspec[0], wspec[1])
+
+	# Interior corner rubble: collapsed ceiling plaster & brick inside Lab, East & Reactor corners
+	for rspec in [
+		[Vector3(-23.2, 0.0, -6.9), 58.0, 1.0],
+		[Vector3(-10.9, 0.0, 7.0), -24.0, 0.8],
+		[Vector3(23.0, 0.0, 7.0), 41.0, 0.9],
+		[Vector3(10.9, 0.0, -6.8), 12.0, 0.75],
+		[Vector3(-23.0, 0.0, -20.9), 77.0, 1.15],
+		[Vector3(23.0, 0.0, -12.5), -33.0, 0.9],
+		[Vector3(15.9, 0.0, -21.0), 20.0, 0.85],
+	]:
+		_place_prop("res://assets/models/env/rubble_pile.glb", rspec[0], rspec[1], Vector3(1.5, 0.62, 1.0) * rspec[2], Vector3(0, 0.30, 0))
+
+
+func _scatter_plank_debris(center: Vector3, facing_deg: float) -> void:
+	# Deterministic per-window plank scatter: broken barricade boards lying trashed on the floor
+	var seed_i := int(absf(center.x * 7.31 + center.z * 3.97) * 100.0)
+	for i in range(5):
+		var frac := float((seed_i + i * 37) % 100) / 100.0
+		var frac2 := float((seed_i + i * 53 + 11) % 100) / 100.0
+		var ang := facing_deg + (frac - 0.5) * 130.0
+		var off := Vector3((frac - 0.5) * 1.9, 0.0, 0.35 + frac2 * 1.3)
+		var fwd := Vector3(sin(deg_to_rad(facing_deg)), 0.0, cos(deg_to_rad(facing_deg)))
+		var side := Vector3(fwd.z, 0.0, -fwd.x)
+		var pos: Vector3 = center + side * off.x + fwd * off.z
+		var length := 0.55 + frac2 * 0.7
+		var plank := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.14, 0.035, length)
+		plank.mesh = bm
+		plank.material_override = _mat_wood
+		plank.position = pos + Vector3(0.0, 0.02, 0.0)
+		plank.rotation_degrees = Vector3(0.0, ang, (frac - 0.5) * 6.0)
+		geo_root.add_child(plank)
+
 
 
 func _build_facility_details() -> void:
@@ -1243,7 +1293,8 @@ func _add_cage_light(pos: Vector3, rot_y_deg: float, col: Color, energy: float, 
 	var omni := OmniLight3D.new()
 	omni.position = Vector3(0, drop_y, 0) if ceiling_mount else Vector3(0, -0.2, 0.25)
 	omni.light_color = col
-	omni.omni_range = 16.0
+	omni.omni_range = 8.5
+	omni.omni_attenuation = 1.9
 	omni.light_energy = 0.0 if (power_controlled and not GameManager.power_on) else energy
 	omni.set_meta("target_energy", energy)
 	_setup_light_fade(omni, 28.0, 8.0)

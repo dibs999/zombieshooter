@@ -419,11 +419,13 @@ func _animate_viewmodel(delta: float) -> void:
 
 	_animate_weapon_parts(delta, cur)
 
-	# Smooth ADS FOV
+	# Smooth ADS FOV + CoD sprint speed-widening
 	if camera:
 		var base_fov := SettingsManager.fov
 		var target_fov := base_fov * float(WeaponDB.get_stat(cur, "ads_fov_mult")) if is_aiming else base_fov
-		camera.fov = lerpf(camera.fov, target_fov, _exp_alpha(14.0, delta))
+		if not is_aiming:
+			target_fov += 5.5 * _sprint_blend
+		camera.fov = lerpf(camera.fov, target_fov, _exp_alpha(10.0, delta))
 		if absf(camera.fov - target_fov) < 0.0001:
 			camera.fov = target_fov
 

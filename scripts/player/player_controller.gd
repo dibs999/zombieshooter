@@ -163,6 +163,11 @@ func _handle_movement(delta: float) -> void:
 	elif not _was_grounded:
 		var drop := _air_peak_y - global_position.y
 		_air_peak_y = global_position.y
+		# Landing impact: camera dip + shake scaled by fall height (CoD weighty landing)
+		if drop > 0.55 and not is_downed:
+			var impact := clampf((drop - 0.55) / 3.2, 0.0, 1.0)
+			_recoil_pitch = clampf(_recoil_pitch - 0.028 - 0.05 * impact, -0.22, 0.25)
+			add_camera_trauma(0.10 + 0.18 * impact)
 		if drop >= 2.2 and GameManager.has_perk("phdflopper") and not is_downed:
 			trigger_phd_explosion()
 	else:

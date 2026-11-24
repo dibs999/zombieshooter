@@ -33,6 +33,7 @@ var _hand_r_bone_idx: int = -1
 var _current_anim: String = ""
 
 var _attack_cd: float = 0.0
+var _pending_claw_timer: float = -1.0
 var _repath_cd: float = 0.0
 var _stomp_sfx_cd: float = 0.0
 var _flame_burst_timer: float = 0.0
@@ -197,6 +198,13 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_attack_cd = maxf(0.0, _attack_cd - delta)
+	if _pending_claw_timer > 0.0:
+		_pending_claw_timer -= delta
+		if _pending_claw_timer <= 0.0:
+			AudioManager.play_3d("explosion", global_position + Vector3(0, 1.2, 0), 0.12, -9.0, 26.0)
+			var p_hit := _get_player()
+			if p_hit != null and global_position.distance_to(p_hit.global_position) <= 2.9 and p_hit.has_method("take_damage"):
+				p_hit.take_damage(claw_damage)
 	_flame_cooldown = maxf(0.0, _flame_cooldown - delta)
 	_stomp_sfx_cd -= delta
 
@@ -249,9 +257,7 @@ func _physics_process(delta: float) -> void:
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.45
 			_play_anim("Attack", true)
-			AudioManager.play_3d("explosion", global_position + Vector3(0, 1.2, 0), 0.12, -9.0, 26.0)
-			if player.has_method("take_damage"):
-				player.take_damage(claw_damage)
+			_pending_claw_timer = 0.52
 		return
 
 	# Medium-range Flamethrower Trigger
