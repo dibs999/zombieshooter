@@ -89,11 +89,16 @@ func _find_anim(n: Node) -> void:
 		_find_anim(c)
 
 
+static func _exp_alpha(speed: float, delta: float) -> float:
+	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
+
+
 func _play_anim(a: String, force_restart: bool = false) -> void:
 	if _anim_player and (force_restart or _current_anim != a) and _anim_player.has_animation(a):
-		var blend := 0.0 if _current_anim == "" else 0.12
+		var blend := 0.0 if _current_anim == "" else 0.18
 		_current_anim = a
 		_anim_player.play(a, blend)
+		_anim_player.speed_scale = clampf(move_speed / 6.3, 0.8, 1.5) if a == "Run" else 1.0
 
 
 func _physics_process(delta: float) -> void:
@@ -134,8 +139,9 @@ func _physics_process(delta: float) -> void:
 	if dir.length_squared() > 0.001:
 		dir = dir.normalized()
 
-	velocity.x = dir.x * move_speed
-	velocity.z = dir.z * move_speed
+	var accel := _exp_alpha(10.0, delta)
+	velocity.x = lerpf(velocity.x, dir.x * move_speed, accel)
+	velocity.z = lerpf(velocity.z, dir.z * move_speed, accel)
 	velocity.y = -15.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
@@ -146,7 +152,7 @@ func _physics_process(delta: float) -> void:
 func _face_direction(dir: Vector3, delta: float) -> void:
 	if dir.length_squared() < 0.001:
 		return
-	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), delta * 12.0)
+	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), _exp_alpha(12.0, delta))
 
 
 func take_damage(amount: float, is_headshot: bool, _hit_pos: Vector3, _hit_dir: Vector3, is_melee: bool = false) -> bool:

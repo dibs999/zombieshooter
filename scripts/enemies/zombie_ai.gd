@@ -156,6 +156,7 @@ func _load_variant_model() -> void:
 		for snode in [_stump_head, _stump_arm_l, _stump_arm_r, _stump_legs]:
 			if snode != null:
 				snode.visible = false
+		_boost_eye_emission(inst)
 
 		if is_crawler:
 			_configure_crawler_collision_and_visuals()
@@ -186,6 +187,28 @@ func _configure_crawler_collision_and_visuals() -> void:
 		dup_a.height = 0.72
 		dup_a.radius = 0.42
 		area_col.shape = dup_a
+
+
+static func _exp_alpha(speed: float, delta: float) -> float:
+	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
+
+
+func _boost_eye_emission(inst: Node) -> void:
+	# CoD Zombies signature: amber/orange eyes glowing through the dark
+	var stack: Array[Node] = [inst]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			for surf in mi.get_surface_override_material_count():
+				var mat: Material = mi.get_active_material(surf)
+				if mat is StandardMaterial3D and "Eye" in mat.resource_name:
+					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+					sm.emission_enabled = true
+					sm.emission_energy_multiplier = 4.5
+					mi.set_surface_override_material(surf, sm)
+		for c in n.get_children():
+			stack.append(c)
 
 
 func _find_rig_nodes(node: Node) -> void:
@@ -220,9 +243,14 @@ func _play_anim(anim_name: String, force_restart: bool = false) -> void:
 			return
 	if not force_restart and _current_anim == target and _anim_player.is_playing():
 		return
-	var blend := 0.0 if _current_anim == "" else 0.16
+	var blend := 0.0 if _current_anim == "" else 0.22
 	_current_anim = target
 	_anim_player.play(target, blend)
+	# Match foot cadence to actual move speed so walkers shamble & sprinters don't slide
+	if target in ["Walk", "Run", "Crawl"]:
+		_anim_player.speed_scale = clampf(move_speed / 2.35, 0.72, 1.9)
+	else:
+		_anim_player.speed_scale = 1.0
 
 
 func _physics_process(delta: float) -> void:
@@ -270,8 +298,9 @@ func _process_approaching_window(delta: float) -> void:
 		return
 	var dir := to_goal.normalized()
 	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
-	velocity.x = dir.x * spd
-	velocity.z = dir.z * spd
+	var accel := _exp_alpha(7.5, delta)
+	velocity.x = lerpf(velocity.x, dir.x * spd, accel)
+	velocity.z = lerpf(velocity.z, dir.z * spd, accel)
 	velocity.y = -9.8 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
@@ -352,8 +381,9 @@ func _process_chasing(delta: float) -> void:
 		move_dir = move_dir.normalized()
 
 	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
-	velocity.x = move_dir.x * spd
-	velocity.z = move_dir.z * spd
+	var accel := _exp_alpha(7.5, delta)
+	velocity.x = lerpf(velocity.x, move_dir.x * spd, accel)
+	velocity.z = lerpf(velocity.z, move_dir.z * spd, accel)
 	if not is_on_floor():
 		velocity.y -= 15.0 * delta
 	else:
@@ -368,7 +398,7 @@ func _face_direction(dir: Vector3, delta: float) -> void:
 	if dir.length_squared() < 0.001:
 		return
 	var target_yaw := atan2(-dir.x, -dir.z)
-	rotation.y = lerp_angle(rotation.y, target_yaw, delta * 9.5)
+	rotation.y = lerp_angle(rotation.y, target_yaw, _exp_alpha(9.5, delta))
 
 
 func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Vector3, is_melee: bool = false) -> bool:

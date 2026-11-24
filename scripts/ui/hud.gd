@@ -56,6 +56,7 @@ const FALLBACK_PERK_COLORS := {
 
 func _ready() -> void:
 	add_to_group("hud")
+	_add_film_grade()
 	blood_vignette.modulate.a = 0.0
 	nuke_flash.modulate.a = 0.0
 	hitmarker.visible = false
@@ -82,6 +83,18 @@ func _ready() -> void:
 	_on_points_changed(GameManager.points, 0, "")
 	_on_round_changed(GameManager.current_round, false)
 	_on_perks_changed(GameManager.perks)
+
+
+func _add_film_grade() -> void:
+	var rect := ColorRect.new()
+	rect.name = "FilmGrade"
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/film_grade.gdshader") as Shader
+	rect.material = sm
+	add_child(rect)
+	move_child(rect, 0)
 
 
 func _process(delta: float) -> void:

@@ -130,14 +130,19 @@ func _find_nodes(n: Node) -> void:
 		_find_nodes(c)
 
 
+static func _exp_alpha(speed: float, delta: float) -> float:
+	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
+
+
 func _play_anim(a: String, force_restart: bool = false) -> void:
 	if _anim_player == null or not _anim_player.has_animation(a):
 		return
 	if not force_restart and _current_anim == a and _anim_player.is_playing():
 		return
-	var blend := 0.0 if _current_anim == "" else 0.16
+	var blend := 0.0 if _current_anim == "" else 0.20
 	_current_anim = a
 	_anim_player.play(a, blend)
+	_anim_player.speed_scale = clampf(move_speed / 2.4, 0.8, 1.6) if a in ["Walk", "Run"] else 1.0
 
 
 func is_plate_intact(plate_key: String) -> bool:
@@ -276,8 +281,9 @@ func _physics_process(delta: float) -> void:
 		dir = dir.normalized()
 
 	var spd := move_speed * (1.28 if dist > 9.0 else 1.0)
-	velocity.x = dir.x * spd
-	velocity.z = dir.z * spd
+	var accel := _exp_alpha(6.5, delta)
+	velocity.x = lerpf(velocity.x, dir.x * spd, accel)
+	velocity.z = lerpf(velocity.z, dir.z * spd, accel)
 	velocity.y = -15.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
@@ -304,7 +310,7 @@ func _apply_flame_cone_damage(player: Node3D) -> void:
 func _face_direction(dir: Vector3, delta: float) -> void:
 	if dir.length_squared() < 0.001:
 		return
-	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), delta * 6.5)
+	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), _exp_alpha(6.5, delta))
 
 
 func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Vector3, is_melee: bool = false) -> bool:

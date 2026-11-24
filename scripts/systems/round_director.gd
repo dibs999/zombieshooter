@@ -101,6 +101,7 @@ func spawn_panzer_boss(r: int = -1, spawn_pos: Variant = null) -> PanzerBossAI:
 			var windows := _get_unlocked_windows()
 			if not windows.is_empty():
 				boss.global_position = windows[randi() % windows.size()].get_inside_pos()
+	boss.reset_physics_interpolation()
 	active_zombies += 1
 	return boss
 
@@ -138,6 +139,7 @@ func _spawn_next_enemy() -> void:
 		var hound := hellhound_scene.instantiate() as HellhoundAI
 		_world_root().add_child(hound)
 		hound.global_position = sp.global_position
+		hound.reset_physics_interpolation()
 		hound.setup(maxf(150.0, hp * 0.55))
 		hound.died.connect(_on_enemy_died)
 		zombies_remaining_to_spawn -= 1
@@ -184,6 +186,7 @@ func _spawn_next_enemy() -> void:
 	z.died.connect(_on_enemy_died)
 	_world_root().add_child(z)
 	z.global_position = win.get_spawn_pos()
+	z.reset_physics_interpolation()
 
 	zombies_remaining_to_spawn -= 1
 	active_zombies += 1
@@ -254,6 +257,7 @@ func _spawn_powerup(kind: String, pos: Vector3) -> void:
 	var pu := powerup_scene.instantiate() as Node3D
 	_world_root().add_child(pu)
 	pu.global_position = pos
+	pu.reset_physics_interpolation()
 	if pu.has_method("setup"):
 		pu.setup(kind)
 
