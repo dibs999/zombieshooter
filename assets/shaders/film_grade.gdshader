@@ -4,7 +4,7 @@ shader_type canvas_item;
 // slight cool-green desaturation — subtle enough to leave gameplay readable.
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
-uniform float vignette_strength : hint_range(0.0, 1.0) = 0.38;
+uniform float vignette_strength : hint_range(0.0, 1.0) = 0.46;
 uniform float vignette_softness : hint_range(0.1, 1.0) = 0.62;
 uniform float grain_strength : hint_range(0.0, 0.25) = 0.055;
 uniform float desat_amount : hint_range(0.0, 0.6) = 0.10;
