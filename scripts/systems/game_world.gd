@@ -657,6 +657,92 @@ func _build_props_and_atmosphere() -> void:
 	]:
 		_place_prop("res://assets/models/env/rubble_pile.glb", rspec[0], rspec[1], Vector3(1.5, 0.62, 1.0) * rspec[2], Vector3(0, 0.30, 0))
 	_scatter_floor_debris()
+	_scatter_grime_decals()
+
+
+
+func _scatter_grime_decals() -> void:
+	# Grit layer: blood at the kill zones, grime bleeding down walls, oil & scorch.
+	# Decals cost nearly nothing in Forward+ but do most of the "lived-in bunker" work.
+	var blood := "res://assets/decals/decal_blood_splatter.png"
+	var grime := "res://assets/decals/decal_grime_leak.png"
+	var oil := "res://assets/decals/decal_oil_slick.png"
+	var scorch := "res://assets/decals/decal_scorch_mark.png"
+	var crack := "res://assets/decals/decal_wall_crack.png"
+	var geo_root := get_node_or_null("Geometry")
+	if geo_root == null:
+		geo_root = self
+
+	var place := func(tex_path: String, pos: Vector3, rot_deg: Vector3, size: Vector3, mix: float = 0.85) -> void:
+		if not ResourceLoader.exists(tex_path):
+			return
+		var dec := Decal.new()
+		dec.position = pos
+		dec.rotation_degrees = rot_deg
+		dec.size = size
+		dec.texture_albedo = load(tex_path)
+		dec.albedo_mix = mix
+		dec.distance_fade_enabled = true
+		dec.distance_fade_begin = 20.0
+		dec.distance_fade_length = 7.0
+		geo_root.add_child(dec)
+
+	# Blood pools & sprays inside every barricaded window — the zombies bleed here
+	for wpos in [
+		Vector3(-5.2, 0.03, 8.3), Vector3(5.2, 0.03, 8.3),
+		Vector3(-22.3, 0.03, 0.0), Vector3(-17.0, 0.03, 6.4),
+		Vector3(17.0, 0.03, 6.4), Vector3(22.3, 0.03, 1.5),
+		Vector3(-9.5, 0.03, -20.4), Vector3(9.5, 0.03, -20.4),
+		Vector3(-10.5, 0.03, -35.0), Vector3(4.0, 0.03, -40.4),
+	]:
+		place.call(blood, wpos, Vector3.ZERO, Vector3(2.0, 0.2, 2.0), 0.8)
+
+	# Dried blood trails through the main corridors — the outbreak happened here
+	for bspec in [
+		[Vector3(0.8, 0.03, 2.0), Vector3(1.6, 0.2, 2.6)],
+		[Vector3(-3.2, 0.03, -8.5), Vector3(2.2, 0.2, 1.8)],
+		[Vector3(2.5, 0.03, -14.8), Vector3(1.8, 0.2, 2.4)],
+		[Vector3(-14.5, 0.03, -3.5), Vector3(2.4, 0.2, 2.0)],
+		[Vector3(14.8, 0.03, -2.8), Vector3(2.0, 0.2, 2.2)],
+		[Vector3(0.5, 0.03, -26.5), Vector3(2.6, 0.2, 2.2)],
+	]:
+		place.call(blood, bspec[0], Vector3.ZERO, bspec[1], 0.62)
+
+	# Grime leaks bleeding down walls (east/west walls: rot z ±90, north/south: rot x ∓90)
+	for gspec in [
+		[Vector3(-10.9, 1.7, 4.5), Vector3(0, 0, 90), 2.6],
+		[Vector3(10.9, 1.9, -3.0), Vector3(0, 0, -90), 3.2],
+		[Vector3(-3.5, 1.6, -20.9), Vector3(-90, 0, 0), 2.8],
+		[Vector3(6.5, 1.8, -20.9), Vector3(-90, 0, 0), 2.4],
+		[Vector3(-22.9, 1.7, -4.2), Vector3(0, 0, 90), 3.0],
+		[Vector3(22.9, 1.5, 4.0), Vector3(0, 0, -90), 2.6],
+		[Vector3(-6.0, 1.8, 8.9), Vector3(90, 0, 0), 2.2],
+		[Vector3(4.2, 1.6, 8.9), Vector3(90, 0, 0), 2.8],
+		[Vector3(0.5, 1.9, -40.9), Vector3(-90, 0, 0), 3.4],
+		[Vector3(-11.9, 1.6, -30.0), Vector3(0, 0, 90), 2.6],
+	]:
+		place.call(grime, gspec[0], gspec[1], Vector3(1.6, 0.3, gspec[2]), 0.7)
+
+	# Wall cracks near the reactor & east wing — structural damage
+	for cspec in [
+		[Vector3(11.9, 2.0, -28.0), Vector3(0, 0, -90), 2.8],
+		[Vector3(-18.0, 2.2, -21.0), Vector3(-90, 0, 0), 3.2],
+		[Vector3(22.9, 2.1, -8.5), Vector3(0, 0, -90), 2.4],
+	]:
+		place.call(crack, cspec[0], cspec[1], Vector3(cspec[2], 0.3, cspec[2]), 0.75)
+
+	# Oil slicks in motorpool / north yard, scorch marks near reactor & furnace areas
+	for ospec in [
+		[Vector3(3.0, 0.03, -34.5), Vector3(3.2, 0.2, 3.8)],
+		[Vector3(-2.5, 0.03, -37.8), Vector3(2.6, 0.2, 3.0)],
+		[Vector3(15.5, 0.03, -16.5), Vector3(2.2, 0.2, 2.6)],
+	]:
+		place.call(oil, ospec[0], Vector3.ZERO, ospec[1], 0.8)
+	for sspec in [
+		[Vector3(16.0, 0.03, -27.5), Vector3(2.8, 0.2, 2.8)],
+		[Vector3(-15.5, 0.03, -26.0), Vector3(2.2, 0.2, 2.2)],
+	]:
+		place.call(scorch, sspec[0], Vector3.ZERO, sspec[1], 0.7)
 
 
 func _scatter_floor_debris() -> void:
