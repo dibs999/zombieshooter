@@ -214,8 +214,20 @@ static func _exp_alpha(speed: float, delta: float) -> float:
 	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
 
 
+const TINT_VARIANTS: Array[Color] = [
+	Color(1.0, 1.0, 1.0),
+	Color(0.82, 0.78, 0.72),
+	Color(1.0, 0.86, 0.80),
+	Color(0.78, 0.88, 0.80),
+]
+static var _tint_cache: Dictionary = {}
+
+
 func _boost_eye_emission(inst: Node) -> void:
-	# CoD Zombies signature: amber/orange eyes glowing through the dark
+	# CoD Zombies signature: amber/orange eyes glowing through the dark,
+	# plus per-zombie clothing/skin tint variance so the horde reads as individuals
+	var variant_idx: int = randi() % TINT_VARIANTS.size()
+	var tint: Color = TINT_VARIANTS[variant_idx]
 	var stack: Array[Node] = [inst]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
@@ -223,11 +235,19 @@ func _boost_eye_emission(inst: Node) -> void:
 			var mi := n as MeshInstance3D
 			for surf in mi.get_surface_override_material_count():
 				var mat: Material = mi.get_active_material(surf)
-				if mat is StandardMaterial3D and "Eye" in mat.resource_name:
-					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
-					sm.emission_enabled = true
-					sm.emission_energy_multiplier = 4.5
-					mi.set_surface_override_material(surf, sm)
+				if mat is StandardMaterial3D:
+					if "Eye" in mat.resource_name:
+						var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+						sm.emission_enabled = true
+						sm.emission_energy_multiplier = 6.0
+						mi.set_surface_override_material(surf, sm)
+					elif variant_idx != 0:
+						var key := str(mat.get_instance_id()) + "_" + str(variant_idx)
+						if not _tint_cache.has(key):
+							var tm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+							tm.albedo_color = tm.albedo_color * tint
+							_tint_cache[key] = tm
+						mi.set_surface_override_material(surf, _tint_cache[key])
 		for c in n.get_children():
 			stack.append(c)
 
