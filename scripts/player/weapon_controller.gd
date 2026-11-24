@@ -629,6 +629,10 @@ func _equip_weapon(idx: int) -> void:
 
 
 func _grade_hand_materials(root: Node) -> void:
+	WeaponController.grade_hand_materials(root)
+
+
+static func grade_hand_materials(root: Node) -> void:
 	# Darken/weather skin & leather so hands read as shadowed gear, not pale clay
 	var tints := {
 		"FPSkin": Color(0.66, 0.55, 0.47),
@@ -648,6 +652,11 @@ func _grade_hand_materials(root: Node) -> void:
 					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
 					var tint: Color = tints[mat.resource_name]
 					sm.albedo_color = sm.albedo_color * tint
+					if mat.resource_name == "KnitCuff":
+						# The shared sleeve atlas bleeds orange leather into the cuff UVs —
+						# flatten to dark wool instead of multiplying a bad texture
+						sm.albedo_texture = null
+						sm.albedo_color = Color(0.14, 0.16, 0.13)
 					sm.roughness = minf(1.0, sm.roughness + 0.18)
 					mi.set_surface_override_material(surf, sm)
 		for c in n.get_children():
