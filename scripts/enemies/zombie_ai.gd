@@ -239,6 +239,7 @@ func _boost_eye_emission(inst: Node) -> void:
 					if "Eye" in mat.resource_name:
 						var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
 						sm.emission_enabled = true
+						sm.emission = Color(1.0, 0.52, 0.12)
 						sm.emission_energy_multiplier = 6.0
 						mi.set_surface_override_material(surf, sm)
 					elif variant_idx != 0:
