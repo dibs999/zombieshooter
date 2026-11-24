@@ -27,6 +27,7 @@ var _windows_cache_dirty: bool = true
 var _dog_spawns_cache_dirty: bool = true
 var _windows_zones_snapshot: Dictionary = {}
 var _dog_spawns_zones_snapshot: Dictionary = {}
+var _awaiting_first_input := true
 
 
 func _ready() -> void:
@@ -106,7 +107,20 @@ func spawn_panzer_boss(r: int = -1, spawn_pos: Variant = null) -> PanzerBossAI:
 	return boss
 
 
+func _player_gave_input() -> bool:
+	for action in ["move_forward", "move_back", "move_left", "move_right", "jump", "shoot"]:
+		if Input.is_action_pressed(action):
+			return true
+	return Input.get_last_mouse_velocity().length() > 8.0
+
+
 func _process(delta: float) -> void:
+	if _awaiting_first_input:
+		if GameManager.current_round > 1 or _player_gave_input():
+			_awaiting_first_input = false
+			spawn_timer = 4.0  # grace period: read the room before the horde moves
+		else:
+			return
 	if GameManager.is_game_over:
 		return
 

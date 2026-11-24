@@ -240,7 +240,7 @@ func _boost_eye_emission(inst: Node) -> void:
 						var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
 						sm.emission_enabled = true
 						sm.emission = Color(1.0, 0.52, 0.12)
-						sm.emission_energy_multiplier = 6.0
+						sm.emission_energy_multiplier = 9.0
 						mi.set_surface_override_material(surf, sm)
 					elif variant_idx != 0:
 						var key := str(mat.get_instance_id()) + "_" + str(variant_idx)
@@ -483,6 +483,8 @@ func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Ve
 
 	# Non-lethal localized dismemberment & stagger logic
 	GameManager.add_points(10, "Hit")
+	if not is_melee:
+		_spawn_blood_burst(hit_pos)
 	var is_aoe_origin := hit_pos.distance_squared_to(global_position) < 0.04
 	var local_hit := to_local(hit_pos)
 
