@@ -21,7 +21,11 @@ import common as C
 TEX_CHARS = os.path.join(C.TEX_DIR, "characters")
 CACHE_DIR = "/tmp/cc0_cache/chars"
 EYES_MHCLO = os.path.join(CACHE_DIR, "eyes", "low-poly.mhclo")
-MPFB_TARGETS = "/home/antigravity/.config/blender/4.2/extensions/user_default/mpfb/data/targets"
+_mpfb_candidates = [
+    "/home/antigravity/.config/blender/4.2/extensions/user_default/mpfb/data/targets",
+    os.path.expanduser("~/.config/blender/4.2/extensions/user_default/mpfb/data/targets"),
+]
+MPFB_TARGETS = next((c for c in _mpfb_candidates if os.path.isdir(c)), _mpfb_candidates[0])
 
 ARM_L_BONES = {
     "upperarm_l", "lowerarm_l", "hand_l",
