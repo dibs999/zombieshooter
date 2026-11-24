@@ -7,6 +7,17 @@ extends CanvasLayer
 func _ready() -> void:
 	visible = false
 	GameManager.game_over_triggered.connect(_on_game_over)
+	_apply_cod_style()
+
+
+func _apply_cod_style() -> void:
+	CodUiStyle.dark_panel(get_node_or_null("Panel") as PanelContainer, 0.55)
+	CodUiStyle.style_title(title_lbl, 40, Color(0.80, 0.15, 0.11))
+	var tw := CodUiStyle.typewriter_font()
+	if tw:
+		stats_lbl.add_theme_font_override("font", tw)
+	stats_lbl.add_theme_color_override("font_color", CodUiStyle.BONE)
+	CodUiStyle.style_buttons(get_node("Panel") as Control)
 
 
 func _on_game_over(stats: Dictionary) -> void:
