@@ -635,6 +635,7 @@ func _grade_hand_materials(root: Node) -> void:
 		"TacticalLeather": Color(0.72, 0.68, 0.62),
 		"GloveReinforceLeather": Color(0.8, 0.76, 0.72),
 		"SleeveWool": Color(0.62, 0.66, 0.55),
+		"KnitCuff": Color(0.48, 0.72, 0.58),
 	}
 	var stack: Array[Node] = [root]
 	while not stack.is_empty():
