@@ -75,6 +75,11 @@ func _apply_cod_style() -> void:
 		for lb in [points_label, ammo_label, weapon_name_label, secondary_label, grenade_count_label]:
 			if lb:
 				lb.add_theme_font_override("font", tw)
+	if tw:
+		prompt_label.add_theme_font_override("font", tw)
+	prompt_label.add_theme_font_size_override("font_size", 27)
+	prompt_label.add_theme_constant_override("outline_size", 6)
+	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	grenade_count_label.add_theme_font_size_override("font_size", 20)
 
 

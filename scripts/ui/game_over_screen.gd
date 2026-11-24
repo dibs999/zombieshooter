@@ -23,6 +23,9 @@ func _apply_cod_style() -> void:
 func _on_game_over(stats: Dictionary) -> void:
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var restart_btn := get_node_or_null("Panel/VBox/Buttons/RestartBtn") as Button
+	if restart_btn:
+		restart_btn.grab_focus()
 	var rounds := int(stats.get("rounds_survived", 1))
 	title_lbl.text = "GAME OVER\nYOU SURVIVED %d ROUND%s" % [rounds, "" if rounds == 1 else "S"]
 	var ee_done := bool(stats.get("easter_egg_completed", false))
