@@ -656,6 +656,55 @@ func _build_props_and_atmosphere() -> void:
 		[Vector3(15.9, 0.0, -21.0), 20.0, 0.85],
 	]:
 		_place_prop("res://assets/models/env/rubble_pile.glb", rspec[0], rspec[1], Vector3(1.5, 0.62, 1.0) * rspec[2], Vector3(0, 0.30, 0))
+	_scatter_floor_debris()
+
+
+func _scatter_floor_debris() -> void:
+	# One draw call of rubble chunks/pebbles across all rooms: breaks up the bare-floor look
+	var areas := [
+		[Vector2(-9.4, -7.4), Vector2(9.4, 9.4), 60],
+		[Vector2(-23.4, -7.4), Vector2(-10.6, 7.4), 55],
+		[Vector2(10.6, -7.4), Vector2(23.4, 7.4), 55],
+		[Vector2(-23.4, -21.4), Vector2(23.4, -8.6), 110],
+		[Vector2(-11.4, -41.4), Vector2(23.4, -28.6), 90],
+	]
+	var total := 0
+	for a in areas:
+		total += a[2]
+	var rock := SphereMesh.new()
+	rock.radial_segments = 6
+	rock.rings = 3
+	rock.radius = 0.5
+	rock.height = 1.0
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.42, 0.40, 0.37)
+	mat.roughness = 0.95
+	mat.vertex_color_use_as_albedo = true
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = rock
+	mm.instance_count = total
+	var idx := 0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 115115
+	for a in areas:
+		var mn: Vector2 = a[0]
+		var mx: Vector2 = a[1]
+		for i in range(a[2]):
+			var pos := Vector3(rng.randf_range(mn.x, mx.x), 0.015, rng.randf_range(mn.y, mx.y))
+			var s := rng.randf_range(0.05, 0.22)
+			var sy := s * rng.randf_range(0.35, 0.7)
+			var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, sy, s * rng.randf_range(0.7, 1.3)))
+			mm.set_instance_transform(idx, Transform3D(basis, pos))
+			var g := rng.randf_range(0.55, 1.15)
+			mm.set_instance_color(idx, Color(g, g * rng.randf_range(0.92, 1.0), g * rng.randf_range(0.85, 0.98)))
+			idx += 1
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.material_override = mat
+	mmi.name = "FloorDebris"
+	geo_root.add_child(mmi)
 
 
 func _scatter_plank_debris(center: Vector3, facing_deg: float) -> void:
