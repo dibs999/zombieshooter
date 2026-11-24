@@ -615,6 +615,7 @@ func _equip_weapon(idx: int) -> void:
 		lh.position = xform["pos"]
 		lh.rotation = xform["rot"]
 		hands_root.add_child(lh)
+	_grade_hand_materials(hands_root)
 
 	if not _initial_equip_done:
 		_initial_equip_done = true
@@ -625,6 +626,31 @@ func _equip_weapon(idx: int) -> void:
 		_kick_pos = Vector3(0.0, -0.05, 0.04)
 		_kick_rot = Vector3(-0.10, 0.0, 0.0)
 	emit_hud()
+
+
+func _grade_hand_materials(root: Node) -> void:
+	# Darken/weather skin & leather so hands read as shadowed gear, not pale clay
+	var tints := {
+		"FPSkin": Color(0.66, 0.55, 0.47),
+		"TacticalLeather": Color(0.72, 0.68, 0.62),
+		"GloveReinforceLeather": Color(0.8, 0.76, 0.72),
+		"SleeveWool": Color(0.62, 0.66, 0.55),
+	}
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			for surf in mi.get_surface_override_material_count():
+				var mat: Material = mi.get_active_material(surf)
+				if mat is StandardMaterial3D and tints.has(mat.resource_name):
+					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+					var tint: Color = tints[mat.resource_name]
+					sm.albedo_color = sm.albedo_color * tint
+					sm.roughness = minf(1.0, sm.roughness + 0.18)
+					mi.set_surface_override_material(surf, sm)
+		for c in n.get_children():
+			stack.append(c)
 
 
 func _cache_weapon_parts(weapon_inst: Node) -> void:

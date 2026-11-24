@@ -54,9 +54,29 @@ const FALLBACK_PERK_COLORS := {
 }
 
 
+func _apply_cod_style() -> void:
+	# Authentic WaW/BO1 zombies HUD: no health bar (blood vignette carries damage),
+	# no boxed panels — bare typewriter-style numbers floating over the game
+	var bars := get_node_or_null("BottomLeft/Bars") as Control
+	if bars != null:
+		bars.visible = false
+	points_label.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	points_label.add_theme_font_size_override("font_size", 30)
+	points_label.add_theme_color_override("font_color", Color(0.98, 0.95, 0.86))
+	var ammo_card := get_node_or_null("BottomRight/AmmoCard") as PanelContainer
+	if ammo_card != null:
+		ammo_card.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	ammo_label.add_theme_font_size_override("font_size", 34)
+	weapon_name_label.add_theme_font_size_override("font_size", 15)
+	weapon_name_label.modulate = Color(0.85, 0.82, 0.72, 0.85)
+	secondary_label.add_theme_font_size_override("font_size", 13)
+	grenade_count_label.add_theme_font_size_override("font_size", 20)
+
+
 func _ready() -> void:
 	add_to_group("hud")
 	_add_film_grade()
+	_apply_cod_style()
 	blood_vignette.modulate.a = 0.0
 	nuke_flash.modulate.a = 0.0
 	hitmarker.visible = false
@@ -317,7 +337,7 @@ func _on_weapon_updated(wname: String, packed: bool, mag: int, reserve: int, gre
 	else:
 		weapon_name_label.modulate = Color(0.95, 0.92, 0.84)
 
-	ammo_label.text = "%d / %d" % [mag, reserve]
+	ammo_label.text = "%d | %d" % [mag, reserve]
 	if mag == 0 and reserve == 0:
 		ammo_label.modulate = Color(1.0, 0.24, 0.22)
 		reload_hint.text = "NO AMMO"
