@@ -493,6 +493,7 @@ func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Ve
 	GameManager.add_points(10, "Hit")
 	if not is_melee:
 		_spawn_blood_burst(hit_pos)
+		_spawn_wall_splatter(hit_pos, hit_dir)
 	var is_aoe_origin := hit_pos.distance_squared_to(global_position) < 0.04
 	var local_hit := to_local(hit_pos)
 
@@ -621,6 +622,41 @@ func _spawn_blood_decal(pos: Vector3, p_scale: float = 1.0) -> void:
 	d.setup(p_scale)
 	parent_node.add_child(d)
 	d.global_position = Vector3(pos.x, 0.0, pos.z)
+
+
+
+func _spawn_wall_splatter(hit_pos: Vector3, hit_dir: Vector3) -> void:
+	if not is_inside_tree():
+		return
+	var parent_node := _fx_parent()
+	if parent_node == null:
+		return
+	# Project the shot direction onto the first wall behind the zombie (WaW-style splatter)
+	var dir := hit_dir.normalized()
+	if dir.length_squared() < 0.01:
+		return
+	var space := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(hit_pos, hit_pos + dir * 4.0, 1)
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var wall_pos: Vector3 = hit["position"]
+	var n: Vector3 = hit["normal"]
+	if absf(n.y) > 0.7:
+		return  # floors/ceilings already covered by pool decals
+	var d := _blood_decal_scene.instantiate() as BloodDecal
+	d.setup(randf_range(0.55, 0.85), true)
+	parent_node.add_child(d)
+	# Orient the flat decal plane against the wall, facing outward along the normal
+	d.global_position = wall_pos + n * 0.03
+	var basis_z := n.normalized()
+	var basis_x := Vector3.UP.cross(basis_z)
+	if basis_x.length_squared() < 0.001:
+		basis_x = Vector3.RIGHT.cross(basis_z)
+	basis_x = basis_x.normalized()
+	var basis_y := basis_z.cross(basis_x).normalized()
+	d.global_basis = Basis(basis_x, basis_y, basis_z).orthonormalized()
+	d.rotate(basis_z, randf_range(0.0, TAU))
 
 
 func kill_by_nuke() -> void:
