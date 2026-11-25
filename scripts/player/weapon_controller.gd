@@ -657,6 +657,11 @@ static func grade_hand_materials(root: Node) -> void:
 						# flatten to dark wool instead of multiplying a bad texture
 						sm.albedo_texture = null
 						sm.albedo_color = Color(0.14, 0.16, 0.13)
+					elif mat.resource_name == "SleeveWool":
+						# Same shared-atlas problem: the sleeve UVs sample a warm brown/leather
+						# region that reads as bare skin in first person — flatten to olive wool
+						sm.albedo_texture = null
+						sm.albedo_color = Color(0.26, 0.28, 0.20)
 					sm.roughness = minf(1.0, sm.roughness + 0.18)
 					mi.set_surface_override_material(surf, sm)
 		for c in n.get_children():

@@ -143,7 +143,7 @@ func _init_materials() -> void:
 	)
 	_mat_concrete.set_shader_parameter("wall_damp_height", 1.6)
 	_mat_concrete.set_shader_parameter("wall_damp_strength", 0.62)
-	_mat_concrete.set_shader_parameter("macro_variation", 0.30)
+	_mat_concrete.set_shader_parameter("macro_variation", 0.44)
 	_mat_concrete.set_shader_parameter("wall_top_grime_y", 4.8)
 
 	_mat_roof_concrete = _make_world_mat(
@@ -467,8 +467,8 @@ func _build_props_and_atmosphere() -> void:
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(-6.8, 0.0, -5.8), -40.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.92, 1.0), 1.5)
 
 	# === ZONE 2: WEST RESEARCH LAB ===
-	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, -1.6), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
-	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, 2.2), 180.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
+	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, -1.6), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 0.85)
+	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-16.8, 0.0, 2.2), 180.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 0.85)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(-16.8, 0.0, 0.3), 25.0, Vector3(1.0, 1.1, 1.0), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.7)
 	_place_prop("res://assets/models/env_cc0/metal_office_desk.glb", Vector3(-22.2, 0.0, 2.4), 90.0, Vector3(2.0, 0.80, 0.95), Vector3(0, 0.40, 0))
 	_place_visual_model("res://assets/models/env_cc0/chemistry_set.glb", Vector3(-22.15, 0.788, 2.1), 90.0)
@@ -482,6 +482,13 @@ func _build_props_and_atmosphere() -> void:
 	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-19.5, 4.6, -2.5), 0.0)
 	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-14.5, 4.6, 3.5), 0.0)
 
+	# Lab interior wall relief: piping & panels against the flat south wall / east partition
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-14.5, 2.55, 7.74), 180.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-20.5, 2.55, 7.74), 180.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-10.26, 2.55, -1.5), -90.0)
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-10.26, 1.55, -3.4), -90.0)
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-13.2, 1.55, 7.74), 180.0)
+
 	# === ZONE 3: EAST FOUNDRY COURTYARD ===
 	_place_prop("res://assets/models/env_cc0/portable_welding_cart.glb", Vector3(22.4, 0.0, -1.2), -125.0, Vector3(0.84, 1.56, 0.66), Vector3(0, 0.78, 0))
 	_place_prop("res://assets/models/env_cc0/drawer_cabinet.glb", Vector3(10.6, 0.0, 4.9), 90.0, Vector3(1.13, 1.88, 0.50), Vector3(0, 0.94, 0))
@@ -493,8 +500,8 @@ func _build_props_and_atmosphere() -> void:
 	_place_visual_model("res://assets/models/env_cc0/caged_hanging_light.glb", Vector3(17.0, 4.6, 3.8), 90.0)
 
 	# === ZONE 4: REACTOR HALL ===
-	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-1.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
-	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(4.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 1.6)
+	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(-1.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 0.85)
+	_place_prop("res://assets/models/env/lab_pod.glb", Vector3(4.4, 0.0, -20.5), 0.0, Vector3(1.3, 2.5, 1.3), Vector3(0, 1.25, 0), Color(0.15, 0.95, 0.78), 0.85)
 	_place_prop("res://assets/models/env/element115_crystal.glb", Vector3(11.5, 0.0, -13.8), 30.0, Vector3(1.1, 1.2, 1.1), Vector3(0, 0.5, 0), Color(0.1, 0.95, 1.0), 1.8)
 	_place_prop("res://assets/models/env/sandbag_wall.glb", Vector3(7.0, 0.0, -13.0), 15.0, Vector3(2.4, 0.85, 0.7), Vector3(0, 0.42, 0))
 	_place_prop("res://assets/models/env/crate_military.glb", Vector3(-7.0, 0.0, -13.5), -14.0, Vector3(1.2, 0.85, 0.85), Vector3(0, 0.42, 0))
