@@ -21,7 +21,7 @@ background_mode = 2
 sky = SubResource("2")
 ambient_light_source = 3
 ambient_light_color = Color(0.24, 0.32, 0.44, 1)
-ambient_light_energy = 0.58
+ambient_light_energy = 0.38
 ambient_light_sky_contribution = 0.68
 reflected_light_source = 2
 tonemap_mode = 4
@@ -35,7 +35,7 @@ glow_intensity = 0.60
 glow_bloom = 0.14
 fog_enabled = true
 fog_light_color = Color(0.05, 0.09, 0.15, 1)
-fog_density = 0.026
+fog_density = 0.034
 fog_sky_affect = 0.30
 
 [sub_resource type="StandardMaterial3D" id="4"]
