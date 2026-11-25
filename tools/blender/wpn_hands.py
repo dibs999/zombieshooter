@@ -76,7 +76,7 @@ def hand_materials():
         roughness=0.88,
         albedo_tex=os.path.join(wtex, "fp_sleeve_albedo.png"),
         normal_tex=os.path.join(wtex, "fp_sleeve_normal.png"),
-        tint_tex=(0.48, 0.50, 0.44),
+        tint_tex=(0.16, 0.17, 0.13),
         normal_strength=0.52,
     )
     watch_steel = C.make_pbr_mat(
@@ -337,7 +337,7 @@ def _make_shell_from_arm(base_arm, name, mat, face_keep_fn, offset=0.0020, thick
     bm.normal_update()
     if abs(offset) > 1e-5:
         for v in bm.verts:
-            wr = 0.0007 * math.sin(v.co.y * 55.0 + v.co.x * 38.0) * math.cos(v.co.z * 48.0)
+            wr = 0.0013 * math.sin(v.co.y * 55.0 + v.co.x * 38.0) * math.cos(v.co.z * 48.0)
             v.co += v.normal * (offset + wr)
 
     bm.to_mesh(obj.data)
@@ -366,6 +366,44 @@ def _make_shell_from_arm(base_arm, name, mat, face_keep_fn, offset=0.0020, thick
 
 def _count_tris(obj):
     return sum(max(1, len(p.vertices) - 2) for p in obj.data.polygons)
+
+
+def _taper_shell(obj, elbow_pos, fore_axis, fore_len, t_end=1.05, amount=0.22):
+    """Pinch a sleeve shell toward the wrist so it reads as cloth, not a uniform pipe."""
+    if obj is None:
+        return
+    axis = fore_axis.normalized()
+    for v in obj.data.vertices:
+        rel = v.co - elbow_pos
+        t = rel.dot(axis) / max(1e-5, fore_len)
+        tt = min(max((t + 0.2) / (t_end + 0.2), 0.0), 1.0)
+        along = axis * rel.dot(axis)
+        perp = rel - along
+        factor = 1.0 - amount * tt
+        v.co = elbow_pos + along + perp * factor
+    obj.data.update()
+
+
+def _droop_rear(obj, elbow_pos, fore_axis, fore_len, strength=1.9, sweep_x=0.0):
+    """Bend the behind-elbow sleeve mass downward & outward so it exits the bottom/side
+    of the frame instead of pointing back at the camera (first-person framing fix)."""
+    if obj is None:
+        return
+    axis = fore_axis.normalized()
+    for v in obj.data.vertices:
+        rel = v.co - elbow_pos
+        t = rel.dot(axis) / max(1e-5, fore_len)
+        if t < -0.05:
+            d = (-t - 0.05) * fore_len
+            v.co.z -= strength * d * d
+            v.co.x += sweep_x * d * d
+        # Additional steep drop for anything behind the wrist plane: the near-camera
+        # tube is what fills the frame, force it down-right out of view
+        if v.co.y < -0.10:
+            back = (-0.10 - v.co.y)
+            v.co.z -= 2.6 * back * back
+            v.co.x += sweep_x * 1.6 * back * back
+    obj.data.update()
 
 
 def _print_hand_joints(rig, side: str, origin: Vector):
@@ -506,13 +544,10 @@ def build_fp_right_hand():
         arm_raw,
         "R_LeatherGlove",
         m["leather"],
-        face_keep_fn=lambda c, w: (
-            sum(w.get(b, 0.0) for b in glove_bones) >= 0.36
-            or (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) >= 0.92
-        ),
+        face_keep_fn=lambda c, w: sum(w.get(b, 0.0) for b in glove_bones) >= 0.36,
         offset=0.0012,
         thickness=0.0014,
-        dec_ratio=0.55,
+        dec_ratio=0.82,
     )
 
     r_knuckle = _make_shell_from_arm(
@@ -531,17 +566,19 @@ def build_fp_right_hand():
         arm_raw,
         "R_WoolSleeve",
         m["sleeve_wool"],
-        face_keep_fn=lambda c, w: -0.88 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 0.82,
-        offset=0.0054,
-        thickness=0.0034,
+        face_keep_fn=lambda c, w: -2.4 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 1.10,
+        offset=0.0030,
+        thickness=0.0022,
         dec_ratio=0.40,
     )
+    _taper_shell(r_sleeve, elbow_s, fore_axis, fore_len)
+    _droop_rear(r_sleeve, elbow_s, fore_axis, fore_len, sweep_x=1.4)
 
     r_cuff = _make_shell_from_arm(
         arm_raw,
         "R_KnitCuff",
         m["cuff_cloth"],
-        face_keep_fn=lambda c, w: 0.78 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 0.85,
+        face_keep_fn=lambda c, w: 0.58 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 1.12,
         offset=0.0068,
         thickness=0.0042,
         dec_ratio=0.55,
@@ -563,11 +600,11 @@ def build_fp_right_hand():
 
     bpy.data.objects.remove(arm_raw, do_unlink=True)
 
-    organic = C.join_objects([p for p in [arm_skin, r_glove, r_knuckle, r_sleeve] if p is not None], "FPRightOrganic", apply_uv=False)
+    organic = C.join_objects([p for p in [r_glove, r_knuckle, r_sleeve] if p is not None], "FPRightOrganic", apply_uv=False)
     o_tris = _count_tris(organic)
-    if o_tris > 2680:
+    if o_tris > 5200:
         dec = organic.modifiers.new("FinalDecimate", "DECIMATE")
-        dec.ratio = 2640.0 / float(o_tris)
+        dec.ratio = 5100.0 / float(o_tris)
         dec.use_collapse_triangulate = True
         bpy.context.view_layer.objects.active = organic
         bpy.ops.object.modifier_apply(modifier=dec.name)
@@ -668,13 +705,10 @@ def build_fp_left_hand():
         arm_raw,
         "L_LeatherGlove",
         m["leather"],
-        face_keep_fn=lambda c, w: (
-            sum(w.get(b, 0.0) for b in glove_bones) >= 0.36
-            or (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) >= 0.92
-        ),
+        face_keep_fn=lambda c, w: sum(w.get(b, 0.0) for b in glove_bones) >= 0.36,
         offset=0.0012,
         thickness=0.0014,
-        dec_ratio=0.55,
+        dec_ratio=0.82,
     )
 
     l_palm = _make_shell_from_arm(
@@ -691,17 +725,19 @@ def build_fp_left_hand():
         arm_raw,
         "L_WoolSleeve",
         m["sleeve_wool"],
-        face_keep_fn=lambda c, w: -0.88 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 0.82,
-        offset=0.0054,
-        thickness=0.0034,
+        face_keep_fn=lambda c, w: -2.4 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 1.10,
+        offset=0.0030,
+        thickness=0.0022,
         dec_ratio=0.40,
     )
+    _taper_shell(l_sleeve, elbow_s, fore_axis, fore_len)
+    _droop_rear(l_sleeve, elbow_s, fore_axis, fore_len, sweep_x=-1.4)
 
     l_cuff = _make_shell_from_arm(
         arm_raw,
         "L_KnitCuff",
         m["cuff_cloth"],
-        face_keep_fn=lambda c, w: 0.78 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 0.85,
+        face_keep_fn=lambda c, w: 0.58 <= (c - elbow_s).dot(fore_axis) / max(1e-5, fore_len) <= 1.12,
         offset=0.0068,
         thickness=0.0042,
         dec_ratio=0.55,
@@ -757,7 +793,7 @@ def build_fp_left_hand():
 
     bpy.data.objects.remove(arm_raw, do_unlink=True)
 
-    organic = C.join_objects([p for p in [arm_skin, l_glove, l_palm, l_sleeve] if p is not None], "FPLeftOrganic", apply_uv=False)
+    organic = C.join_objects([p for p in [l_glove, l_palm, l_sleeve] if p is not None], "FPLeftOrganic", apply_uv=False)
     o_tris = _count_tris(organic)
     if o_tris > 2580:
         dec = organic.modifiers.new("FinalDecimate", "DECIMATE")

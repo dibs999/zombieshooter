@@ -35,6 +35,13 @@ var _repath_cd: float = 0.0
 var _stagger_timer: float = 0.0
 var _leg_damage: float = 0.0
 
+# Organic lurching: per-zombie randomized gait so hordes never move in sync
+var _lurch_t: float = 0.0
+var _lurch_rate: float = 3.0
+var _lurch_amount: float = 0.20
+var _sway_phase: float = 0.0
+var _pending_hit_timer: float = -1.0
+
 var _anim_player: AnimationPlayer = null
 var _skeleton: Skeleton3D = null
 var _head_bone_idx: int = -1
@@ -98,11 +105,25 @@ func _ready() -> void:
 	body_area.set_meta("zombie_owner", self)
 	_groan_cd = randf_range(1.2, 6.0)
 	_head_sync_tick = randi() & 3
+	_lurch_rate = randf_range(2.3, 3.9)
+	_lurch_t = randf() * TAU
+	_sway_phase = randf() * TAU
+	_lurch_amount = randf_range(0.14, 0.26)
+	move_speed *= randf_range(0.90, 1.10)
 
 	if model_root.get_child_count() == 0:
 		_load_variant_model()
 
 	_play_anim(_locomotion_anim())
+	_desync_anim_phase()
+
+
+func _desync_anim_phase() -> void:
+	# Freshly spawned zombies must never cycle their walk in lockstep
+	if _anim_player != null and _anim_player.is_playing():
+		var len := _anim_player.current_animation_length
+		if len > 0.05:
+			_anim_player.seek(randf() * len, true)
 
 
 func _get_player() -> Node3D:
@@ -156,6 +177,7 @@ func _load_variant_model() -> void:
 		for snode in [_stump_head, _stump_arm_l, _stump_arm_r, _stump_legs]:
 			if snode != null:
 				snode.visible = false
+		_boost_eye_emission(inst)
 
 		if is_crawler:
 			_configure_crawler_collision_and_visuals()
@@ -186,6 +208,49 @@ func _configure_crawler_collision_and_visuals() -> void:
 		dup_a.height = 0.72
 		dup_a.radius = 0.42
 		area_col.shape = dup_a
+
+
+static func _exp_alpha(speed: float, delta: float) -> float:
+	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
+
+
+const TINT_VARIANTS: Array[Color] = [
+	Color(1.0, 1.0, 1.0),
+	Color(0.82, 0.78, 0.72),
+	Color(1.0, 0.86, 0.80),
+	Color(0.78, 0.88, 0.80),
+]
+static var _tint_cache: Dictionary = {}
+
+
+func _boost_eye_emission(inst: Node) -> void:
+	# CoD Zombies signature: amber/orange eyes glowing through the dark,
+	# plus per-zombie clothing/skin tint variance so the horde reads as individuals
+	var variant_idx: int = randi() % TINT_VARIANTS.size()
+	var tint: Color = TINT_VARIANTS[variant_idx]
+	var stack: Array[Node] = [inst]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			for surf in mi.get_surface_override_material_count():
+				var mat: Material = mi.get_active_material(surf)
+				if mat is StandardMaterial3D:
+					if "Eye" in mat.resource_name:
+						var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+						sm.emission_enabled = true
+						sm.emission = Color(1.0, 0.52, 0.12)
+						sm.emission_energy_multiplier = 9.0
+						mi.set_surface_override_material(surf, sm)
+					elif variant_idx != 0:
+						var key := str(mat.get_instance_id()) + "_" + str(variant_idx)
+						if not _tint_cache.has(key):
+							var tm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+							tm.albedo_color = tm.albedo_color * tint
+							_tint_cache[key] = tm
+						mi.set_surface_override_material(surf, _tint_cache[key])
+		for c in n.get_children():
+			stack.append(c)
 
 
 func _find_rig_nodes(node: Node) -> void:
@@ -220,14 +285,37 @@ func _play_anim(anim_name: String, force_restart: bool = false) -> void:
 			return
 	if not force_restart and _current_anim == target and _anim_player.is_playing():
 		return
-	var blend := 0.0 if _current_anim == "" else 0.16
+	var blend := 0.0 if _current_anim == "" else 0.22
 	_current_anim = target
 	_anim_player.play(target, blend)
+	# Match foot cadence to actual move speed so walkers shamble & sprinters don't slide
+	if target in ["Walk", "Run", "Crawl"]:
+		_anim_player.speed_scale = clampf(move_speed / 2.35, 0.72, 1.9)
+	else:
+		_anim_player.speed_scale = 1.0
 
 
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD or GameManager.is_game_over:
 		return
+
+	# Delayed attack windup: damage lands mid-swing, not on frame 1 (dodgeable, CoD-like)
+	if _pending_hit_timer > 0.0:
+		_pending_hit_timer -= delta
+		if _pending_hit_timer <= 0.0:
+			var p_hit := _get_player()
+			if p_hit != null and global_position.distance_to(p_hit.global_position) <= 2.2 and p_hit.has_method("take_damage"):
+				p_hit.take_damage(attack_damage)
+
+	# Advance per-zombie gait phase & organic upper-body sway
+	var gait_scale := 0.55 if is_crawler else 1.0
+	_lurch_t += delta * _lurch_rate * gait_scale
+	_sway_phase += delta * _lurch_rate * 0.5 * gait_scale
+	var moving := state == State.CHASING or state == State.APPROACHING_WINDOW
+	var target_roll := sin(_lurch_t) * (0.030 if moving and not is_crawler else 0.012)
+	var target_pitch := sin(_lurch_t * 0.5 + 0.7) * (0.018 if moving and not is_crawler else 0.008)
+	model_root.rotation.z = lerpf(model_root.rotation.z, target_roll, _exp_alpha(6.0, delta))
+	model_root.rotation.x = lerpf(model_root.rotation.x, target_pitch, _exp_alpha(6.0, delta))
 
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	_stagger_timer = maxf(0.0, _stagger_timer - delta)
@@ -269,9 +357,10 @@ func _process_approaching_window(delta: float) -> void:
 		_tear_cd = 0.4
 		return
 	var dir := to_goal.normalized()
-	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
-	velocity.x = dir.x * spd
-	velocity.z = dir.z * spd
+	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0) * (1.0 + sin(_lurch_t) * _lurch_amount)
+	var accel := _exp_alpha(7.5, delta)
+	velocity.x = lerpf(velocity.x, dir.x * spd, accel)
+	velocity.z = lerpf(velocity.z, dir.z * spd, accel)
 	velocity.y = -9.8 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
@@ -290,9 +379,17 @@ func _process_breaking_barrier(delta: float) -> void:
 	if target_window.has_planks():
 		_tear_cd -= delta
 		if _tear_cd <= 0.0:
-			_tear_cd = 1.35
-			_play_anim("Crawl" if is_crawler else "Tear", true)
-			target_window.tear_plank()
+			# WaW behavior: zombies swipe through the barricade at players hugging the window
+			var p_near := _get_player()
+			var player_close := p_near != null and global_position.distance_to(p_near.global_position) <= 2.1
+			if player_close and not is_crawler:
+				_tear_cd = 1.6
+				_play_anim("Attack", true)
+				_pending_hit_timer = 0.38
+			else:
+				_tear_cd = 1.35
+				_play_anim("Crawl" if is_crawler else "Tear", true)
+				target_window.tear_plank()
 	else:
 		state = State.VAULTING
 		vault_progress = 0.0
@@ -331,8 +428,7 @@ func _process_chasing(delta: float) -> void:
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.15
 			_play_anim("Crawl" if is_crawler else "Attack", true)
-			if player.has_method("take_damage"):
-				player.take_damage(attack_damage)
+			_pending_hit_timer = 0.38
 		return
 
 	_repath_cd -= delta
@@ -351,9 +447,13 @@ func _process_chasing(delta: float) -> void:
 	if move_dir.length_squared() > 0.001:
 		move_dir = move_dir.normalized()
 
-	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0)
-	velocity.x = move_dir.x * spd
-	velocity.z = move_dir.z * spd
+	var spd := move_speed * (0.45 if _stagger_timer > 0.0 else 1.0) * (1.0 + sin(_lurch_t) * _lurch_amount)
+	# Shambling lateral drift perpendicular to the path — zombies weave, never glide in straight lines
+	var perp := Vector3(move_dir.z, 0.0, -move_dir.x)
+	var lateral := sin(_sway_phase) * 0.30 * (0.4 if is_crawler else 1.0)
+	var accel := _exp_alpha(7.5, delta)
+	velocity.x = lerpf(velocity.x, move_dir.x * spd + perp.x * lateral, accel)
+	velocity.z = lerpf(velocity.z, move_dir.z * spd + perp.z * lateral, accel)
 	if not is_on_floor():
 		velocity.y -= 15.0 * delta
 	else:
@@ -368,7 +468,7 @@ func _face_direction(dir: Vector3, delta: float) -> void:
 	if dir.length_squared() < 0.001:
 		return
 	var target_yaw := atan2(-dir.x, -dir.z)
-	rotation.y = lerp_angle(rotation.y, target_yaw, delta * 9.5)
+	rotation.y = lerp_angle(rotation.y, target_yaw, _exp_alpha(9.5, delta))
 
 
 func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Vector3, is_melee: bool = false) -> bool:
@@ -391,6 +491,9 @@ func take_damage(amount: float, is_headshot: bool, hit_pos: Vector3, hit_dir: Ve
 
 	# Non-lethal localized dismemberment & stagger logic
 	GameManager.add_points(10, "Hit")
+	if not is_melee:
+		_spawn_blood_burst(hit_pos)
+		_spawn_wall_splatter(hit_pos, hit_dir)
 	var is_aoe_origin := hit_pos.distance_squared_to(global_position) < 0.04
 	var local_hit := to_local(hit_pos)
 
@@ -519,6 +622,41 @@ func _spawn_blood_decal(pos: Vector3, p_scale: float = 1.0) -> void:
 	d.setup(p_scale)
 	parent_node.add_child(d)
 	d.global_position = Vector3(pos.x, 0.0, pos.z)
+
+
+
+func _spawn_wall_splatter(hit_pos: Vector3, hit_dir: Vector3) -> void:
+	if not is_inside_tree():
+		return
+	var parent_node := _fx_parent()
+	if parent_node == null:
+		return
+	# Project the shot direction onto the first wall behind the zombie (WaW-style splatter)
+	var dir := hit_dir.normalized()
+	if dir.length_squared() < 0.01:
+		return
+	var space := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(hit_pos, hit_pos + dir * 4.0, 1)
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var wall_pos: Vector3 = hit["position"]
+	var n: Vector3 = hit["normal"]
+	if absf(n.y) > 0.7:
+		return  # floors/ceilings already covered by pool decals
+	var d := _blood_decal_scene.instantiate() as BloodDecal
+	d.setup(randf_range(0.55, 0.85), true)
+	parent_node.add_child(d)
+	# Orient the flat decal plane against the wall, facing outward along the normal
+	d.global_position = wall_pos + n * 0.03
+	var basis_z := n.normalized()
+	var basis_x := Vector3.UP.cross(basis_z)
+	if basis_x.length_squared() < 0.001:
+		basis_x = Vector3.RIGHT.cross(basis_z)
+	basis_x = basis_x.normalized()
+	var basis_y := basis_z.cross(basis_x).normalized()
+	d.global_basis = Basis(basis_x, basis_y, basis_z).orthonormalized()
+	d.rotate(basis_z, randf_range(0.0, TAU))
 
 
 func kill_by_nuke() -> void:

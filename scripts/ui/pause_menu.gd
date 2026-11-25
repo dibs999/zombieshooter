@@ -27,6 +27,14 @@ func _ready() -> void:
 	msaa_btn.add_item("2x")
 	msaa_btn.add_item("4x")
 	_sync_ui()
+	_apply_cod_style()
+
+
+func _apply_cod_style() -> void:
+	CodUiStyle.dark_panel(get_node_or_null("Root/Panel") as PanelContainer, 0.55)
+	CodUiStyle.style_title(get_node_or_null("Root/Panel/VBox/Title") as Label, 34)
+	CodUiStyle.style_buttons(root)
+	CodUiStyle.style_labels(root, [get_node_or_null("Root/Panel/VBox/Title") as Label])
 
 
 func _sync_ui() -> void:

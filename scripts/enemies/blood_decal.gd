@@ -28,9 +28,14 @@ static func _get_shared_mat() -> StandardMaterial3D:
 	return _shared_mat
 
 
-func setup(p_scale: float = 1.0) -> void:
+var _wall_mode: bool = false
+
+
+func setup(p_scale: float = 1.0, wall_mode: bool = false) -> void:
 	_target_scale = p_scale
-	rotation.y = randf_range(0.0, TAU)
+	_wall_mode = wall_mode
+	if not wall_mode:
+		rotation.y = randf_range(0.0, TAU)
 	scale = Vector3(0.25 * _target_scale, 1.0, 0.25 * _target_scale)
 
 
@@ -44,7 +49,8 @@ func _ready() -> void:
 		if is_instance_valid(old) and old != self:
 			old.queue_free()
 
-	global_position.y = maxf(0.012, global_position.y + 0.012)
+	if not _wall_mode:
+		global_position.y = maxf(0.012, global_position.y + 0.012)
 	if quad_mesh:
 		quad_mesh.material_override = _get_shared_mat()
 		quad_mesh.transparency = 0.0

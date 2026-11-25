@@ -14,6 +14,7 @@ var attack_damage: float = 35.0
 var is_dead: bool = false
 var _attack_cd: float = 0.0
 var _repath_cd: float = 0.0
+var _pending_hit_timer: float = -1.0
 var _anim_player: AnimationPlayer = null
 var _current_anim: String = ""
 var _player: Node3D = null
@@ -41,6 +42,10 @@ func _ready() -> void:
 	_trigger_spawn_lightning()
 	AudioManager.play_3d("hellhound_howl", global_position, 0.1, 0.0)
 	_play_anim("Run")
+	if _anim_player != null and _anim_player.is_playing():
+		var len := _anim_player.current_animation_length
+		if len > 0.05:
+			_anim_player.seek(randf() * len, true)
 
 
 func _get_player() -> Node3D:
@@ -89,17 +94,28 @@ func _find_anim(n: Node) -> void:
 		_find_anim(c)
 
 
+static func _exp_alpha(speed: float, delta: float) -> float:
+	return clampf(1.0 - exp(-speed * maxf(delta, 0.0)), 0.0, 1.0)
+
+
 func _play_anim(a: String, force_restart: bool = false) -> void:
 	if _anim_player and (force_restart or _current_anim != a) and _anim_player.has_animation(a):
-		var blend := 0.0 if _current_anim == "" else 0.12
+		var blend := 0.0 if _current_anim == "" else 0.18
 		_current_anim = a
 		_anim_player.play(a, blend)
+		_anim_player.speed_scale = clampf(move_speed / 6.3, 0.8, 1.5) if a == "Run" else 1.0
 
 
 func _physics_process(delta: float) -> void:
 	if is_dead or GameManager.is_game_over:
 		return
 	_attack_cd = maxf(0.0, _attack_cd - delta)
+	if _pending_hit_timer > 0.0:
+		_pending_hit_timer -= delta
+		if _pending_hit_timer <= 0.0:
+			var p_hit := _get_player()
+			if p_hit != null and global_position.distance_to(p_hit.global_position) <= 2.1 and p_hit.has_method("take_damage"):
+				p_hit.take_damage(attack_damage)
 	if ember_light != null:
 		ember_light.light_energy = 2.1 + sin(Time.get_ticks_msec() * 0.015) * 0.45
 
@@ -115,8 +131,7 @@ func _physics_process(delta: float) -> void:
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.0
 			_play_anim("Attack", true)
-			if player.has_method("take_damage"):
-				player.take_damage(attack_damage)
+			_pending_hit_timer = 0.26
 		return
 
 	_repath_cd -= delta
@@ -134,8 +149,9 @@ func _physics_process(delta: float) -> void:
 	if dir.length_squared() > 0.001:
 		dir = dir.normalized()
 
-	velocity.x = dir.x * move_speed
-	velocity.z = dir.z * move_speed
+	var accel := _exp_alpha(10.0, delta)
+	velocity.x = lerpf(velocity.x, dir.x * move_speed, accel)
+	velocity.z = lerpf(velocity.z, dir.z * move_speed, accel)
 	velocity.y = -15.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()
 	_face_direction(dir, delta)
@@ -146,7 +162,7 @@ func _physics_process(delta: float) -> void:
 func _face_direction(dir: Vector3, delta: float) -> void:
 	if dir.length_squared() < 0.001:
 		return
-	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), delta * 12.0)
+	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), _exp_alpha(12.0, delta))
 
 
 func take_damage(amount: float, is_headshot: bool, _hit_pos: Vector3, _hit_dir: Vector3, is_melee: bool = false) -> bool:

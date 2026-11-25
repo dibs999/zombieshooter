@@ -23,6 +23,7 @@ var _reload_timer: float = 0.0
 var _reload_total: float = 1.45
 var _melee_timer: float = 0.0
 var _flash_timer: float = 0.0
+var _trigger_locked: bool = true
 
 var _was_aiming: bool = false
 var _was_key3_pressed: bool = false
@@ -259,7 +260,12 @@ func _handle_weapon_inputs(delta: float) -> void:
 
 	var cur: Dictionary = weapons[active_idx]
 	var mode := str(WeaponDB.get_stat(cur, "fire_mode"))
-	var wants_fire := Input.is_action_pressed("fire") if mode == "auto" else Input.is_action_just_pressed("fire")
+	# Trigger lock: menu clicks (e.g. PLAY AGAIN) must not leak as shots into the new run —
+	# require the fire button to be released once after equip before it can fire
+	if _trigger_locked:
+		if not Input.is_action_pressed("fire"):
+			_trigger_locked = false
+	var wants_fire := false if _trigger_locked else (Input.is_action_pressed("fire") if mode == "auto" else Input.is_action_just_pressed("fire"))
 	if wants_fire and _fire_cooldown <= 0.0:
 		_try_fire()
 
@@ -419,11 +425,13 @@ func _animate_viewmodel(delta: float) -> void:
 
 	_animate_weapon_parts(delta, cur)
 
-	# Smooth ADS FOV
+	# Smooth ADS FOV + CoD sprint speed-widening
 	if camera:
 		var base_fov := SettingsManager.fov
 		var target_fov := base_fov * float(WeaponDB.get_stat(cur, "ads_fov_mult")) if is_aiming else base_fov
-		camera.fov = lerpf(camera.fov, target_fov, _exp_alpha(14.0, delta))
+		if not is_aiming:
+			target_fov += 5.5 * _sprint_blend
+		camera.fov = lerpf(camera.fov, target_fov, _exp_alpha(10.0, delta))
 		if absf(camera.fov - target_fov) < 0.0001:
 			camera.fov = target_fov
 
@@ -569,6 +577,7 @@ func _get_support_hand_transform(weapon_id: String) -> Dictionary:
 
 
 func _equip_weapon(idx: int) -> void:
+	_trigger_locked = true
 	active_idx = clampi(idx, 0, weapons.size() - 1)
 	is_reloading = false
 	is_meleeing = false
@@ -613,6 +622,7 @@ func _equip_weapon(idx: int) -> void:
 		lh.position = xform["pos"]
 		lh.rotation = xform["rot"]
 		hands_root.add_child(lh)
+	_grade_hand_materials(hands_root)
 
 	if not _initial_equip_done:
 		_initial_equip_done = true
@@ -623,6 +633,70 @@ func _equip_weapon(idx: int) -> void:
 		_kick_pos = Vector3(0.0, -0.05, 0.04)
 		_kick_rot = Vector3(-0.10, 0.0, 0.0)
 	emit_hud()
+
+
+func _grade_hand_materials(root: Node) -> void:
+	WeaponController.grade_hand_materials(root)
+
+
+static var _wool_tex: NoiseTexture2D = null
+
+static func _wool_noise_texture() -> NoiseTexture2D:
+	if _wool_tex != null:
+		return _wool_tex
+	var t := NoiseTexture2D.new()
+	t.width = 256
+	t.height = 256
+	var n := FastNoiseLite.new()
+	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n.frequency = 0.35
+	n.fractal_octaves = 4
+	t.noise = n
+	# narrow bright ramp: subtle light-dark weave variation around white
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray([Color(0.78, 0.78, 0.78), Color(0.97, 0.97, 0.97), Color(0.78, 0.78, 0.78)])
+	t.color_ramp = ramp
+	_wool_tex = t
+	return t
+
+
+static func grade_hand_materials(root: Node) -> void:
+	# Darken/weather skin & leather so hands read as shadowed gear, not pale clay
+	var tints := {
+		"FPSkin": Color(0.66, 0.55, 0.47),
+		"TacticalLeather": Color(0.72, 0.68, 0.62),
+		"GloveReinforceLeather": Color(0.8, 0.76, 0.72),
+		"SleeveWool": Color(0.62, 0.66, 0.55),
+		"KnitCuff": Color(0.48, 0.72, 0.58),
+	}
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			for surf in mi.get_surface_override_material_count():
+				var mat: Material = mi.get_active_material(surf)
+				if mat is StandardMaterial3D and tints.has(mat.resource_name):
+					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+					var tint: Color = tints[mat.resource_name]
+					sm.albedo_color = sm.albedo_color * tint
+					if mat.resource_name == "KnitCuff":
+						# The shared sleeve atlas bleeds orange leather into the cuff UVs —
+						# flatten to dark wool instead of multiplying a bad texture
+						sm.albedo_texture = null
+						sm.albedo_color = Color(0.14, 0.16, 0.13)
+					elif mat.resource_name == "SleeveWool":
+						# Same shared-atlas problem: the sleeve UVs sample a warm brown/leather
+						# region that reads as bare skin in first person — flatten to olive wool,
+						# but add woven noise so it reads as fabric, not smooth skin
+						sm.albedo_texture = _wool_noise_texture()
+						sm.albedo_color = Color(0.30, 0.33, 0.24)
+						sm.uv1_scale = Vector3(14.0, 14.0, 14.0)
+					sm.roughness = minf(1.0, sm.roughness + 0.18)
+					mi.set_surface_override_material(surf, sm)
+		for c in n.get_children():
+			stack.append(c)
 
 
 func _cache_weapon_parts(weapon_inst: Node) -> void:

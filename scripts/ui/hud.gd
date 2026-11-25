@@ -54,14 +54,52 @@ const FALLBACK_PERK_COLORS := {
 }
 
 
+func _apply_cod_style() -> void:
+	# Authentic WaW/BO1 zombies HUD: no health bar (blood vignette carries damage),
+	# no boxed panels — bare typewriter-style numbers floating over the game
+	var bars := get_node_or_null("BottomLeft/Bars") as Control
+	if bars != null:
+		bars.visible = false
+	points_label.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	points_label.add_theme_font_size_override("font_size", 30)
+	points_label.add_theme_color_override("font_color", Color(0.98, 0.95, 0.86))
+	var ammo_card := get_node_or_null("BottomRight/AmmoCard") as PanelContainer
+	if ammo_card != null:
+		ammo_card.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	ammo_label.add_theme_font_size_override("font_size", 34)
+	weapon_name_label.add_theme_font_size_override("font_size", 15)
+	weapon_name_label.modulate = Color(0.85, 0.82, 0.72, 0.85)
+	secondary_label.add_theme_font_size_override("font_size", 13)
+	var tw := load("res://assets/fonts/SpecialElite.ttf") as Font
+	if tw:
+		for lb in [points_label, ammo_label, weapon_name_label, secondary_label, grenade_count_label]:
+			if lb:
+				lb.add_theme_font_override("font", tw)
+	if tw:
+		prompt_label.add_theme_font_override("font", tw)
+	prompt_label.add_theme_font_size_override("font_size", 27)
+	prompt_label.add_theme_constant_override("outline_size", 6)
+	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	grenade_count_label.add_theme_font_size_override("font_size", 20)
+
+
 func _ready() -> void:
 	add_to_group("hud")
+	_add_film_grade()
+	_apply_cod_style()
 	blood_vignette.modulate.a = 0.0
 	nuke_flash.modulate.a = 0.0
 	hitmarker.visible = false
 	hitmarker.pivot_offset = Vector2(24.0, 24.0)
 	prompt_panel.visible = false
 	banner_label.visible = false
+	# WaW-style: quiet typewriter banners, not arcade popups
+	var btf := load("res://assets/fonts/SpecialElite.ttf") as Font
+	if btf:
+		banner_label.add_theme_font_override("font", btf)
+	banner_label.add_theme_font_size_override("font_size", 22)
+	banner_label.add_theme_color_override("font_color", Color(0.88, 0.84, 0.72, 0.92))
+	banner_label.add_theme_constant_override("outline_size", 4)
 	revive_panel.visible = false
 	reload_hint.visible = false
 	pap_badge.visible = false
@@ -82,6 +120,18 @@ func _ready() -> void:
 	_on_points_changed(GameManager.points, 0, "")
 	_on_round_changed(GameManager.current_round, false)
 	_on_perks_changed(GameManager.perks)
+
+
+func _add_film_grade() -> void:
+	var rect := ColorRect.new()
+	rect.name = "FilmGrade"
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/film_grade.gdshader") as Shader
+	rect.material = sm
+	add_child(rect)
+	move_child(rect, 0)
 
 
 func _process(delta: float) -> void:
@@ -267,7 +317,8 @@ func _on_powerup_updated(timers: Dictionary) -> void:
 
 func _on_powerup_banner(text: String, color: Color) -> void:
 	banner_label.text = text
-	banner_label.modulate = color
+	# CoD-authentic: mute gameplay banner colors toward bone-white, no neon arcade popups
+	banner_label.modulate = color.lerp(Color(0.88, 0.84, 0.72, 0.95), 0.65)
 	banner_label.visible = true
 	_banner_timer = 3.2
 
@@ -304,7 +355,7 @@ func _on_weapon_updated(wname: String, packed: bool, mag: int, reserve: int, gre
 	else:
 		weapon_name_label.modulate = Color(0.95, 0.92, 0.84)
 
-	ammo_label.text = "%d / %d" % [mag, reserve]
+	ammo_label.text = "%d | %d" % [mag, reserve]
 	if mag == 0 and reserve == 0:
 		ammo_label.modulate = Color(1.0, 0.24, 0.22)
 		reload_hint.text = "NO AMMO"

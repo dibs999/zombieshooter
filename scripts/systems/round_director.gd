@@ -27,6 +27,7 @@ var _windows_cache_dirty: bool = true
 var _dog_spawns_cache_dirty: bool = true
 var _windows_zones_snapshot: Dictionary = {}
 var _dog_spawns_zones_snapshot: Dictionary = {}
+var _awaiting_first_input := true
 
 
 func _ready() -> void:
@@ -69,7 +70,7 @@ func start_round(r: int) -> void:
 	_is_dog_round = GameManager.is_dog_round(r)
 	_is_panzer_round = is_panzer_round(r)
 	zombies_remaining_to_spawn = GameManager.get_zombie_count_for_round(r)
-	spawn_interval = maxf(0.75, 2.0 * pow(0.95, float(r - 1)))
+	spawn_interval = maxf(0.7, 2.6 * pow(0.90, float(r - 1)))
 	spawn_timer = 1.6
 	in_transition = false
 
@@ -101,11 +102,29 @@ func spawn_panzer_boss(r: int = -1, spawn_pos: Variant = null) -> PanzerBossAI:
 			var windows := _get_unlocked_windows()
 			if not windows.is_empty():
 				boss.global_position = windows[randi() % windows.size()].get_inside_pos()
+	boss.reset_physics_interpolation()
 	active_zombies += 1
 	return boss
 
 
+func _player_gave_input() -> bool:
+	# Only count real gameplay input: mouse must be captured (not in a menu)
+	# and the player must act — menu clicks/loading mouse movements must not open the gate
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return false
+	for action in ["move_forward", "move_backward", "move_left", "move_right", "jump", "fire", "sprint"]:
+		if Input.is_action_pressed(action):
+			return true
+	return false
+
+
 func _process(delta: float) -> void:
+	if _awaiting_first_input:
+		if GameManager.current_round > 1 or _player_gave_input():
+			_awaiting_first_input = false
+			spawn_timer = 4.0  # grace period: read the room before the horde moves
+		else:
+			return
 	if GameManager.is_game_over:
 		return
 
@@ -138,6 +157,7 @@ func _spawn_next_enemy() -> void:
 		var hound := hellhound_scene.instantiate() as HellhoundAI
 		_world_root().add_child(hound)
 		hound.global_position = sp.global_position
+		hound.reset_physics_interpolation()
 		hound.setup(maxf(150.0, hp * 0.55))
 		hound.died.connect(_on_enemy_died)
 		zombies_remaining_to_spawn -= 1
@@ -184,6 +204,7 @@ func _spawn_next_enemy() -> void:
 	z.died.connect(_on_enemy_died)
 	_world_root().add_child(z)
 	z.global_position = win.get_spawn_pos()
+	z.reset_physics_interpolation()
 
 	zombies_remaining_to_spawn -= 1
 	active_zombies += 1
@@ -254,6 +275,7 @@ func _spawn_powerup(kind: String, pos: Vector3) -> void:
 	var pu := powerup_scene.instantiate() as Node3D
 	_world_root().add_child(pu)
 	pu.global_position = pos
+	pu.reset_physics_interpolation()
 	if pu.has_method("setup"):
 		pu.setup(kind)
 

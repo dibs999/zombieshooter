@@ -63,6 +63,9 @@ func is_grounded() -> bool:
 	return _grounded_override or is_on_floor()
 
 
+var _mouse_grace: float = 0.35
+var _was_captured: bool = false
+
 func _ready() -> void:
 	add_to_group("player")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -89,8 +92,8 @@ func _on_perks_changed(_perks: Array[String]) -> void:
 	GameManager.player_health_changed.emit(hp, max_hp)
 
 
-func _on_round_changed(_r: int, _is_dog: bool) -> void:
-	if weapon_ctrl:
+func _on_round_changed(r: int, _is_dog: bool) -> void:
+	if weapon_ctrl and r > 1:
 		weapon_ctrl.grenades = mini(4, weapon_ctrl.grenades + 2)
 		weapon_ctrl.emit_hud()
 
@@ -99,7 +102,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if GameManager.is_game_over or get_tree().paused:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if _mouse_grace > 0.0:
+			return
 		var mm := event as InputEventMouseMotion
+		if mm.relative.length() > 250.0:
+			return  # capture/alt-tab artifact spike, not a real flick
 		var aiming := weapon_ctrl != null and weapon_ctrl.is_aiming
 		var sens := SettingsManager.mouse_sensitivity * (0.65 if aiming else 1.0)
 		rotate_y(-mm.relative.x * sens)
@@ -112,6 +119,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if GameManager.is_game_over or get_tree().paused:
 		return
+	_mouse_grace = maxf(0.0, _mouse_grace - delta)
+	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if captured and not _was_captured:
+		_mouse_grace = 0.45  # swallow menu-click motion so the camera doesn't snap
+	_was_captured = captured
 	_update_camera_motion(delta)
 
 
@@ -163,6 +175,11 @@ func _handle_movement(delta: float) -> void:
 	elif not _was_grounded:
 		var drop := _air_peak_y - global_position.y
 		_air_peak_y = global_position.y
+		# Landing impact: camera dip + shake scaled by fall height (CoD weighty landing)
+		if drop > 0.55 and not is_downed:
+			var impact := clampf((drop - 0.55) / 3.2, 0.0, 1.0)
+			_recoil_pitch = clampf(_recoil_pitch - 0.028 - 0.05 * impact, -0.22, 0.25)
+			add_camera_trauma(0.10 + 0.18 * impact)
 		if drop >= 2.2 and GameManager.has_perk("phdflopper") and not is_downed:
 			trigger_phd_explosion()
 	else:
