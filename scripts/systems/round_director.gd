@@ -112,7 +112,7 @@ func _player_gave_input() -> bool:
 	# and the player must act — menu clicks/loading mouse movements must not open the gate
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return false
-	for action in ["move_forward", "move_back", "move_left", "move_right", "jump", "shoot", "sprint"]:
+	for action in ["move_forward", "move_backward", "move_left", "move_right", "jump", "fire", "sprint"]:
 		if Input.is_action_pressed(action):
 			return true
 	return false
