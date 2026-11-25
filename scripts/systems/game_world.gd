@@ -489,6 +489,19 @@ func _build_props_and_atmosphere() -> void:
 	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-10.26, 1.55, -3.4), -90.0)
 	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-13.2, 1.55, 7.74), 180.0)
 
+	# Ceiling service-pipe runs: break up the flat void-black ceiling expanses
+	for cp in [
+		[Vector3(-17.0, 4.55, -4.5), 0.0], [Vector3(-17.0, 4.55, 2.5), 0.0],
+		[Vector3(-13.5, 4.55, 0.0), 90.0], [Vector3(-20.5, 4.55, 0.0), 90.0],
+		[Vector3(0.0, 5.35, -15.0), 0.0], [Vector3(-8.0, 5.35, -17.5), 90.0], [Vector3(8.0, 5.35, -17.5), 90.0],
+	]:
+		var pipe_holder := Node3D.new()
+		pipe_holder.position = cp[0]
+		pipe_holder.rotation_degrees = Vector3(90.0, cp[1], 0.0)
+		if ResourceLoader.exists("res://assets/models/env_cc0/service_pipes.glb"):
+			pipe_holder.add_child((load("res://assets/models/env_cc0/service_pipes.glb") as PackedScene).instantiate())
+			geo_root.add_child(pipe_holder)
+
 	# === ZONE 3: EAST FOUNDRY COURTYARD ===
 	_place_prop("res://assets/models/env_cc0/portable_welding_cart.glb", Vector3(22.4, 0.0, -1.2), -125.0, Vector3(0.84, 1.56, 0.66), Vector3(0, 0.78, 0))
 	_place_prop("res://assets/models/env_cc0/drawer_cabinet.glb", Vector3(10.6, 0.0, 4.9), 90.0, Vector3(1.13, 1.88, 0.50), Vector3(0, 0.94, 0))
