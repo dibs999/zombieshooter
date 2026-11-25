@@ -509,6 +509,19 @@ func _build_props_and_atmosphere() -> void:
 	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(1.5, 5.2, -15.5), 0.0)
 	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(15.0, 5.2, -15.5), 0.0)
 
+	# West reactor/teleporter corner: fill the bare walls with lab clutter & piping
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-23.74, 2.55, -14.8), 90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-23.74, 3.45, -17.6), 90.0)
+	_place_visual_model("res://assets/models/env/wall_pipes.glb", Vector3(-14.0, 2.75, -21.74), 0.0)
+	_place_prop("res://assets/models/env_cc0/metal_office_desk.glb", Vector3(-21.8, 0.0, -13.2), 90.0, Vector3(2.0, 0.80, 0.95), Vector3(0, 0.40, 0))
+	_place_visual_model("res://assets/models/env_cc0/chemistry_set.glb", Vector3(-21.9, 0.788, -13.6), 115.0)
+	_place_visual_model("res://assets/models/env_cc0/bunsen_burner.glb", Vector3(-21.7, 0.788, -12.7), -30.0)
+	_place_prop("res://assets/models/env_cc0/drawer_cabinet.glb", Vector3(-23.2, 0.0, -11.0), 90.0, Vector3(1.13, 1.88, 0.50), Vector3(0, 0.94, 0))
+	_place_prop("res://assets/models/env_cc0/steel_frame_shelves_01.glb", Vector3(-12.5, 0.0, -21.3), 0.0, Vector3(1.1, 2.14, 0.52), Vector3(0, 1.07, 0))
+	_place_visual_model("res://assets/models/env_cc0/medical_box.glb", Vector3(-12.6, 1.1, -21.2), 12.0)
+	_place_visual_model("res://assets/models/env_cc0/power_box_01.glb", Vector3(-17.8, 1.65, -21.74), 0.0)
+	_place_visual_model("res://assets/models/env_cc0/hanging_industrial_lamp.glb", Vector3(-15.0, 5.2, -13.0), 0.0)
+
 	# === ZONE 5: RUINED MOTORPOOL COURTYARD (north_yard) ===
 	_place_prop("res://assets/models/env_cc0/covered_car.glb", Vector3(2.2, 0.0, -34.4), 24.0, Vector3(1.82, 1.42, 4.35), Vector3(0, 0.71, 0))
 	_place_prop("res://assets/models/env_cc0/concrete_road_barrier_02.glb", Vector3(-4.6, 0.0, -31.8), 16.0, Vector3(1.56, 1.12, 0.45), Vector3(0, 0.56, 0))
