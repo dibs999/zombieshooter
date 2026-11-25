@@ -93,6 +93,13 @@ func _ready() -> void:
 	hitmarker.pivot_offset = Vector2(24.0, 24.0)
 	prompt_panel.visible = false
 	banner_label.visible = false
+	# WaW-style: quiet typewriter banners, not arcade popups
+	var btf := load("res://assets/fonts/SpecialElite.ttf") as Font
+	if btf:
+		banner_label.add_theme_font_override("font", btf)
+	banner_label.add_theme_font_size_override("font_size", 22)
+	banner_label.add_theme_color_override("font_color", Color(0.88, 0.84, 0.72, 0.92))
+	banner_label.add_theme_constant_override("outline_size", 4)
 	revive_panel.visible = false
 	reload_hint.visible = false
 	pap_badge.visible = false
