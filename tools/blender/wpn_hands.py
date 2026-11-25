@@ -547,7 +547,7 @@ def build_fp_right_hand():
         face_keep_fn=lambda c, w: sum(w.get(b, 0.0) for b in glove_bones) >= 0.36,
         offset=0.0012,
         thickness=0.0014,
-        dec_ratio=0.55,
+        dec_ratio=0.82,
     )
 
     r_knuckle = _make_shell_from_arm(
@@ -602,9 +602,9 @@ def build_fp_right_hand():
 
     organic = C.join_objects([p for p in [r_glove, r_knuckle, r_sleeve] if p is not None], "FPRightOrganic", apply_uv=False)
     o_tris = _count_tris(organic)
-    if o_tris > 2680:
+    if o_tris > 3400:
         dec = organic.modifiers.new("FinalDecimate", "DECIMATE")
-        dec.ratio = 2640.0 / float(o_tris)
+        dec.ratio = 3360.0 / float(o_tris)
         dec.use_collapse_triangulate = True
         bpy.context.view_layer.objects.active = organic
         bpy.ops.object.modifier_apply(modifier=dec.name)
@@ -708,7 +708,7 @@ def build_fp_left_hand():
         face_keep_fn=lambda c, w: sum(w.get(b, 0.0) for b in glove_bones) >= 0.36,
         offset=0.0012,
         thickness=0.0014,
-        dec_ratio=0.55,
+        dec_ratio=0.82,
     )
 
     l_palm = _make_shell_from_arm(
