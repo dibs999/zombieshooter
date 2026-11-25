@@ -70,7 +70,7 @@ func start_round(r: int) -> void:
 	_is_dog_round = GameManager.is_dog_round(r)
 	_is_panzer_round = is_panzer_round(r)
 	zombies_remaining_to_spawn = GameManager.get_zombie_count_for_round(r)
-	spawn_interval = maxf(1.1, 2.6 * pow(0.95, float(r - 1)))
+	spawn_interval = maxf(0.7, 2.6 * pow(0.90, float(r - 1)))
 	spawn_timer = 1.6
 	in_transition = false
 
