@@ -141,7 +141,9 @@ func _init_materials() -> void:
 		"res://assets/textures/env/cc0_concrete_wall_roughness.jpg",
 		0.28, Color(0.62, 0.65, 0.69), false, 0.0, 0.52, 0.0, 0.38
 	)
-	_mat_concrete.set_shader_parameter("wall_damp_height", 1.25)
+	_mat_concrete.set_shader_parameter("wall_damp_height", 1.6)
+	_mat_concrete.set_shader_parameter("wall_damp_strength", 0.62)
+	_mat_concrete.set_shader_parameter("macro_variation", 0.30)
 	_mat_concrete.set_shader_parameter("wall_top_grime_y", 4.8)
 
 	_mat_roof_concrete = _make_world_mat(
