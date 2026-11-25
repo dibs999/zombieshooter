@@ -632,6 +632,28 @@ func _grade_hand_materials(root: Node) -> void:
 	WeaponController.grade_hand_materials(root)
 
 
+static var _wool_tex: NoiseTexture2D = null
+
+static func _wool_noise_texture() -> NoiseTexture2D:
+	if _wool_tex != null:
+		return _wool_tex
+	var t := NoiseTexture2D.new()
+	t.width = 256
+	t.height = 256
+	var n := FastNoiseLite.new()
+	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n.frequency = 0.35
+	n.fractal_octaves = 4
+	t.noise = n
+	# narrow bright ramp: subtle light-dark weave variation around white
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray([Color(0.78, 0.78, 0.78), Color(0.97, 0.97, 0.97), Color(0.78, 0.78, 0.78)])
+	t.color_ramp = ramp
+	_wool_tex = t
+	return t
+
+
 static func grade_hand_materials(root: Node) -> void:
 	# Darken/weather skin & leather so hands read as shadowed gear, not pale clay
 	var tints := {
@@ -659,9 +681,11 @@ static func grade_hand_materials(root: Node) -> void:
 						sm.albedo_color = Color(0.14, 0.16, 0.13)
 					elif mat.resource_name == "SleeveWool":
 						# Same shared-atlas problem: the sleeve UVs sample a warm brown/leather
-						# region that reads as bare skin in first person — flatten to olive wool
-						sm.albedo_texture = null
-						sm.albedo_color = Color(0.155, 0.175, 0.115)
+						# region that reads as bare skin in first person — flatten to olive wool,
+						# but add woven noise so it reads as fabric, not smooth skin
+						sm.albedo_texture = _wool_noise_texture()
+						sm.albedo_color = Color(0.30, 0.33, 0.24)
+						sm.uv1_scale = Vector3(14.0, 14.0, 14.0)
 					sm.roughness = minf(1.0, sm.roughness + 0.18)
 					mi.set_surface_override_material(surf, sm)
 		for c in n.get_children():
