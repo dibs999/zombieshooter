@@ -1302,8 +1302,29 @@ func _place_visual_model(model_path: String, pos: Vector3, rot_y_deg: float, s: 
 	holder.position = pos
 	holder.rotation_degrees.y = rot_y_deg
 	holder.scale = Vector3.ONE * s
-	holder.add_child((load(model_path) as PackedScene).instantiate())
+	var inst: Node3D = (load(model_path) as PackedScene).instantiate()
+	holder.add_child(inst)
+	# Bright CC0 utility props (power boxes etc.) glare in dark rooms — dim toward gunmetal
+	if model_path.get_file() in ["power_box_01.glb"]:
+		_dim_meshes(inst, Color(0.52, 0.54, 0.55))
 	geo_root.add_child(holder)
+
+
+func _dim_meshes(root: Node, tint: Color) -> void:
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			for surf in mi.get_surface_override_material_count():
+				var m: Material = mi.get_active_material(surf)
+				if m is StandardMaterial3D:
+					var dm := (m as StandardMaterial3D).duplicate() as StandardMaterial3D
+					dm.albedo_color = dm.albedo_color * tint
+					dm.roughness = minf(1.0, dm.roughness + 0.15)
+					mi.set_surface_override_material(surf, dm)
+		for c in n.get_children():
+			stack.append(c)
 
 
 func _add_full_moon(pos: Vector3, radius: float) -> void:
