@@ -602,9 +602,9 @@ def build_fp_right_hand():
 
     organic = C.join_objects([p for p in [r_glove, r_knuckle, r_sleeve] if p is not None], "FPRightOrganic", apply_uv=False)
     o_tris = _count_tris(organic)
-    if o_tris > 3400:
+    if o_tris > 5200:
         dec = organic.modifiers.new("FinalDecimate", "DECIMATE")
-        dec.ratio = 3360.0 / float(o_tris)
+        dec.ratio = 5100.0 / float(o_tris)
         dec.use_collapse_triangulate = True
         bpy.context.view_layer.objects.active = organic
         bpy.ops.object.modifier_apply(modifier=dec.name)

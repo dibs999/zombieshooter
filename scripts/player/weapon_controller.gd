@@ -23,6 +23,7 @@ var _reload_timer: float = 0.0
 var _reload_total: float = 1.45
 var _melee_timer: float = 0.0
 var _flash_timer: float = 0.0
+var _trigger_locked: bool = true
 
 var _was_aiming: bool = false
 var _was_key3_pressed: bool = false
@@ -259,7 +260,12 @@ func _handle_weapon_inputs(delta: float) -> void:
 
 	var cur: Dictionary = weapons[active_idx]
 	var mode := str(WeaponDB.get_stat(cur, "fire_mode"))
-	var wants_fire := Input.is_action_pressed("fire") if mode == "auto" else Input.is_action_just_pressed("fire")
+	# Trigger lock: menu clicks (e.g. PLAY AGAIN) must not leak as shots into the new run —
+	# require the fire button to be released once after equip before it can fire
+	if _trigger_locked:
+		if not Input.is_action_pressed("fire"):
+			_trigger_locked = false
+	var wants_fire := false if _trigger_locked else (Input.is_action_pressed("fire") if mode == "auto" else Input.is_action_just_pressed("fire"))
 	if wants_fire and _fire_cooldown <= 0.0:
 		_try_fire()
 
@@ -571,6 +577,7 @@ func _get_support_hand_transform(weapon_id: String) -> Dictionary:
 
 
 func _equip_weapon(idx: int) -> void:
+	_trigger_locked = true
 	active_idx = clampi(idx, 0, weapons.size() - 1)
 	is_reloading = false
 	is_meleeing = false
