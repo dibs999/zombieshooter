@@ -379,9 +379,17 @@ func _process_breaking_barrier(delta: float) -> void:
 	if target_window.has_planks():
 		_tear_cd -= delta
 		if _tear_cd <= 0.0:
-			_tear_cd = 1.35
-			_play_anim("Crawl" if is_crawler else "Tear", true)
-			target_window.tear_plank()
+			# WaW behavior: zombies swipe through the barricade at players hugging the window
+			var p_near := _get_player()
+			var player_close := p_near != null and global_position.distance_to(p_near.global_position) <= 2.1
+			if player_close and not is_crawler:
+				_tear_cd = 1.6
+				_play_anim("Attack", true)
+				_pending_hit_timer = 0.38
+			else:
+				_tear_cd = 1.35
+				_play_anim("Crawl" if is_crawler else "Tear", true)
+				target_window.tear_plank()
 	else:
 		state = State.VAULTING
 		vault_progress = 0.0
