@@ -312,8 +312,8 @@ func _physics_process(delta: float) -> void:
 	_lurch_t += delta * _lurch_rate * gait_scale
 	_sway_phase += delta * _lurch_rate * 0.5 * gait_scale
 	var moving := state == State.CHASING or state == State.APPROACHING_WINDOW
-	var target_roll := sin(_lurch_t) * (0.048 if moving and not is_crawler else 0.015)
-	var target_pitch := sin(_lurch_t * 0.5 + 0.7) * (0.028 if moving and not is_crawler else 0.010)
+	var target_roll := sin(_lurch_t) * (0.030 if moving and not is_crawler else 0.012)
+	var target_pitch := sin(_lurch_t * 0.5 + 0.7) * (0.018 if moving and not is_crawler else 0.008)
 	model_root.rotation.z = lerpf(model_root.rotation.z, target_roll, _exp_alpha(6.0, delta))
 	model_root.rotation.x = lerpf(model_root.rotation.x, target_pitch, _exp_alpha(6.0, delta))
 
