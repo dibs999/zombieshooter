@@ -317,7 +317,8 @@ func _on_powerup_updated(timers: Dictionary) -> void:
 
 func _on_powerup_banner(text: String, color: Color) -> void:
 	banner_label.text = text
-	banner_label.modulate = color
+	# CoD-authentic: mute gameplay banner colors toward bone-white, no neon arcade popups
+	banner_label.modulate = color.lerp(Color(0.88, 0.84, 0.72, 0.95), 0.65)
 	banner_label.visible = true
 	_banner_timer = 3.2
 
