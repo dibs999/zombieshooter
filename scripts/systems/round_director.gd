@@ -70,7 +70,7 @@ func start_round(r: int) -> void:
 	_is_dog_round = GameManager.is_dog_round(r)
 	_is_panzer_round = is_panzer_round(r)
 	zombies_remaining_to_spawn = GameManager.get_zombie_count_for_round(r)
-	spawn_interval = maxf(0.75, 2.0 * pow(0.95, float(r - 1)))
+	spawn_interval = maxf(1.1, 2.6 * pow(0.95, float(r - 1)))
 	spawn_timer = 1.6
 	in_transition = false
 
@@ -108,10 +108,14 @@ func spawn_panzer_boss(r: int = -1, spawn_pos: Variant = null) -> PanzerBossAI:
 
 
 func _player_gave_input() -> bool:
-	for action in ["move_forward", "move_back", "move_left", "move_right", "jump", "shoot"]:
+	# Only count real gameplay input: mouse must be captured (not in a menu)
+	# and the player must act — menu clicks/loading mouse movements must not open the gate
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return false
+	for action in ["move_forward", "move_back", "move_left", "move_right", "jump", "shoot", "sprint"]:
 		if Input.is_action_pressed(action):
 			return true
-	return Input.get_last_mouse_velocity().length() > 8.0
+	return false
 
 
 func _process(delta: float) -> void:

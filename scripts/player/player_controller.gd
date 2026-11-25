@@ -105,6 +105,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _mouse_grace > 0.0:
 			return
 		var mm := event as InputEventMouseMotion
+		if mm.relative.length() > 250.0:
+			return  # capture/alt-tab artifact spike, not a real flick
 		var aiming := weapon_ctrl != null and weapon_ctrl.is_aiming
 		var sens := SettingsManager.mouse_sensitivity * (0.65 if aiming else 1.0)
 		rotate_y(-mm.relative.x * sens)
@@ -120,7 +122,7 @@ func _process(delta: float) -> void:
 	_mouse_grace = maxf(0.0, _mouse_grace - delta)
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if captured and not _was_captured:
-		_mouse_grace = 0.30  # swallow menu-click motion so the camera doesn't snap
+		_mouse_grace = 0.45  # swallow menu-click motion so the camera doesn't snap
 	_was_captured = captured
 	_update_camera_motion(delta)
 

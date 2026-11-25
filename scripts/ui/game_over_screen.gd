@@ -20,6 +20,11 @@ func _apply_cod_style() -> void:
 	CodUiStyle.style_buttons(get_node("Panel") as Control)
 
 
+func _process(_delta: float) -> void:
+	if visible and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
 func _on_game_over(stats: Dictionary) -> void:
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
