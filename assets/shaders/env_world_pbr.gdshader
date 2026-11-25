@@ -171,7 +171,13 @@ void fragment() {
 			float top_streak = fbm2(vec2(wall_coord * 1.15, v_world_pos.y * 0.12));
 			top_mask = smoothstep(wall_top_grime_y - 1.4, wall_top_grime_y, v_world_pos.y) * smoothstep(0.35, 0.78, top_streak);
 		}
-		float damp = clamp(base_mask * 0.85 + top_mask * 0.55, 0.0, 1.0) * wall_damp_strength;
+		// Mid-wall water streaks running down at random columns (derelict bunker seepage)
+		float col = fbm2(vec2(wall_coord * 0.9, 3.7));
+		float streak_col = smoothstep(0.62, 0.86, col);
+		float vert_fade = smoothstep(4.6, 2.6, v_world_pos.y) * smoothstep(0.2, 1.3, v_world_pos.y);
+		float drip = fbm2(vec2(wall_coord * 3.4, v_world_pos.y * 0.35)) * 0.5 + 0.5;
+		float mid_mask = streak_col * vert_fade * drip * 0.55;
+		float damp = clamp(base_mask * 0.85 + top_mask * 0.55 + mid_mask, 0.0, 1.0) * wall_damp_strength;
 		if (damp > 0.001) {
 			alb = mix(alb, alb * 0.45 + grime_tint * 0.35, damp);
 			rgh = mix(rgh, 0.38, base_mask * wall_damp_strength * 0.65);
